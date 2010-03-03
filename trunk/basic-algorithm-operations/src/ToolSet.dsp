@@ -93,6 +93,10 @@ SOURCE=.\CombineMath.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\FileOper.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\main.cpp
 # End Source File
 # Begin Source File
@@ -110,6 +114,10 @@ SOURCE=.\ArraySort.h
 # Begin Source File
 
 SOURCE=.\CombineMath.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\FileOper.h
 # End Source File
 # Begin Source File
 

@@ -3,6 +3,7 @@
 #include "MyUtil.h"
 #include "CombineMath.h"
 #include "ArraySort.h"
+#include "FileOper.h"
 
 void testCombineMath()
 {
@@ -48,10 +49,26 @@ void testArraySort()
 		arryCopy(datasource, 0, copya, 0, n);
 	}
 }
+
+void testFileOper()
+{
+//	FindFile("C:\\Temp");
+
+	const char* filename = "C:\\Temp\\int.txt";
+
+	writeIntToFile(filename, 0x12345678);
+	
+	int x;
+	readIntFromFile(filename, &x);
+	cout<<hex<<x<<endl;
+}
 int main(int argc, char* argv[])
 {
 //	testCombineMath();
-	testArraySort();
+//	testArraySort();
+	testFileOper();
+
+
 	return 0;
 }
 
