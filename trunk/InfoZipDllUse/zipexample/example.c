@@ -74,6 +74,7 @@ void FreeUpMemory(void);
 int WINAPI DummyPassword(LPSTR, int, LPCSTR, LPCSTR);
 int WINAPI DummyPrint(char far *, unsigned long);
 int WINAPI WINAPI DummyComment(char far *);
+int WINAPI dllServiceApplication(LPCSTR str, unsigned long l);
 
 #ifdef WIN32
 BOOL IsNT(VOID);
@@ -124,6 +125,7 @@ if (!lpZipUserFunctions)
 lpZipUserFunctions->print = DummyPrint;
 lpZipUserFunctions->password = DummyPassword;
 lpZipUserFunctions->comment = DummyComment;
+lpZipUserFunctions->ServiceApplication = dllServiceApplication;
 
 /* Let's go find the dll */
 #ifdef WIN32
@@ -374,4 +376,10 @@ int WINAPI DummyComment(char far *szBuf)
 {
 szBuf[0] = '\0';
 return TRUE;
+}
+
+int WINAPI dllServiceApplication(LPCSTR str, unsigned long l)
+{
+	printf("dllServiceApplication %s, %u\n", str, l);
+	return 0;
 }
