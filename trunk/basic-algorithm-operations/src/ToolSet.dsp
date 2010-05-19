@@ -97,6 +97,10 @@ SOURCE=.\FileOper.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\LinkedList.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\main.cpp
 # End Source File
 # Begin Source File
@@ -118,6 +122,10 @@ SOURCE=.\CombineMath.h
 # Begin Source File
 
 SOURCE=.\FileOper.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\LinkedList.h
 # End Source File
 # Begin Source File
 
