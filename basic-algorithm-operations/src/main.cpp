@@ -4,6 +4,7 @@
 #include "CombineMath.h"
 #include "ArraySort.h"
 #include "FileOper.h"
+#include "LinkedList.h"
 
 void testCombineMath()
 {
@@ -62,12 +63,27 @@ void testFileOper()
 	readIntFromFile(filename, &x);
 	cout<<hex<<x<<endl;
 }
+
+void testLinkedList()
+{
+	int data1[] = {1, 3, 15, 27, 29};
+	int data2[] = {2, 2, 4, 8, 18, 30};
+
+	node* p1 = createList(data1, COUNTOF(data1));
+	printList(p1);
+
+	node* p2 = createList(data2, COUNTOF(data2));
+	printList(p2);
+
+	node* p = merge(p1, p2);
+	printList(p);
+}
 int main(int argc, char* argv[])
 {
 //	testCombineMath();
 //	testArraySort();
-	testFileOper();
-
+//	testFileOper();
+	testLinkedList();
 
 	return 0;
 }
