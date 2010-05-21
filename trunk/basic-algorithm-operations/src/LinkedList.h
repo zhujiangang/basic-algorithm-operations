@@ -1,18 +1,22 @@
 #ifndef _LINKEDLIST_H_
 #define _LINKEDLIST_H_
 
-typedef struct node
+struct node
 {
 	int data;
-	struct node *next;
-	node(int dataValue, struct node *nextValue = NULL):data(dataValue),next(nextValue)
+	node *next;
+	node(int dataValue = -1, node *nextValue = NULL)
+		:data(dataValue),next(nextValue)
 	{
 	}
-}node;
+};
 
 node* createList(int data[], int len);
-void deleteList(node* header);
-void printList(node* header);
+void deleteList(node* ph);
+void printList(node* ph);
+int compareList(node* p1, node* p2, node** pdiff1 = NULL, node** pdiff2 = NULL, int* pos = NULL);
+int assertEquals(node* p1, node* p2);
 
 node* merge(node* p1, node* p2);
+node* mergeIter(node* p1, node* p2);
 #endif
