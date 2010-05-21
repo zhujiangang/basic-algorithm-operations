@@ -30,14 +30,61 @@ void deleteList(node* ph)
 		delete p;
 	}
 }
-void printList(node* ph)
+
+void printList(node* ph, int limit)
 {
-	while(ph)
+	if(limit < 0)
 	{
-		cout<<ph->data<<" ";
+		while(ph)
+		{
+			cout<<ph->data<<" ";
+			ph = ph->next;
+		}
+		cout<<endl;
+	}
+	else
+	{
+		int i = 0;
+
+		while(ph && i < limit)
+		{
+			cout<<ph->data<<" ";
+			ph = ph->next;
+			i++;
+		}
+		cout<<endl;
+	}
+}
+
+int size(node* ph)
+{
+	int i = 0;
+	while(ph != NULL)
+	{
+		i++;
 		ph = ph->next;
 	}
-	cout<<endl;
+	return i;
+}
+
+node* get(node* ph, int index)
+{
+	if(index < 0)
+	{
+		return NULL;
+	}
+
+	int i = 0;
+	while(ph != NULL)
+	{
+		if(i == index)
+		{
+			return ph;
+		}
+		ph = ph->next;
+		i++;
+	}
+	return NULL;
 }
 
 node* merge(node* p1, node* p2)
@@ -196,3 +243,42 @@ int assertEquals(node* p1, node* p2)
 	}
 	return ret;
 }
+
+node* reverse(node* ph)
+{
+	node* prev = NULL;
+	node* curr = ph;
+	node* next = NULL;
+
+	while(curr != NULL)
+	{
+		next = curr->next;
+		curr->next = prev;
+		prev = curr;
+		curr = next;
+	}
+	return prev;
+}
+
+node* checkListLoop(node* ph)
+{
+	node* p1 = ph;
+	node* p2 = ph;
+
+	while(p1 != NULL && p2 != NULL)
+	{
+		p1 = p1->next;
+		if(p2->next == NULL)
+		{
+			return NULL;
+		}
+		p2 = p2->next->next;
+
+		if(p1 == p2)
+		{
+			return p1;
+		}
+	}
+	return NULL;
+}
+

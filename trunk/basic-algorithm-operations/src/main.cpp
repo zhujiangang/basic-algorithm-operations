@@ -67,7 +67,7 @@ void testFileOper()
 void testLinkedList()
 {
 	int data1[] = {1, 3, 15, 27, 29};
-	int data2[] = {1, 3, 4, 8, 18, 30};
+	int data2[] = {1, 3, 4, 8, 18, 30, 50, 60, 70};
 
 	node* p1 = createList(data1, COUNTOF(data1));
 	printList(p1);
@@ -75,10 +75,35 @@ void testLinkedList()
 	node* p2 = createList(data2, COUNTOF(data2));
 	printList(p2);
 
+	node* pLastNode = get(p2, size(p2) - 1);
+	node* pInterNode = get(p2, 2); 
+
+	pLastNode->next = pInterNode;
+
+	printList(p2, 12);
+
+	node* pMeetNode = NULL;
+	pMeetNode = checkListLoop(p1);
+	cout<<pMeetNode<<endl;
+
+	pMeetNode = checkListLoop(p2);
+	cout<<pMeetNode<<endl;
+	if(pMeetNode != NULL)
+	{
+		cout<<pMeetNode->data<<endl;
+	}
 // 	node* p = mergeIter(p1, p2);
 // 	printList(p);
 	
-	assertEquals(p1, p2);
+//	assertEquals(p1, p2);
+
+//	node* pr = reverse(p2);
+//	printList(pr);
+
+	deleteList(p1);
+
+	pLastNode->next = NULL;
+	deleteList(p2);
 }
 int main(int argc, char* argv[])
 {

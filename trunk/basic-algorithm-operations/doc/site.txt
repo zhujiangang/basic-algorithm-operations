@@ -1,0 +1,2 @@
+1. 链表环路问题
+http://www.cppblog.com/humanchao/archive/2008/04/17/47357.html
