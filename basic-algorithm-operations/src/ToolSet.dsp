@@ -107,6 +107,10 @@ SOURCE=.\main.cpp
 
 SOURCE=.\MyUtil.cpp
 # End Source File
+# Begin Source File
+
+SOURCE=.\StringOper.cpp
+# End Source File
 # End Group
 # Begin Group "Header Files"
 
@@ -130,6 +134,10 @@ SOURCE=.\LinkedList.h
 # Begin Source File
 
 SOURCE=.\MyUtil.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\StringOper.h
 # End Source File
 # End Group
 # Begin Group "Resource Files"
