@@ -3,27 +3,58 @@
 #include "CombineMath.h"
 #include <stdio.h>
 
-void perm(int a[], int begin, int end)
+/************************************************************************/
+/* P(n,n)                                                               */
+/************************************************************************/
+void perm(int in[], int begin, int end)
 {
 	static int count = 0;
 	if(begin == end)
 	{
 		count++;
 		cout<<count<<") ";
-		output(a, 0, end);
+		output(in, 0, end);
 		return;
 	}
 	else
 	{
 		for(int i = begin; i <= end; i++)
 		{
-			swap(a[begin], a[i]);
-			perm(a, begin + 1, end);
-			swap(a[begin], a[i]);
+			swap(in[begin], in[i]);
+			perm(in, begin + 1, end);
+			swap(in[begin], in[i]);
 		}
 	}
 }
 
+/************************************************************************/
+/* P(n,m)                                                               */
+/************************************************************************/
+void perm(int in[], int n, int m, int out[], int depth, int used[])
+{
+	static int count = 0;
+	if(depth == m)
+	{
+		count++;
+		cout<<count<<") ";
+		output(out, m);
+		return;
+	}
+	for(int i = 0; i < n; i++)
+	{
+		if(!used[i])
+		{
+			out[depth] = in[i];
+			used[i] = 1;
+			perm(in, n, m, out, depth + 1, used);
+			used[i] = 0;
+		}
+	}
+}
+
+/************************************************************************/
+/* collection. 2^n                                                      */
+/************************************************************************/
 void combine(int in[], int len, int inBegin, int out[], int outBegin)
 {
 	static int count = 0;
@@ -45,7 +76,10 @@ void combine(int in[], int len, int inBegin, int out[], int outBegin)
 	}
 }
 
-void combine1(int input[], int n, int m, int output[], int outputLen, int depth)
+/************************************************************************/
+/* C(n, m) = C(n-1, m-1) + C(n-1, m)                                   */
+/************************************************************************/
+void combine1(int in[], int n, int m, int out[], int outputLen, int depth)
 {
 	static int count = 0;
 	if(m < 0)
@@ -60,7 +94,7 @@ void combine1(int input[], int n, int m, int output[], int outputLen, int depth)
 		cout<<count<<") ";
 		for(i = 0; i < outputLen; i++)
 		{
-			cout<<output[i]<<" ";
+			cout<<out[i]<<" ";
 		}
 		cout<<endl;
 		return;
@@ -71,25 +105,28 @@ void combine1(int input[], int n, int m, int output[], int outputLen, int depth)
 		return;
 	}
 
-	output[depth] = input[n - 1];
-	combine1(input, n - 1, m - 1, output, outputLen, depth + 1);
-	combine1(input, n - 1, m, output, outputLen, depth);
+	out[depth] = in[n - 1];
+	combine1(in, n - 1, m - 1, out, outputLen, depth + 1);
+	combine1(in, n - 1, m, out, outputLen, depth);
 }
 
-void combine2(int input[], int n, int m, int output[], int outputLen)
+/*************************************************************************/
+/* C(n, m) = C(n-1, m-1) + C(n-2, m-1) + C(n-3, m-1) + .... + C(m-1, m-1)*/
+/*************************************************************************/
+void combine2(int in[], int n, int m, int out[], int outputLen)
 {
 	static int count = 0;
 
 	int i, j;
 	for(i = n - 1; i >= m - 1; i--)
 	{
-		output[m - 1] = input[i];
+		out[m - 1] = in[i];
 
 		//Greater than 1. If m == 1, we just need to select one, and this one has been done by "output[m - 1] = input[i]",
 		//the task was finished. We have got one result and should go to "else" to process this result.
 		if(m > 1)
 		{
-			combine2(input, i, m - 1, output, outputLen);
+			combine2(in, i, m - 1, out, outputLen);
 		}
 		else
 		{
@@ -97,7 +134,7 @@ void combine2(int input[], int n, int m, int output[], int outputLen)
 			cout<<count<<") ";
 			for(j = 0; j < outputLen; j++)
 			{
-				cout<<output[j]<<" ";
+				cout<<out[j]<<" ";
 			}
 			cout<<endl;
 		}
