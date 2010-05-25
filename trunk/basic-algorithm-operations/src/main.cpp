@@ -1,4 +1,5 @@
 #include <iostream.h>
+#include <string.h>
 
 #include "MyUtil.h"
 #include "CombineMath.h"
@@ -9,19 +10,22 @@
 void testCombineMath()
 {
 	const int n = 5;
-	const int m = 2;
+	const int m = 4;
 	int a[n];
+	int b[n];
+	
 	genseq(a, n);
 //	genrand(a, n, 100);
-
 	output(a, n);
-	perm(a, 0, n - 1);
 
-	int b[n];
-	combine(a, n, 0, b, 0);
-
-	combine1(a, n, m, b, m, 0);
-	combine2(a, n, m, b, m);
+// 	perm(a, 0, n - 1);	
+// 	combine(a, n, 0, b, 0);
+// 	combine1(a, n, m, b, m, 0);
+// 	combine2(a, n, m, b, m);
+	
+	int used[n];
+	memset(used, 0, n * sizeof(int));
+	perm(a, n, m, b, 0, used);
 }
 
 
