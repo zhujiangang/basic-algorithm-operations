@@ -1,31 +1,42 @@
 #include <iostream.h>
 #include <string.h>
+#include <stdio.h>
 
 #include "MyUtil.h"
 #include "CombineMath.h"
 #include "ArraySort.h"
 #include "FileOper.h"
 #include "LinkedList.h"
+#include "StringOper.h"
 
 void testCombineMath()
 {
-	const int n = 5;
-	const int m = 4;
+	const int n = 2;
+	const int m = 1;
 	int a[n];
 	int b[n];
 	
 	genseq(a, n);
 //	genrand(a, n, 100);
 	output(a, n);
+	cout<<endl;
 
-// 	perm(a, 0, n - 1);	
+	perm(a, 0, n - 1);
+	cout<<endl;
+
 // 	combine(a, n, 0, b, 0);
-// 	combine1(a, n, m, b, m, 0);
+//	cout<<endl;
+
+ 	combine1(a, n, m, b, m, 0);
+	cout<<endl;
+
 // 	combine2(a, n, m, b, m);
+//	cout<<endl;
 	
 	int used[n];
 	memset(used, 0, n * sizeof(int));
 	perm(a, n, m, b, 0, used);
+	cout<<endl;
 }
 
 
@@ -117,13 +128,47 @@ void testLinkedList()
 	pLastNode->next = NULL;
 	deleteList(p2);
 }
+
+void testStringOper()
+{
+	char string1[60] = "The quick brown dog jumps over the lazy fox";
+	char string2[60] = "The quick brown fox jumps over the lazy dog";
+	/*                           1         2         3         4         5
+	*                   12345678901234567890123456789012345678901234567890
+	*/
+
+	printf( "Function:\tmemcpy without overlap\n" );
+	printf( "Source:\t\t%s\n", string1 + 40 );
+	printf( "Destination:\t%s\n", string1 + 16 );
+	gmemcpy( string1 + 16, string1 + 40, 3 );
+	printf( "Result:\t\t%s\n", string1 );
+	printf( "Length:\t\t%d characters\n\n", strlen( string1 ) );
+	
+	/* Restore string1 to original contents */
+	gmemcpy( string1 + 16, string2 + 40, 3 );
+	
+	printf( "Function:\tmemmove with overlap\n" );
+	printf( "Source:\t\t%s\n", string2 + 4 );
+	printf( "Destination:\t%s\n", string2 + 10 );
+	gmemmove( string2 + 10, string2 + 4, 40 );
+	printf( "Result:\t\t%s\n", string2 );
+	printf( "Length:\t\t%d characters\n\n", strlen( string2 ) );
+	
+	printf( "Function:\tmemcpy with overlap\n" );
+	printf( "Source:\t\t%s\n", string1 + 4 );
+	printf( "Destination:\t%s\n", string1 + 10 );
+	gmemcpy( string1 + 10, string1 + 4, 40 );
+	printf( "Result:\t\t%s\n", string1 );
+	printf( "Length:\t\t%d characters\n\n", strlen( string1 ) );
+
+}
 int main(int argc, char* argv[])
 {
 	testCombineMath();
 //	testArraySort();
 //	testFileOper();
 //	testLinkedList();
-
+//	testStringOper();
 	return 0;
 }
 
