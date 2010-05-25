@@ -33,21 +33,27 @@ void perm(int in[], int begin, int end)
 void perm(int in[], int n, int m, int out[], int depth, int used[])
 {
 	static int count = 0;
-	if(depth == m)
-	{
-		count++;
-		cout<<count<<") ";
-		output(out, m);
-		return;
-	}
+
 	for(int i = 0; i < n; i++)
 	{
 		if(!used[i])
 		{
 			out[depth] = in[i];
-			used[i] = 1;
-			perm(in, n, m, out, depth + 1, used);
-			used[i] = 0;
+
+			//Not last one
+			if(depth < m - 1)
+			{
+				used[i] = 1;
+				perm(in, n, m, out, depth + 1, used);
+				used[i] = 0;
+			}
+			//Last one. Get enough elements to output
+			else
+			{
+				count++;
+				cout<<count<<") ";
+				output(out, m);
+			}			
 		}
 	}
 }
