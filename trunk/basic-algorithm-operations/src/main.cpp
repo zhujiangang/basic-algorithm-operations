@@ -8,23 +8,19 @@
 
 void testCombineMath()
 {
-	const int n = 3;
+	const int n = 5;
 	const int m = 2;
 	int a[n];
 	genseq(a, n);
 //	genrand(a, n, 100);
 
 	output(a, n);
-//	perm(a, 0, 2);
+	perm(a, 0, n - 1);
 
 	int b[n];
-//	combine(a, n, 0, b, 0);
+	combine(a, n, 0, b, 0);
 
-//	Combin(5, 3, 0);
-
-//	search(0, 5, 3, b, 3);
-
-//	combine1(a, n, m, b, m, 0);
+	combine1(a, n, m, b, m, 0);
 	combine2(a, n, m, b, m);
 }
 
