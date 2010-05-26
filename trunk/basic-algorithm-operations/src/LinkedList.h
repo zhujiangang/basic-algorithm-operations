@@ -25,4 +25,6 @@ node* mergeIter(node* p1, node* p2);
 
 node* reverse(node* ph);
 node* checkListLoop(node* ph);
+
+node* qsort(node* ph);
 #endif
