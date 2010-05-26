@@ -282,3 +282,38 @@ node* checkListLoop(node* ph)
 	return NULL;
 }
 
+node* partition(node** left, node* right)
+{
+	int key = (*left)->data;
+	node* pivot = *left;
+	
+	node** ptr = &(*left)->next; 
+	while (*ptr != right)
+		if ( (*ptr)->data < key )
+		{
+			node *tmp = *ptr;
+			(*ptr) = tmp->next;
+			tmp->next = (*left);
+			(*left) = tmp;
+		}
+		else
+			ptr=&(*ptr)->next;
+		return pivot;
+}
+
+void qsort(node **left, node *right)
+{
+	if(*left!=right && (*left)->next!=right)
+	{
+		node *tmp = partition(left, right);
+		qsort(left, tmp);
+		qsort(&tmp->next, right);
+	}
+}
+
+node* qsort(node* ph)
+{
+	qsort(&ph, NULL);
+	return ph;
+}
+
