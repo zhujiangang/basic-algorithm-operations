@@ -31,6 +31,17 @@ void deleteList(node* ph)
 	}
 }
 
+void showNode(node* ph)
+{
+	if(ph == NULL)
+	{
+		cout<<"NULL"<<endl;
+	}
+	else
+	{
+		cout<<ph->data<<endl;
+	}
+}
 void printList(node* ph, int limit)
 {
 	if(limit < 0)
@@ -281,6 +292,43 @@ node* checkListLoop(node* ph)
 	}
 	return NULL;
 }
+node* getListLoopEntrance(node* ph)
+{
+	node* p1 = ph;
+	node* p2 = ph;
+	
+	while(p1 != NULL && p2 != NULL)
+	{
+		p1 = p1->next;
+		//no loop
+		if(p2->next == NULL)
+		{
+			return NULL;
+		}
+		p2 = p2->next->next;
+		
+		//Found encountering point
+		if(p1 == p2)
+		{
+			break;
+		}
+	}
+
+	//no loop
+	if(p1 == NULL || p2 == NULL)
+	{
+		return NULL;
+	}
+
+	p1 = ph;
+	while(p1 != p2)
+	{
+		p1 = p1->next;
+		p2 = p2->next;
+	}
+	return p1;
+}
+
 
 node* partition(node** left, node* right)
 {
@@ -289,6 +337,8 @@ node* partition(node** left, node* right)
 	
 	node** ptr = &(*left)->next; 
 	while (*ptr != right)
+	{
+		//move the node "*ptr" to the left of the node "*left"
 		if ( (*ptr)->data < key )
 		{
 			node *tmp = *ptr;
@@ -296,9 +346,13 @@ node* partition(node** left, node* right)
 			tmp->next = (*left);
 			(*left) = tmp;
 		}
+		//go to the next node
 		else
+		{
 			ptr=&(*ptr)->next;
-		return pivot;
+		}
+	}
+	return pivot;
 }
 
 void qsort(node **left, node *right)
@@ -317,3 +371,50 @@ node* qsort(node* ph)
 	return ph;
 }
 
+node* partition1(node** left, node* right)
+{
+	int key = (*left)->data;
+	node* pivot = *left;
+	
+	node* ptr = (*left)->next;
+	node* prev_ptr = *left;
+	while (ptr != right)
+	{
+		//move the node "*ptr" to the left of the node "*left"
+		if ( ptr->data < key )
+		{
+			prev_ptr->next = ptr->next;
+			
+			node *tmp = ptr->next;			
+			ptr->next = (*left);
+			(*left) = ptr;
+			
+			ptr = tmp;
+
+			//No need to update prev_ptr in this case.
+		}
+		//go to the next node
+		else
+		{
+			prev_ptr = ptr;
+			ptr = ptr->next;
+		}
+	}
+	return pivot;
+}
+
+void qsort1(node **left, node *right)
+{
+	if(*left!=right && (*left)->next!=right)
+	{
+		node *tmp = partition1(left, right);
+		qsort1(left, tmp);
+		qsort1(&tmp->next, right);
+	}
+}
+
+node* qsort1(node* ph)
+{
+	qsort1(&ph, NULL);
+	return ph;
+}

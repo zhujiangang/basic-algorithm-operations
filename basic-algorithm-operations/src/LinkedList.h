@@ -14,6 +14,7 @@ struct node
 node* createList(int data[], int len);
 void deleteList(node* ph);
 void printList(node* ph, int limit = -1);
+void showNode(node* ph);
 node* get(node* ph, int index);
 int size(node* ph);
 
@@ -25,6 +26,8 @@ node* mergeIter(node* p1, node* p2);
 
 node* reverse(node* ph);
 node* checkListLoop(node* ph);
+node* getListLoopEntrance(node* ph);
 
 node* qsort(node* ph);
+node* qsort1(node* ph);
 #endif

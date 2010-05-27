@@ -144,5 +144,9 @@ SOURCE=.\StringOper.h
 
 # PROP Default_Filter "ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"
 # End Group
+# Begin Group "Test Files"
+
+# PROP Default_Filter "cpp;c;h"
+# End Group
 # End Target
 # End Project
