@@ -89,45 +89,64 @@ void testFileOper()
 
 void testLinkedList()
 {
-// 	int data1[] = {1, 3, 15, 27, 29};
-// 	int data2[] = {1, 3, 4, 8, 18, 30, 50, 60, 70};
-// 
-// 	node* p1 = createList(data1, COUNTOF(data1));
-// 	printList(p1);
-// 
-// 	node* p2 = createList(data2, COUNTOF(data2));
+	//(0). Set up linkedlist
+	int data1[] = {1, 3, 15, 27, 29};
+	int data2[] = {1, 3, 4, 8, 18, 30, 50, 60, 70};
+
+	node* p1 = createList(data1, COUNTOF(data1));
+	printList(p1);
+
+	node* p2 = createList(data2, COUNTOF(data2));
+	printList(p2);
+
+	node* pLastNode = get(p2, size(p2) - 1);
+	node* pInterNode = get(p2, 2); 
+
+	//(0.1). 
+// 	node** ppNode = &pInterNode;
+// 	showNode(*ppNode);
+// 	*ppNode = (*ppNode)->next;
 // 	printList(p2);
 // 
-// 	node* pLastNode = get(p2, size(p2) - 1);
-// 	node* pInterNode = get(p2, 2); 
-// 
+// 	ppNode = &(p2->next->next);
+// 	showNode(*ppNode);
+// 	*ppNode = (*ppNode)->next;
+// 	printList(p2);
+
+	//(1). Test for loop
 // 	pLastNode->next = pInterNode;
 // 
-// 	printList(p2, 12);
+// 	printList(p2, 20);
 // 
 // 	node* pMeetNode = NULL;
 // 	pMeetNode = checkListLoop(p1);
-// 	cout<<pMeetNode<<endl;
+// 	showNode(pMeetNode);
 // 
 // 	pMeetNode = checkListLoop(p2);
-// 	cout<<pMeetNode<<endl;
-// 	if(pMeetNode != NULL)
-// 	{
-// 		cout<<pMeetNode->data<<endl;
-// 	}
+// 	showNode(pMeetNode);
+// 
+// 	node* pLoopEntrance = NULL;
+// 	pLoopEntrance = getListLoopEntrance(p2);
+// 	showNode(pLoopEntrance);
+// 
+// 	pLastNode->next = p2;
+// 	printList(p2, 20);
+// 
+// 
+// 	pLoopEntrance = getListLoopEntrance(p2);
+// 	showNode(pLoopEntrance);
+// 	pLastNode->next = NULL;
+
+	//(2). Test for merge and reverse
 // 	node* p = mergeIter(p1, p2);
 // 	printList(p);
-	
-//	assertEquals(p1, p2);
-
-//	node* pr = reverse(p2);
-//	printList(pr);
-
-// 	deleteList(p1);
+// 	
+// 	assertEquals(p1, p2);
 // 
-// 	pLastNode->next = NULL;
-// 	deleteList(p2);
+// 	node* pr = reverse(p2);
+// 	printList(pr);
 
+	//(3). Test for qsort
 	const int n = 10;
 	int a[n];
 	genrand(a, n, 100);
@@ -137,6 +156,16 @@ void testLinkedList()
 
 	ph = qsort(ph);
 	printList(ph);
+
+	node* ph1 = createList(a, n);
+	printList(ph1);
+	ph1 = qsort1(ph1);
+	printList(ph1);
+
+	assertEquals(ph, ph1);
+	
+	deleteList(p1);	
+	deleteList(p2);
 }
 
 void testStringOper()
