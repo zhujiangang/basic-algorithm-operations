@@ -30,4 +30,12 @@ node* getListLoopEntrance(node* ph);
 
 node* qsort(node* ph);
 node* qsort1(node* ph);
+
+//find the last "index"th node, from 0
+node* rget(node* ph, int index);
+
+//find the middle node(s) of the list "ph"
+//if the node number of the list is odd, pMid1 is the mid node
+//else if the node number is even, pMid1 is the first mid node, and pMid2 is the second mid node
+void getMiddleNode(node* ph, node** pMid1, node** pMid2 = NULL);
 #endif

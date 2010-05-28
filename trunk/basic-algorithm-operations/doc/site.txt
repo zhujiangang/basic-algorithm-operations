@@ -1,3 +1,6 @@
 1. 链表环路问题
 http://www.cppblog.com/humanchao/archive/2008/04/17/47357.html
 http://blog.chinaunix.net/u1/41845/showart_2019391.html
+
+2. 算法大全
+http://www.cnblogs.com/Jax/category/57279.html

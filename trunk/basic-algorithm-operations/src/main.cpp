@@ -91,7 +91,7 @@ void testLinkedList()
 {
 	//(0). Set up linkedlist
 	int data1[] = {1, 3, 15, 27, 29};
-	int data2[] = {1, 3, 4, 8, 18, 30, 50, 60, 70};
+	int data2[] = {1, 3, 4, 8, 10, 18, 30, 50, 60, 70};
 
 	node* p1 = createList(data1, COUNTOF(data1));
 	printList(p1);
@@ -147,23 +147,38 @@ void testLinkedList()
 // 	printList(pr);
 
 	//(3). Test for qsort
-	const int n = 10;
-	int a[n];
-	genrand(a, n, 100);
-
- 	node* ph = createList(a, n);
- 	printList(ph);
-
-	ph = qsort(ph);
-	printList(ph);
-
-	node* ph1 = createList(a, n);
-	printList(ph1);
-	ph1 = qsort1(ph1);
-	printList(ph1);
-
-	assertEquals(ph, ph1);
+// 	const int n = 10;
+// 	int a[n];
+// 	genrand(a, n, 100);
+// 
+//  	node* ph = createList(a, n);
+//  	printList(ph);
+// 
+// 	ph = qsort(ph);
+// 	printList(ph);
+// 
+// 	node* ph1 = createList(a, n);
+// 	printList(ph1);
+// 	ph1 = qsort1(ph1);
+// 	printList(ph1);
+// 
+// 	assertEquals(ph, ph1);
 	
+	node* rnthNode = rget(p1, 0);
+	showNode(rnthNode);
+
+	rnthNode = rget(p1, 4);
+	showNode(rnthNode);
+
+	rnthNode = rget(p1, 6);
+	showNode(rnthNode);
+
+	node* pMid1 = NULL, *pMid2 = NULL;
+	getMiddleNode(p1, &pMid1, &pMid2);
+
+	showNode(pMid1);
+	showNode(pMid2);
+
 	deleteList(p1);	
 	deleteList(p2);
 }
