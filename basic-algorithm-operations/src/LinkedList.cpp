@@ -418,3 +418,62 @@ node* qsort1(node* ph)
 	qsort1(&ph, NULL);
 	return ph;
 }
+
+node* rget(node* ph, int index)
+{
+	int i = 0;
+	node* pEnd = ph;
+	while(pEnd != NULL && i < index)
+	{
+		pEnd = pEnd->next;
+		i++;
+	}
+
+	if(pEnd == NULL)
+	{
+		return NULL;
+	}
+
+	node* pStart = ph;
+	while(pEnd->next != NULL)
+	{
+		pEnd = pEnd->next;
+		pStart = pStart->next;
+	}
+
+	return pStart;
+}
+
+void getMiddleNode(node* ph, node** pMid1, node** pMid2)
+{
+	if(ph == NULL)
+	{
+		*pMid1 = NULL;
+		*pMid2 = NULL;
+		return;
+	}
+	node* p1 = ph;
+	node* p2 = ph;
+	while(true)
+	{
+		//odd number
+		if(p2->next == NULL)
+		{
+			*pMid1 = p1;
+			*pMid2 = NULL;
+			return;
+		}
+		//even number
+		else if(p2->next->next == NULL)
+		{
+			*pMid1 = p1;
+			*pMid2 = p1->next;
+			return;
+		}
+		else
+		{
+			p1 = p1->next;
+			p2 = p2->next->next;
+		}
+	}
+}
