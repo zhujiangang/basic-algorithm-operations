@@ -99,6 +99,13 @@ void testLinkedList()
 	node* p2 = createList(data2, COUNTOF(data2));
 	printList(p2);
 
+	const int n = 10;
+	int a[n];
+	genrand(a, n, 100);
+	
+	node* p3 = createList(a, n);
+ 	printList(p3);
+
 	node* pLastNode = get(p2, size(p2) - 1);
 	node* pInterNode = get(p2, 2); 
 
@@ -147,12 +154,6 @@ void testLinkedList()
 // 	printList(pr);
 
 	//(3). Test for qsort
-// 	const int n = 10;
-// 	int a[n];
-// 	genrand(a, n, 100);
-// 
-//  	node* ph = createList(a, n);
-//  	printList(ph);
 // 
 // 	ph = qsort(ph);
 // 	printList(ph);
@@ -164,23 +165,54 @@ void testLinkedList()
 // 
 // 	assertEquals(ph, ph1);
 	
-	node* rnthNode = rget(p1, 0);
-	showNode(rnthNode);
+// 	node* rnthNode = rget(p1, 0);
+// 	showNode(rnthNode);
+// 
+// 	rnthNode = rget(p1, 4);
+// 	showNode(rnthNode);
+// 
+// 	rnthNode = rget(p1, 6);
+// 	showNode(rnthNode);
+// 
+// 	node* pMid1 = NULL, *pMid2 = NULL;
+// 	getMiddleNode(p1, &pMid1, &pMid2);
+// 
+// 	showNode(pMid1);
+// 	showNode(pMid2);
 
-	rnthNode = rget(p1, 4);
-	showNode(rnthNode);
+// 	node* pOverLapped = NULL;
+// 	pOverLapped = getFirstOverlappedNode(p1, p2);
+// 	showNode(pOverLapped);
+// 
+// 	node* p1InterNode = get(p1, 4);
+// 	showNode(p1InterNode);
+// 	node* p2InterNode = get(p2, 9);
+// 	showNode(p2InterNode);
+// 
+// 	node* p1Next = p1InterNode->next;
+// 	p1InterNode->next = p2InterNode;
+// 
+// 	pOverLapped = getFirstOverlappedNode(p1, p2);
+// 	showNode(pOverLapped);
+// 
+// 	//restore
+// 	p1InterNode->next = p1Next;
+// 
+// 	p2 = swap(p2, get(p2, 0), get(p2, 1));
+// 	printList(p2);
 
-	rnthNode = rget(p1, 6);
-	showNode(rnthNode);
+	
+	cascade_node* pcn = NULL;
+	pcn = new cascade_node(p1);
+	pcn = new cascade_node(p2, pcn);
+	pcn = new cascade_node(NULL, pcn);
+	pcn = new cascade_node(p3, pcn);
 
-	node* pMid1 = NULL, *pMid2 = NULL;
-	getMiddleNode(p1, &pMid1, &pMid2);
+	node* pe = expand(pcn);
+	printList(pe);
 
-	showNode(pMid1);
-	showNode(pMid2);
-
-	deleteList(p1);	
-	deleteList(p2);
+// 	deleteList(p1);	
+// 	deleteList(p2);
 }
 
 void testStringOper()
