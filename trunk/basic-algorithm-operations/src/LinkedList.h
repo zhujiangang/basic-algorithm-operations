@@ -67,6 +67,9 @@ node* getListLoopEntrance(node* ph);
 /************************************************************************/
 node* qsort(node* ph);
 node* qsort1(node* ph);
+node* insert_sort(node* ph);
+node* bubble_sort(node* ph);
+node* select_sort(node* ph);
 
 /************************************************************************/
 /* 7. Check if two linked list overlapped. If yes, find the first overlapped node
@@ -77,6 +80,8 @@ node* getFirstOverlappedNode(node* p1, node* p2);
 /* 8. swap 2 linked list node, p1 and p2 are supposed to be one of nodes in the linked list
 /************************************************************************/
 node* swap(node* ph, node* p1, node* p2);
+
+node* swap1(node* ph, node* p1, node* p2);
 
 /************************************************************************/
 /* 9. expand a cascade_node linked list to a simple linked list

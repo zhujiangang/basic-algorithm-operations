@@ -420,6 +420,59 @@ node* qsort1(node* ph)
 	return ph;
 }
 
+node* insert_sort(node* ph)
+{
+	//empty or one node
+	if(ph == NULL || ph->next == NULL)
+	{
+		return ph;
+	}
+
+	//set a dummy header node to make changing list header easier (no need to extra check when insert node before head)
+	node dummyHeader;
+	dummyHeader.next = ph;
+
+	node *pi, *prev_pi, *pj, *prev_pj;
+	for(prev_pi = ph, pi = ph->next; pi != NULL; )
+	{
+		for(prev_pj = &dummyHeader, pj = dummyHeader.next; pj != pi; prev_pj = pj, pj = pj->next)
+		{
+			if(pi->data < pj->data)
+			{
+				break;
+			}
+		}
+		if(pj != pi)
+		{
+			prev_pi->next = pi->next;
+			pi->next = pj;
+			prev_pj->next = pi;
+
+			pi = prev_pi->next;
+			//prev_pi remain no change
+		}
+		else
+		{
+			prev_pi = pi;
+			pi = pi->next;
+		}
+	}
+
+	return dummyHeader.next;
+}
+
+node* bubble_sort(node* ph)
+{
+	if(ph == NULL || ph->next == NULL)
+	{
+		return ph;
+	}
+	node dummy;
+	dummy.next = ph;
+
+	return dummy.next;
+}
+
 node* rget(node* ph, int index)
 {
 	int i = 0;
@@ -663,6 +716,71 @@ node* swap(node* ph, node* p1, node* p2)
 		}
 	}
 	return ph;
+}
+
+/************************************************************************/
+/* add an extra header node                                             */
+/************************************************************************/
+node* swap1(node* ph, node* p1, node* p2)
+{
+	if(ph == NULL || p1 == NULL || p2 == NULL)
+	{
+		return ph;
+	}
+	if(p1 == p2)
+	{
+		return ph;
+	}
+
+	node dummy;
+	dummy.next = ph;
+
+	node* prev1 = NULL, *prev2 = NULL;
+	node* curr = &dummy;
+	while(curr != NULL)
+	{
+		if(curr->next == p1)
+		{
+			prev1 = curr;
+			if(prev2 != NULL)
+			{
+				break;
+			}
+		}
+		else if(curr->next == p2)
+		{
+			prev2 = curr;
+			if(prev1 != NULL)
+			{
+				break;
+			}
+		}
+		curr = curr->next;
+	}
+
+	if(p1->next == p2)
+	{
+		p1->next = p2->next;
+		p2->next = p1;
+		prev1->next = p2;
+	}
+	else if(p2->next == p1)
+	{
+		p2->next = p1->next;
+		p1->next = p2;
+		prev2->next = p1;
+	}
+	else
+	{
+		curr = p1->next;
+
+		p1->next = p2->next;
+		p2->next = curr;
+		prev1->next = p2;
+		prev2->next = p1;
+	}
+
+	return dummy.next;
 }
 
 

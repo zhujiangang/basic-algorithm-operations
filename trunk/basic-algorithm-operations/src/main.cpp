@@ -155,7 +155,9 @@ void testLinkedList()
 // 	printList(pr);
 
 	//(3). Test for qsort
-// 
+
+// 	node* ph = createList(a, n);
+// 	printList(ph);
 // 	ph = qsort(ph);
 // 	printList(ph);
 // 
@@ -165,6 +167,13 @@ void testLinkedList()
 // 	printList(ph1);
 // 
 // 	assertEquals(ph, ph1);
+// 
+// 	node* ph2 = createList(a, n);
+// 	printList(ph2);
+// 	ph2 = insert_sort(ph2);
+// 	printList(ph2);
+// 
+// 	assertEquals(ph, ph2);
 	
 // 	node* rnthNode = rget(p1, 0);
 // 	showNode(rnthNode);
@@ -199,18 +208,18 @@ void testLinkedList()
 // 	//restore
 // 	p1InterNode->next = p1Next;
 // 
-// 	p2 = swap(p2, get(p2, 0), get(p2, 1));
-// 	printList(p2);
+	p2 = swap(p2, get(p2, 4), get(p2, 5));
+	printList(p2);
 
 	
-	cascade_node* pcn = NULL;
-	pcn = new cascade_node(p1);
-	pcn = new cascade_node(p2, pcn);
-	pcn = new cascade_node(NULL, pcn);
-	pcn = new cascade_node(p3, pcn);
-
-	node* pe = expand(pcn);
-	printList(pe);
+// 	cascade_node* pcn = NULL;
+// 	pcn = new cascade_node(p1);
+// 	pcn = new cascade_node(p2, pcn);
+// 	pcn = new cascade_node(NULL, pcn);
+// 	pcn = new cascade_node(p3, pcn);
+// 
+// 	node* pe = expand(pcn);
+// 	printList(pe);
 
 // 	deleteList(p1);	
 // 	deleteList(p2);
@@ -253,23 +262,23 @@ void testStringOper()
 
 void testArrayOper()
 {
-	const int n = 20;
+	const int n = 100;
 	int a[n];
 	genseq(a, n);
-	genrand(a, n, 3);
+	genrand(a, n, 100);
 	quickSort(a, n);
 	output(a, n);
 
-	printSumPairsDup(a, n, 2);
+	printSumPairsDup(a, n, 60);
 }
 int main(int argc, char* argv[])
 {
 //	testCombineMath();
 //	testArraySort();
 //	testFileOper();
-//	testLinkedList();
+	testLinkedList();
 //	testStringOper();
-	testArrayOper();
+//	testArrayOper();
 	return 0;
 }
 
