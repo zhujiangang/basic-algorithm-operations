@@ -470,6 +470,40 @@ node* bubble_sort(node* ph)
 	node dummy;
 	dummy.next = ph;
 
+	node *prev_pi, *pi, *prev_pj, *pj, *tmp;
+	for(prev_pi = &dummy, pi = dummy.next; pi != NULL; prev_pi = pi, pi = pi->next)
+	{
+		
+		for(prev_pj = pi, pj = pi->next; pj != NULL; )
+		{
+			if(pj->data < pi->data)
+			{
+				swap(prev_pi, pi, prev_pj, pj);
+				
+				tmp = pi;
+				pi = pj;
+				prev_pj = tmp;
+				pj = prev_pj->next;
+			}
+			else
+			{
+				prev_pj = pj;
+				pj = pj->next;
+			}
+		}
+	}
+	return dummy.next;
+}
+
+node* select_sort(node* ph)
+{
+	if(ph == NULL || ph->next == NULL)
+	{
+		return ph;
+	}
+	node dummy;
+	dummy.next = ph;
+
 	return dummy.next;
 }
 
@@ -781,6 +815,31 @@ node* swap1(node* ph, node* p1, node* p2)
 	}
 
 	return dummy.next;
+}
+
+void swap(node* prev1, node* p1, node* prev2, node* p2)
+{
+	if(p1->next == p2)
+	{
+		p1->next = p2->next;
+		p2->next = p1;
+		prev1->next = p2;
+	}
+	else if(p2->next == p1)
+	{
+		p2->next = p1->next;
+		p1->next = p2;
+		prev2->next = p1;
+	}
+	else
+	{
+		node* tmp = p1->next;
+
+		p1->next = p2->next;
+		p2->next = tmp;
+		prev1->next = p2;
+		prev2->next = p1;
+	}	
 }
 
 
