@@ -8,6 +8,7 @@
 #include "FileOper.h"
 #include "LinkedList.h"
 #include "StringOper.h"
+#include "ArrayOper.h"
 
 void testCombineMath()
 {
@@ -248,13 +249,27 @@ void testStringOper()
 	printf( "Length:\t\t%d characters\n\n", strlen( string1 ) );
 
 }
+
+
+void testArrayOper()
+{
+	const int n = 20;
+	int a[n];
+	genseq(a, n);
+	genrand(a, n, 3);
+	quickSort(a, n);
+	output(a, n);
+
+	printSumPairsDup(a, n, 2);
+}
 int main(int argc, char* argv[])
 {
 //	testCombineMath();
 //	testArraySort();
 //	testFileOper();
-	testLinkedList();
+//	testLinkedList();
 //	testStringOper();
+	testArrayOper();
 	return 0;
 }
 
