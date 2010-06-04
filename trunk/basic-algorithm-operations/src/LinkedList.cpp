@@ -385,12 +385,11 @@ node* partition1(node** left, node* right)
 		if ( ptr->data < key )
 		{
 			prev_ptr->next = ptr->next;
-			
-			node *tmp = ptr->next;			
+						
 			ptr->next = (*left);
 			(*left) = ptr;
 			
-			ptr = tmp;
+			ptr = prev_ptr->next;
 
 			//No need to update prev_ptr in this case.
 		}
@@ -398,7 +397,7 @@ node* partition1(node** left, node* right)
 		else
 		{
 			prev_ptr = ptr;
-			ptr = ptr->next;
+			ptr = prev_ptr->next;
 		}
 	}
 	return pivot;
@@ -437,13 +436,16 @@ node* insert_sort(node* ph)
 	{
 		for(prev_pj = &dummyHeader, pj = dummyHeader.next; pj != pi; prev_pj = pj, pj = pj->next)
 		{
+			//pj is the first node bigger than pi. so pi should be insert before pj
 			if(pi->data < pj->data)
 			{
 				break;
 			}
 		}
+		//This means the inner "for loop" goes to "break".
 		if(pj != pi)
 		{
+			//insert pi before pj
 			prev_pi->next = pi->next;
 			pi->next = pj;
 			prev_pj->next = pi;
@@ -451,6 +453,7 @@ node* insert_sort(node* ph)
 			pi = prev_pi->next;
 			//prev_pi remain no change
 		}
+		//never goes to "break", pi is bigger than all the ordered previous nodes. 
 		else
 		{
 			prev_pi = pi;
@@ -481,7 +484,10 @@ node* bubble_sort(node* ph)
 				swap(prev_pi, pi, prev_pj, pj);
 				
 				tmp = pi;
+				//pi should be the smallest node. now it should be pj because pi and pj has been swaped.
 				pi = pj;
+
+				//the same to pj
 				prev_pj = tmp;
 				pj = prev_pj->next;
 			}
@@ -503,6 +509,50 @@ node* select_sort(node* ph)
 	}
 	node dummy;
 	dummy.next = ph;
+
+	node *prev_pi, *pi, *prev_pj, *pj, *prev_min, *min, *tmp;
+	for(prev_pi = &dummy, pi = dummy.next; pi != NULL; )
+	{
+		prev_min = prev_pi;
+		min = pi;
+		for(prev_pj = pi, pj = pi->next; pj != NULL; prev_pj = pj, pj = pj->next)
+		{
+			if(pj->data < min->data)
+			{
+				prev_min = prev_pj;
+				min = pj;
+			}
+		}
+		//Not the same node, need to swap
+		if(min != pi)
+		{
+			if(pi->next == min)
+			{
+				pi->next = min->next;
+				min->next = pi;
+				prev_pi->next = min;
+
+				prev_pi = min;
+			}
+			else
+			{
+				tmp = min->next;
+				min->next = pi->next;
+				pi->next = tmp;
+
+				prev_pi->next = min;
+				prev_min->next = pi;
+
+				prev_pi = min;
+				pi = min->next;
+			}
+		}
+		else
+		{
+			prev_pi = pi;
+			pi = pi->next;
+		}
+	}
 
 	return dummy.next;
 }
@@ -881,6 +931,63 @@ node* expand(cascade_node* pch)
 		prev = curr;
 
 		pch = pch->next;
+	}
+	return ph;
+}
+
+
+/************************************************************************/
+/* 10. Simulate the add operation of big number                         */
+/************************************************************************/
+
+/************************************************************************/
+/* make sure len1 >= len2                                               */
+/************************************************************************/
+int add(node* ph1, int len1, node* ph2, int len2, node** p)
+{
+	if(len1 == 0 || len2 == 0)
+	{
+		return 0;
+	}
+	int ret, sum;
+	*p = new node();
+
+	if(len1 > len2)
+	{
+		ret = add(ph1->next, len1 - 1, ph2, len2, &(*p)->next);
+		sum = ph1->data + ret;
+		(*p)->data = sum % 10;
+		return sum >= 10 ? 1 : 0;
+	}
+	else
+	{
+		ret = add(ph1->next, len1 - 1, ph2->next, len2 - 1, &(*p)->next);
+		sum = ph1->data + ph2->data + ret;
+		(*p)->data = sum % 10;
+		return sum >= 10 ? 1 : 0;
+	}
+}
+
+node* add(node* ph1, int len1, node* ph2, int len2)
+{
+	if(len1 == 0 || len2 == 0)
+	{
+		return NULL;
+	}
+	node* ph = new node();
+	int carry;
+	if(len1 >= len2)
+	{
+		carry = add(ph1, len1, ph2, len2, &ph);
+	}
+	else
+	{
+		carry = add(ph2, len2, ph1, len1, &ph);
+	}
+	
+	if(carry > 0)
+	{
+		return new node(carry, ph);
 	}
 	return ph;
 }
