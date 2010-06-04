@@ -9,6 +9,7 @@
 #include "LinkedList.h"
 #include "StringOper.h"
 #include "ArrayOper.h"
+#include "StackQueue.h"
 
 void testCombineMath()
 {
@@ -91,8 +92,8 @@ void testFileOper()
 void testLinkedList()
 {
 	//(0). Set up linkedlist
-	int data1[] = {1, 3, 15, 27, 29};
-	int data2[] = {1, 3, 4, 8, 10, 18, 30, 50, 60, 70};
+	int data1[] = {9, 9, 9, 9, 9, 9, 9};
+	int data2[] = {1};
 
 	node* p1 = createList(data1, COUNTOF(data1));
 	printList(p1);
@@ -156,24 +157,35 @@ void testLinkedList()
 
 	//(3). Test for qsort
 
-	node* ph = createList(a, n);
-	printList(ph);
-	ph = qsort(ph);
-	printList(ph);
+// 	node* ph = createList(a, n);
+// 	printList(ph);
+// 	ph = qsort1(ph);
+// 	printList(ph);
+// 
+// 	node* ph1 = createList(a, n);
+// 	printList(ph1);
+// 	ph1 = bubble_sort(ph1);
+// 	printList(ph1);
+// 
+// 	assertEquals(ph, ph1);
+// 
+// 	node* ph2 = createList(a, n);
+// 	printList(ph2);
+// 	ph2 = insert_sort(ph2);
+// 	printList(ph2);
+// 
+// 	assertEquals(ph, ph2);
+// 	
+// 	node* ph3 = createList(a, n);
+// 	printList(ph3);
+// 	ph3 = select_sort(ph3);
+// 	printList(ph2);
+// 	
+// 	assertEquals(ph, ph3);
 
-	node* ph1 = createList(a, n);
-	printList(ph1);
-	ph1 = bubble_sort(ph1);
-	printList(ph1);
-
-	assertEquals(ph, ph1);
-
-	node* ph2 = createList(a, n);
-	printList(ph2);
-	ph2 = insert_sort(ph2);
-	printList(ph2);
-
-	assertEquals(ph, ph2);
+	node* result = add(p1, size(p1), p2, size(p2));
+	printList(result);
+	deleteList(result);
 	
 // 	node* rnthNode = rget(p1, 0);
 // 	showNode(rnthNode);
@@ -271,14 +283,63 @@ void testArrayOper()
 
 	printSumPairsDup(a, n, 60);
 }
+
+
+void testStackQueue()
+{
+	const int n = 10;
+	int a[n];
+	genrand(a, n, 100);
+	output(a, n);
+
+	int x = n/2;
+
+	int i;
+	StackWithMin st;
+	for(i = 0; i < n; i++)
+	{
+		st.push(a[i]);
+		cout<<st.min()<<" ";
+	}
+	cout<<endl;
+	for(i = 0; i < n; i++)
+	{
+		cout<<st.pop()<<" ";
+	}
+	cout<<endl;
+	
+	QueueWith2Stack que;
+	for(i = 0; i < n; i++)
+	{
+		que.enqueue(a[i]);
+	}
+	for(i = 0; i < n; i++)
+	{
+		cout<<que.dequeue()<<" ";
+	}
+	cout<<endl;
+
+
+	StackWith2Queue st2;
+	for(i = 0; i < n; i++)
+	{
+		st2.push(a[i]);
+	}
+	for(i = 0; i < n; i++)
+	{
+		cout<<st2.pop()<<" ";
+	}
+	cout<<endl;
+}
 int main(int argc, char* argv[])
 {
 //	testCombineMath();
 //	testArraySort();
 //	testFileOper();
-	testLinkedList();
+//	testLinkedList();
 //	testStringOper();
 //	testArrayOper();
+	testStackQueue();
 	return 0;
 }
 

@@ -89,4 +89,10 @@ void swap(node* prev1, node* p1, node* prev2, node* p2);
 /* 9. expand a cascade_node linked list to a simple linked list
 /************************************************************************/
 node* expand(cascade_node* pch);
+
+
+/************************************************************************/
+/* 10. Simulate the add operation of big number                         */
+/************************************************************************/
+node* add(node* ph1, int len1, node* ph2, int len2);
 #endif

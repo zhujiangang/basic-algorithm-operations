@@ -85,15 +85,19 @@ LINK32=link.exe
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 # Begin Source File
 
-SOURCE=.\ArraySort.cpp
-# End Source File
-# Begin Source File
-
 SOURCE=.\ArrayOper.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\ArraySort.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\CombineMath.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\Common.cpp
 # End Source File
 # Begin Source File
 
@@ -113,6 +117,10 @@ SOURCE=.\MyUtil.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\StackQueue.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\StringOper.cpp
 # End Source File
 # End Group
@@ -121,15 +129,19 @@ SOURCE=.\StringOper.cpp
 # PROP Default_Filter "h;hpp;hxx;hm;inl"
 # Begin Source File
 
-SOURCE=.\ArraySort.h
-# End Source File
-# Begin Source File
-
 SOURCE=.\ArrayOper.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\ArraySort.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\CombineMath.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Common.h
 # End Source File
 # Begin Source File
 
@@ -142,6 +154,10 @@ SOURCE=.\LinkedList.h
 # Begin Source File
 
 SOURCE=.\MyUtil.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\StackQueue.h
 # End Source File
 # Begin Source File
 
