@@ -4,3 +4,6 @@ http://blog.chinaunix.net/u1/41845/showart_2019391.html
 
 2. 算法大全
 http://www.cnblogs.com/Jax/category/57279.html
+
+3. 数据结构、算法与应用  --C++语言描述
+http://download.csdn.net/source/148316
