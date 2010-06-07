@@ -295,41 +295,55 @@ void testStackQueue()
 	int x = n/2;
 
 	int i;
-	StackWithMin st;
-	for(i = 0; i < n; i++)
-	{
-		st.push(a[i]);
-		cout<<st.min()<<" ";
-	}
-	cout<<endl;
-	for(i = 0; i < n; i++)
-	{
-		cout<<st.pop()<<" ";
-	}
-	cout<<endl;
-	
-	QueueWith2Stack que;
-	for(i = 0; i < n; i++)
-	{
-		que.enqueue(a[i]);
-	}
-	for(i = 0; i < n; i++)
-	{
-		cout<<que.dequeue()<<" ";
-	}
-	cout<<endl;
+// 	StackWithMin st;
+// 	for(i = 0; i < n; i++)
+// 	{
+// 		st.push(a[i]);
+// 		cout<<st.min()<<" ";
+// 	}
+// 	cout<<endl;
+// 	for(i = 0; i < n; i++)
+// 	{
+// 		cout<<st.pop()<<" ";
+// 	}
+// 	cout<<endl;
+// 	
+// 	QueueWith2Stack que;
+// 	for(i = 0; i < n; i++)
+// 	{
+// 		que.enqueue(a[i]);
+// 	}
+// 	for(i = 0; i < n; i++)
+// 	{
+// 		cout<<que.dequeue()<<" ";
+// 	}
+// 	cout<<endl;
+// 
+// 
+// 	StackWith2Queue st2;
+// 	for(i = 0; i < n; i++)
+// 	{
+// 		st2.push(a[i]);
+// 	}
+// 	for(i = 0; i < n; i++)
+// 	{
+// 		cout<<st2.pop()<<" ";
+// 	}
+// 	cout<<endl;
 
+	const int len = 5;
+	int pushSeq[n] = {1, 2, 3, 4, 5};
+	int popSeq[n] = {2, 4, 1, 5, 3};
+	cout<<isPopSequence(pushSeq, popSeq, len)<<endl;
 
-	StackWith2Queue st2;
-	for(i = 0; i < n; i++)
+	int len2 = 3;
+	stack<int> st;
+	for(i = 0; i < len2; i++)
 	{
-		st2.push(a[i]);
+		st.push(i+1);
 	}
-	for(i = 0; i < n; i++)
-	{
-		cout<<st2.pop()<<" ";
-	}
-	cout<<endl;
+	reverse(st);
+	output(st);
 }
 int main(int argc, char* argv[])
 {

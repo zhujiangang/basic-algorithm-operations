@@ -7,6 +7,9 @@
 using std::stack;
 using std::queue;
 
+void output(stack<int>& st);
+void output(queue<int>& que);
+
 /************************************************************************/
 /* 1. Design a stack with operation min() with O(1) time                */
 /************************************************************************/
@@ -50,5 +53,17 @@ private:
 	queue<int> q1;
 	queue<int> q2;
 };
+
+
+/************************************************************************/
+/* 4. Check if a sequence is a pop order of push sequence               */
+/************************************************************************/
+bool isPopSequence(const int pushSeq[], const int popSeq[], int len);
+
+/************************************************************************/
+/* 5. Reverse a stack with recursive method                             */
+/************************************************************************/
+void reverse(stack<int>& st);
+
 
 #endif
