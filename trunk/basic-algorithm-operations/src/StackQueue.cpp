@@ -1,6 +1,25 @@
+#include <iostream.h>
 #include "Common.h"
 #include "StackQueue.h"
 
+void output(stack<int>& st)
+{
+	while(!st.empty())
+	{
+		cout<<st.top()<<" ";
+		st.pop();
+	}
+	cout<<endl;
+}
+void output(queue<int>& que)
+{
+	while(!que.empty())
+	{
+		cout<<que.front()<<" ";
+		que.pop();
+	}
+	cout<<endl;
+}
 
 /************************************************************************/
 /* 1. Design a stack with operation min() with O(1) time                */
@@ -171,4 +190,53 @@ int StackWith2Queue::peek()
 		q2.pop();
 		return result;		
 	}
+}
+
+
+/************************************************************************/
+/* 4. Check if a sequence is a pop order of push sequence               */
+/* push the elements of "pushSeq" into stack in order, check if the stack 
+top equals to the current element of "popSeq". If yes, pop up the stack top,
+else, do nothing. When finished pushing all the elements, if the stack is empty,
+it's a valid pop up sequence, else not valid.
+/************************************************************************/
+bool isPopSequence(const int pushSeq[], const int popSeq[], int len)
+{
+	stack<int> st;
+	int i, j;
+	for(i = 0, j = 0; i < len; i++)
+	{
+		st.push(pushSeq[i]);
+		while(!st.empty() && st.top() == popSeq[j])
+		{
+			st.pop();
+			j++;
+		}
+	}
+	return st.empty();
+}
+
+
+/************************************************************************/
+/* 5. Reverse a stack with recursive method                             */
+/************************************************************************/
+void reverse(stack<int>& st)
+{
+	if(st.size() <= 1)
+	{
+		return;
+	}
+	int top1 = st.top();
+	st.pop();
+
+	reverse(st);
+
+	int top2 = st.top();
+	st.pop();
+
+	reverse(st);
+
+	st.push(top1);
+	reverse(st);
+	st.push(top2);
 }
