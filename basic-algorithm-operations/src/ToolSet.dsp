@@ -93,6 +93,10 @@ SOURCE=.\ArraySort.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\BinTree.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\CombineMath.cpp
 # End Source File
 # Begin Source File
@@ -134,6 +138,10 @@ SOURCE=.\ArrayOper.h
 # Begin Source File
 
 SOURCE=.\ArraySort.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\BinTree.h
 # End Source File
 # Begin Source File
 
