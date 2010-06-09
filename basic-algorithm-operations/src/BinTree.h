@@ -41,10 +41,16 @@ public:
 
 extern OutputVisitor outputVisitor;
 
-extern const int PREORDER;
-extern const int INORDER;
-extern const int POSTORDER;
-extern const int LEVELORDER;
+enum VisitType
+{
+	PRE_ORDER,
+	IN_ORDER,
+	POST_ORDER,
+	LEVEL_ORDER,
+	PRE_ORDER_STACK,
+	IN_ORDER_STACK,
+	POST_ORDER_STACK
+};
 
 class BinTree
 {
@@ -60,7 +66,10 @@ public:
 	void inOrder(Visitor* visitor = &outputVisitor);
 	void postOrder(Visitor* visitor = &outputVisitor);
 	void levelOrder(Visitor* visitor = &outputVisitor);
-	virtual void preVisit(Visitor* visitor = &outputVisitor, void* param = NULL);
+	void preOrderStack(Visitor* visitor = &outputVisitor);
+	void inOrderStack(Visitor* visitor = &outputVisitor);
+	void postOrderStack(Visitor* visitor = &outputVisitor);
+	virtual void preVisit(VisitType vt, Visitor* visitor = &outputVisitor);
 	virtual void postVisit(Visitor* visitor = &outputVisitor, void* param = NULL);
 private:
 	BinNode* buildInOrder(int data[], int start, int end);
