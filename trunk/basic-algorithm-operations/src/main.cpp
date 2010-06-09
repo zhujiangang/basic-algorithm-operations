@@ -391,9 +391,12 @@ void testBinTree()
 
 	BinTree binTree(a, n);
 	binTree.preOrder();
+	binTree.preOrderStack();
 	binTree.inOrder();
+	binTree.inOrderStack();
 	binTree.postOrder();
-	binTree.levelOrder();
+	binTree.postOrderStack();
+	binTree.levelOrder();	
 }
 int main(int argc, char* argv[])
 {

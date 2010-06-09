@@ -7,10 +7,6 @@ using std::stack;
 using std::queue;
 
 OutputVisitor outputVisitor;
-const int PREORDER = 1;
-const int INORDER = 2;
-const int POSTORDER = 3;
-const int LEVELORDER = 4;
 
 void OutputVisitor::visit(BinNode* root)
 {
@@ -69,29 +65,34 @@ void BinTree::deleteTree(BinNode* t)
 	delete t;
 	t = NULL;
 }
-void BinTree::preVisit(Visitor* visitor, void* param)
+void BinTree::preVisit(VisitType vt, Visitor* visitor)
 {
-	if(param != NULL)
+	switch(vt)
 	{
-		int* pt = (int*)param;
-		
-		switch(*pt)
-		{
-		case PREORDER:
-			cout<<"Preorder:\t";
-			break;
-		case INORDER:
-			cout<<"Inorder:\t";
-			break;
-		case POSTORDER:
-			cout<<"Postorder:\t";
-			break;
-		case LEVELORDER:
-			cout<<"Levelorder:\t";
-			break;
-		default:
-			cout<<"Unknow type:\t";
-		}
+	case PRE_ORDER:
+		cout<<"Preorder:\t";
+		break;
+	case IN_ORDER:
+		cout<<"Inorder:\t";
+		break;
+	case POST_ORDER:
+		cout<<"Postorder:\t";
+		break;
+	case LEVEL_ORDER:
+		cout<<"Levelorder:\t";
+		break;
+	case PRE_ORDER_STACK:
+		cout<<"Preorder(S):\t";
+		break;
+	case IN_ORDER_STACK:
+		cout<<"Inorder(S):\t";
+		break;
+	case POST_ORDER_STACK:
+		cout<<"Postorder(S):\t";
+		break;
+	default:
+		cout<<"Unknow type:\t";
+		break;
 	}
 }
 
@@ -104,7 +105,7 @@ void BinTree::postVisit(Visitor* visitor, void* param)
 }
 void BinTree::preOrder(Visitor* visitor)
 {
-	preVisit(visitor, (int*)&PREORDER);
+	preVisit(PRE_ORDER, visitor);
 	preOrderHelper(root, visitor);
 	postVisit(visitor);
 }	
@@ -120,7 +121,7 @@ void BinTree::preOrderHelper(BinNode* t, Visitor* visitor)
 
 void BinTree::inOrder(Visitor* visitor)
 {
-	preVisit(visitor, (int*)&INORDER);
+	preVisit(IN_ORDER, visitor);
 	inOrderHelper(root, visitor);
 	postVisit(visitor);
 }
@@ -137,7 +138,7 @@ void BinTree::inOrderHelper(BinNode* t, Visitor* visitor)
 
 void BinTree::postOrder(Visitor* visitor)
 {
-	preVisit(visitor, (int*)&POSTORDER);
+	preVisit(POST_ORDER, visitor);
 	postOrderHelper(root, visitor);
 	postVisit(visitor);
 }
@@ -151,9 +152,111 @@ void BinTree::postOrderHelper(BinNode* t, Visitor* visitor)
 	}
 }
 
+void BinTree::preOrderStack(Visitor* visitor)
+{
+	preVisit(PRE_ORDER_STACK, visitor);
+	stack<BinNode*> st;
+	BinNode* t = root;
+	while(t != NULL || !st.empty())
+	{
+		while(t != NULL)
+		{
+			visitor->visit(t);
+			st.push(t);
+			t = t->lc;
+		}
+		if(!st.empty())
+		{
+			t = st.top();
+			st.pop();
+			t = t->rc;
+		}
+	}
+	postVisit(visitor);
+}
+void BinTree::inOrderStack(Visitor* visitor)
+{
+	preVisit(IN_ORDER_STACK, visitor);
+	stack<BinNode*> st;
+	BinNode* t = root;
+	while(t != NULL || !st.empty())
+	{
+		while(t != NULL)
+		{
+			st.push(t);
+			t = t->lc;
+		}
+		if(!st.empty())
+		{
+			t = st.top();
+			visitor->visit(t);
+
+			st.pop();
+			t = t->rc;
+		}
+	}
+	postVisit(visitor);
+}
+void BinTree::postOrderStack(Visitor* visitor)
+{
+	preVisit(POST_ORDER_STACK, visitor);
+
+	stack<BinNode*> st;
+	BinNode* t = root;
+	BinNode* p = NULL;
+
+	while(t != NULL || !st.empty())
+	{
+		while(t != NULL)
+		{
+			st.push(t);
+			t = t->lc;
+		}
+
+ 		p = NULL;
+		
+		while(!st.empty())
+		{
+			t = st.top();
+			if(t->rc == p)
+			{
+				visitor->visit(t);
+
+				st.pop();				
+				p = t;
+				t = NULL;
+			}
+			else
+			{
+				t = t->rc;
+				break;
+			}
+		}
+
+//		t = st.top();
+// 		while(p == t->rc)  
+// 		{  
+// 			t = st.top();
+// 			visitor->visit(t);
+// 			
+// 			st.pop();
+// 			
+// 			p = t;                  
+// 			if(st.empty())  
+// 			{  
+// 				return;  
+// 			}  
+// 			t = st.top();
+// 		}  
+//      t = t->rc; 
+	}
+
+	postVisit(visitor);
+}
+
 void BinTree::levelOrder(Visitor* visitor)
 {
-	preVisit(visitor, (int*)&LEVELORDER);
+	preVisit(LEVEL_ORDER, visitor);
 	if(root == NULL)
 	{
 		return;
