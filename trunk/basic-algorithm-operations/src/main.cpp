@@ -10,6 +10,7 @@
 #include "StringOper.h"
 #include "ArrayOper.h"
 #include "StackQueue.h"
+#include "BinTree.h"
 
 void testCombineMath()
 {
@@ -331,19 +332,68 @@ void testStackQueue()
 // 	}
 // 	cout<<endl;
 
-	const int len = 5;
-	int pushSeq[n] = {1, 2, 3, 4, 5};
-	int popSeq[n] = {2, 4, 1, 5, 3};
-	cout<<isPopSequence(pushSeq, popSeq, len)<<endl;
-
-	int len2 = 3;
+// 	const int len = 5;
+// 	int pushSeq[n] = {1, 2, 3, 4, 5};
+// 	int popSeq[n] = {2, 4, 1, 5, 3};
+// 	cout<<isPopSequence(pushSeq, popSeq, len)<<endl;
+// 
+// 	int len2 = 3;
 	stack<int> st;
-	for(i = 0; i < len2; i++)
+// 	for(i = 0; i < len2; i++)
+// 	{
+// 		st.push(i+1);
+// 	}
+// 	reverse(st);
+// 	output(st);
+
+
+	const int len = 10;
+// 	int b[len] = {10, 2, 3, 1, 9, 8, 5, 4, 6, 7};
+// 	empty(st);
+// 	for(i = 0; i < len; i++)
+// 	{
+// 		st.push(b[i]);
+// 	}
+// 	sort(st);
+// 	output(st);
+
+
+	StackWith1Array sw1a(100);
+	for(i = 0; i < 3; i++)
 	{
-		st.push(i+1);
+		sw1a.push(1, i+1);
 	}
-	reverse(st);
-	output(st);
+	for(i = 0; i < 3; i++)
+	{
+		sw1a.push(2, (i+1) * 10);
+	}
+	for(i = 0; i < 6; i++)
+	{
+		sw1a.push(3, (i+1) * 100);
+	}
+
+	for(i = 1; i <= 3; i++)
+	{
+		while(sw1a.top(i) >= 0)
+		{
+			cout<<sw1a.pop(i)<<" ";
+		}
+		cout<<endl;
+	}
+}
+
+void testBinTree()
+{
+	const int n = 10;
+	int a[n];
+	genseq(a, n);
+	output(a, n);
+
+	BinTree binTree(a, n);
+	binTree.preOrder();
+	binTree.inOrder();
+	binTree.postOrder();
+	binTree.levelOrder();
 }
 int main(int argc, char* argv[])
 {
@@ -353,7 +403,8 @@ int main(int argc, char* argv[])
 //	testLinkedList();
 //	testStringOper();
 //	testArrayOper();
-	testStackQueue();
+//	testStackQueue();
+	testBinTree();
 	return 0;
 }
 

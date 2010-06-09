@@ -21,6 +21,14 @@ void output(queue<int>& que)
 	cout<<endl;
 }
 
+void empty(stack<int>& st)
+{
+	while(!st.empty())
+	{
+		st.pop();
+	}
+}
+
 /************************************************************************/
 /* 1. Design a stack with operation min() with O(1) time                */
 /************************************************************************/
@@ -239,4 +247,181 @@ void reverse(stack<int>& st)
 	st.push(top1);
 	reverse(st);
 	st.push(top2);
+}
+
+/************************************************************************/
+/* 6. Sort a stack with recursive method                             */
+/************************************************************************/
+void sort(stack<int>& st)
+{
+	if(st.size() <= 1)
+	{
+		return;
+	}
+	int top1 = st.top();
+	st.pop();
+
+	sort(st);
+
+	int top2 = st.top();
+
+	if(top1 > top2)
+	{
+		st.pop();
+		st.push(top1);
+		sort(st);
+		st.push(top2);
+	}
+	else
+	{
+		st.push(top1);
+	}
+}
+
+/************************************************************************/
+/* 7. Design 3 stack with an array
+/************************************************************************/
+StackWith1Array::StackWith1Array(int cap):capacity(cap), top1(-1), top2(cap), top3l(cap/2 + 1), top3r(cap/2), lor(false)
+{
+	data = new int[cap];
+}
+StackWith1Array::~StackWith1Array()
+{
+	delete []data;
+}
+
+void StackWith1Array::push(int index, int val)
+{
+	if(index == 1)
+	{		
+		if(top1 + 1 >= top3l)
+		{
+			//throw exception("stack full");
+			return;
+		}
+		top1++;
+		data[top1] = val;
+	}
+	else if(index == 2)
+	{		
+		if(top2 - 1 <= top3r)
+		{
+			//throw exception("stack full"); 
+			return;
+		}
+		top2--;
+		data[top2] = val;
+	}
+	else
+	{
+		//left
+		if(lor)
+		{
+			if(top3r + 1 >= top2)
+			{
+				//throw exception("stack full"); 
+				return;
+			}
+			top3r++;
+			data[top3r] = val;
+			lor = !lor;
+		}
+		else
+		{			
+			if(top3l - 1 <= top1)
+			{	
+				//throw exception("stack full"); 
+				return;
+			}
+			top3l--;
+			data[top3l] = val;
+			lor = !lor;
+		}
+	}
+}
+
+int StackWith1Array::pop(int index)
+{
+	int ret = -1;
+	if(index == 1)
+	{
+		if(top1 < 0)
+		{
+			//throw exception("stack empty");
+			return -1;
+		}
+		ret = data[top1--];
+		return ret;
+	}
+	else if(index == 2)
+	{
+		if(top2 >= capacity)
+		{
+			//throw exception("stack empty");
+			return -1;
+		}
+		ret = data[top2++];
+		return ret;
+	}
+	else
+	{
+		if(top3l > top3r)
+		{
+			//throw exception("stack empty");
+			return -1;
+		}
+		if(lor)
+		{
+			ret = data[top3l++];
+		}
+		else
+		{
+			ret = data[top3r--];
+		}
+		lor = !lor;
+		return ret;
+	}
+}
+
+
+int StackWith1Array::top(int index)
+{
+	int ret = -1;
+	if(index == 1)
+	{
+		if(top1 < 0)
+		{
+			//throw exception("stack empty");
+			return -1;
+		}
+		ret = data[top1];
+		return ret;
+	}
+	else if(index == 2)
+	{
+		if(top2 >= capacity)
+		{
+			//throw exception("stack empty");
+			return -1;
+		}
+		ret = data[top2];
+		return ret;
+	}
+	else
+	{
+		if(top3l > top3r)
+		{
+			//throw exception("stack empty");
+			return -1;
+		}
+		if(lor)
+		{
+			ret = data[top3l];
+		}
+		else
+		{
+			ret = data[top3r];
+		}
+		return ret;
+	}
 }
