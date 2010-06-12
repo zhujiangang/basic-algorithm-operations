@@ -49,7 +49,10 @@ enum VisitType
 	LEVEL_ORDER,
 	PRE_ORDER_STACK,
 	IN_ORDER_STACK,
-	POST_ORDER_STACK
+	POST_ORDER_STACK,
+	PRE_ORDER_STACK_B,
+	IN_ORDER_STACK_B,
+	POST_ORDER_STACK_B
 };
 
 class BinTree
@@ -69,8 +72,20 @@ public:
 	void preOrderStack(Visitor* visitor = &outputVisitor);
 	void inOrderStack(Visitor* visitor = &outputVisitor);
 	void postOrderStack(Visitor* visitor = &outputVisitor);
+
+// 	void preOrderStackB(Visitor* visitor = &outputVisitor);
+// 	void inOrderStackB(Visitor* visitor = &outputVisitor);
+// 	void postOrderStackB(Visitor* visitor = &outputVisitor);
+
 	virtual void preVisit(VisitType vt, Visitor* visitor = &outputVisitor);
 	virtual void postVisit(Visitor* visitor = &outputVisitor, void* param = NULL);
+
+	BinNode* getNodeByID(BinNode* t, int id);
+	bool getPosOfNode(BinNode* t, BinNode* binNode, int* pos);
+	int findParentPos(int pos1, int pos2);
+	BinNode* getNodeByPos(int pos);
+
+	BinNode* findLatestParent(BinNode* binNode1, BinNode* binNode2);
 private:
 	BinNode* buildInOrder(int data[], int start, int end);
 	void deleteTree(BinNode* t);

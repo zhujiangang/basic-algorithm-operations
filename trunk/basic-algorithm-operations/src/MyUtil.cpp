@@ -87,3 +87,33 @@ int validateInOrder(int a[], int n, bool isAscending)
 	}
 	return -1;
 }
+
+int bitsNum(int a)
+{
+	unsigned int x = (unsigned int)a;
+	if(x == 0)
+	{
+		return 1;
+	}
+	int count = 0;
+	while(x != 0)
+	{
+		count++;
+		x = x >> 1;
+	}
+	return count;
+}
+/************************************************************************/
+/* Greatest power of 2 less than or equal to x, branch-free.
+   From HD 3-2
+/************************************************************************/
+unsigned int flp2(unsigned int x) 
+{
+	x = x | (x >> 1); 
+	x = x | (x >> 2); 
+	x = x | (x >> 4); 
+	x = x | (x >> 8); 
+	x = x | (x >>16); 
+	return x - (x >> 1); 
+} 
+

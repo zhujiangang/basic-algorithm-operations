@@ -396,7 +396,28 @@ void testBinTree()
 	binTree.inOrderStack();
 	binTree.postOrder();
 	binTree.postOrderStack();
-	binTree.levelOrder();	
+	binTree.levelOrder();
+	
+	int pos = 1;
+	BinNode* binNode = binTree.getNodeByID(binTree.getRoot(), 1);
+	if(binNode != NULL)
+	{
+		if(binTree.getPosOfNode(binTree.getRoot(), binNode, &pos))
+		{
+			cout<<"Node="<<binNode->value<<", pos="<<pos<<endl;
+		}
+	}
+
+	BinNode* binNode2 = binTree.getNodeByID(binTree.getRoot(), 4);
+	BinNode* parentNode = binTree.findLatestParent(binNode, binNode2);
+	if(parentNode != NULL)
+	{
+		cout<<"Parent("<<binNode->value<<","<<binNode2->value<<")="<<parentNode->value<<endl;
+	}
+	else
+	{
+		cout<<"Can't find parent"<<endl;
+	}
 }
 int main(int argc, char* argv[])
 {
