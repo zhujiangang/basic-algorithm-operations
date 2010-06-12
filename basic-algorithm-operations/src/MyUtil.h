@@ -17,4 +17,7 @@ void arryCopy(int src[], int srcPos, int dst[], int dstPos, int length);
 
 int validateInOrder(int a[], int n, bool isAscending = true);
 
+int bitsNum(int a);
+unsigned int flp2(unsigned int x);
+
 #endif

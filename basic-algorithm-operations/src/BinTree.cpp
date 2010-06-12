@@ -1,12 +1,15 @@
 #include <iostream.h>
 #include <stack>
 #include <queue>
+#include "Common.h"
+#include "MyUtil.h"
 #include "BinTree.h"
 
 using std::stack;
 using std::queue;
 
 OutputVisitor outputVisitor;
+
 
 void OutputVisitor::visit(BinNode* root)
 {
@@ -89,6 +92,15 @@ void BinTree::preVisit(VisitType vt, Visitor* visitor)
 		break;
 	case POST_ORDER_STACK:
 		cout<<"Postorder(S):\t";
+		break;
+	case PRE_ORDER_STACK_B:
+		cout<<"PreorderB(S):\t";
+		break;
+	case IN_ORDER_STACK_B:
+		cout<<"InorderB(S):\t";
+		break;
+	case POST_ORDER_STACK_B:
+		cout<<"PostorderB(S):\t";
 		break;
 	default:
 		cout<<"Unknow type:\t";
@@ -254,6 +266,139 @@ void BinTree::postOrderStack(Visitor* visitor)
 	postVisit(visitor);
 }
 
+/*
+The below 3 functions with a "B" as suffix are from:
+http://www.cnblogs.com/Jax/archive/2009/12/28/1633691.html
+However, there are several bugs in the implementions.
+Please look into the codes to find the "[BUG]" for the details.
+
+void BinTree::preOrderStackB(Visitor* visitor)
+{
+	preVisit(PRE_ORDER_STACK_B, visitor);
+
+	stack<BinNode*> st;
+	BinNode* temp = root;
+	while(temp != NULL)
+	{
+		visitor->visit(temp);
+		if(temp->rc != NULL)
+		{
+			st.push(temp->rc);
+		}
+		temp = temp->lc;
+	}
+
+	while(!st.empty())
+	{
+		temp = st.top();
+		st.pop();
+
+        visitor->visit(temp);
+		while(temp != NULL)
+		{
+		    [BUG]:
+		    This will skip some nodes. eg. the node 6 will be skipped
+			         5
+					  \
+                       8
+                      /
+                     6
+					  \
+					   7
+			if(temp->rc != NULL)
+			{
+				st.push(temp->rc);
+			}
+			temp = temp->lc;
+		}
+	}
+
+	postVisit(visitor);
+}
+void BinTree::inOrderStackB(Visitor* visitor)
+{
+	preVisit(IN_ORDER_STACK_B, visitor);
+
+	stack<BinNode*> st;
+	BinNode* temp = root;
+
+	while(temp != NULL)
+	{
+		if(temp != NULL)
+		{
+			st.push(temp);
+		}
+		temp = temp->lc;
+	}
+	while(!st.empty())
+	{
+		temp = st.top();
+		st.pop();
+
+		visitor->visit(temp);
+		if(temp->rc != NULL)
+		{
+			temp = temp->rc;
+			st.push(temp);
+			while(temp != NULL)
+			{
+				if(temp->lc != NULL)
+				{
+					st.push(temp->lc);
+				}
+				temp = temp->lc;
+			}
+		}
+	}
+	postVisit(visitor);
+}
+void BinTree::postOrderStackB(Visitor* visitor)
+{
+	preVisit(POST_ORDER_STACK_B, visitor);
+	stack<BinNode*> st;
+	BinNode* temp = root;
+
+	while(temp != NULL)
+	{
+		if(temp != NULL)
+		{
+			st.push(temp);
+		}
+		temp = temp->lc;
+	}
+
+	while(!st.empty())
+	{
+		BinNode* lastvisit = temp;
+		temp = st.top();
+		st.pop();
+		if(temp->rc == NULL || temp->rc == lastvisit)
+		{
+			visitor->visit(temp);
+		}
+		else if(temp->lc == lastvisit)
+		{
+		    //[BUG]?
+			//Until now it seems not a bug, but it push and pop some nodes than once,
+			//not a good performance implemention.
+			st.push(temp);
+			temp = temp->rc;
+			st.push(temp);
+			while(temp != NULL)
+			{
+				if(temp->lc != NULL)
+				{
+					st.push(temp->lc);
+				}
+				temp = temp->lc;
+			}
+		}
+	}
+	postVisit(visitor);
+}
+*/
+
+
 void BinTree::levelOrder(Visitor* visitor)
 {
 	preVisit(LEVEL_ORDER, visitor);
@@ -283,4 +428,117 @@ void BinTree::levelOrder(Visitor* visitor)
 	}
 
 	postVisit(visitor);
+}
+
+BinNode* BinTree::getNodeByID(BinNode* t, int id)
+{
+	if(t == NULL)
+	{
+		return NULL;
+	}
+	if(t->value == id)
+	{
+		return t;
+	}
+	BinNode* ret = NULL;
+	ret = getNodeByID(t->lc, id);
+	if(ret != NULL)
+	{
+		return ret;
+	}
+	else
+	{
+		return getNodeByID(t->rc, id);
+	}
+}
+
+bool BinTree::getPosOfNode(BinNode* t, BinNode* binNode, int* pos)
+{
+	if(t == NULL || binNode == NULL)
+	{
+		*pos = 0;
+		return false;
+	}
+	if(t == binNode)
+	{
+		return true;
+	}
+	int tmp = *pos;
+	*pos = 2 * tmp;
+	if(getPosOfNode(t->lc, binNode, pos))
+	{
+		return true;
+	}
+	*pos = 2 * tmp + 1;
+	if(getPosOfNode(t->rc, binNode, pos))
+	{
+		return true;
+	}
+	*pos = 0;
+	return false;
+}
+
+int BinTree::findParentPos(int pos1, int pos2)
+{
+	if(pos1 == pos2)
+	{
+		return pos1;
+	}
+
+	if(pos2 > pos1)
+	{
+		int tmp = pos1;
+		pos1 = pos2;
+		pos2 = tmp;
+	}
+
+	int diff = bitsNum(pos1) - bitsNum(pos2);
+	while(diff != 0)
+	{
+		pos1 = pos1 >> 1;
+		diff--;
+	}
+
+	while(pos1 != pos2)
+	{
+		pos1 = pos1 >> 1;
+		pos2 = pos2 >> 1;
+	}
+	return pos1;
+}
+
+BinNode* BinTree::getNodeByPos(int pos)
+{
+	if(pos == 0)
+	{
+		return NULL;
+	}
+	BinNode* t = root;
+	unsigned int power = flp2(pos);
+	power = power >> 1;
+	while(power != 0)
+	{
+		if( (pos & power) == 0)
+		{
+			t = t->lc;
+		}
+		else
+		{
+			t = t->rc;
+		}
+		power = power >> 1;
+	}
+	return t;
+}
+
+BinNode* BinTree::findLatestParent(BinNode* binNode1, BinNode* binNode2)
+{
+	int pos1 = 1, pos2 = 1;
+	if(!getPosOfNode(root, binNode1, &pos1) || !getPosOfNode(root, binNode2, &pos2))
+	{
+		return NULL;
+	}
+
+	int parentPos = findParentPos(pos1, pos2);
+	return getNodeByPos(parentPos);
 }
