@@ -60,3 +60,48 @@ void printSumPairsDup(int a[], int n, int sum)
 		}
 	}
 }
+
+/************************************************************************/
+/* 2. Check an array if a post order of BST                             */
+/************************************************************************/
+
+bool checkSeqIfPostOrderOfBST(int a[], int start, int end)
+{
+	if(start == end)
+	{
+		return true;
+	}
+
+	int i, j;
+	for(i = start; i < end; i++)
+	{
+		if(a[i] > a[end])
+		{
+			break;
+		}
+	}
+	for(j = i; j < end; j++)
+	{
+		if(a[j] <= a[end])
+		{
+			return false;
+		}
+	}
+	if(i > start)
+	{
+		if(!checkSeqIfPostOrderOfBST(a, start, i - 1))
+		{
+			return false;
+		}
+		
+	}
+	if(end - 1 >= i)
+	{
+		return checkSeqIfPostOrderOfBST(a, i, end - 1);
+	}
+	return true;
+}
+bool checkSeqIfPostOrderOfBST(int a[], int n)
+{
+	return checkSeqIfPostOrderOfBST(a, 0, n - 1);
+}

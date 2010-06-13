@@ -12,4 +12,9 @@
 /************************************************************************/
 void printSumPairs(int a[], int n, int sum);
 void printSumPairsDup(int a[], int n, int sum);
+
+/************************************************************************/
+/* 2. Check an array if a post order of BST                             */
+/************************************************************************/
+bool checkSeqIfPostOrderOfBST(int a[], int n);
 #endif

@@ -9,6 +9,10 @@
 #endif
 #endif
 
+#include <stack>
+
+using std::stack;
+
 class BinNode
 {
 public:
@@ -85,7 +89,36 @@ public:
 	int findParentPos(int pos1, int pos2);
 	BinNode* getNodeByPos(int pos);
 
+	/************************************************************************/
+	/* Find the latest parent node of 2 nodes without stack                 */
+	/************************************************************************/
 	BinNode* findLatestParent(BinNode* binNode1, BinNode* binNode2);
+
+
+	/************************************************************************/
+	/* Find the latest parent node of 2 nodes without stack, the node has parent point
+	/************************************************************************/
+	BinNode* findLatestParentPtr(BinNode* binNode1, BinNode* binNode2);
+
+
+	/************************************************************************/
+	/* Find the latest parent node of 2 nodes with stack                 */
+	/************************************************************************/
+	BinNode* findLatestParentStack(BinNode* binNode1, BinNode* binNode2);
+
+	bool getPosOfNode(BinNode* t, BinNode* binNode, stack<BinNode*>& st);
+
+	/************************************************************************/
+	/* Find a path that the sum of all the nodes equals to sum              
+	   The result includes the paths that not start from root node.
+	/************************************************************************/
+	void findPath(BinNode* t, int sum, stack<BinNode*>& st, bool isParentInPath);
+
+
+	/************************************************************************/
+	/* Suppose f(n)=(min+max)/2, find the closest node that greater than f(n)
+	/************************************************************************/
+	BinNode* findClosestToMid(int x = -1);
 private:
 	BinNode* buildInOrder(int data[], int start, int end);
 	void deleteTree(BinNode* t);
