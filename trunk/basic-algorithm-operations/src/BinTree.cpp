@@ -1,12 +1,14 @@
 #include <iostream.h>
 #include <stack>
 #include <queue>
+#include <list>
 #include "Common.h"
 #include "MyUtil.h"
 #include "BinTree.h"
 
 using std::stack;
 using std::queue;
+using std::list;
 
 OutputVisitor outputVisitor;
 
@@ -541,4 +543,155 @@ BinNode* BinTree::findLatestParent(BinNode* binNode1, BinNode* binNode2)
 
 	int parentPos = findParentPos(pos1, pos2);
 	return getNodeByPos(parentPos);
+}
+
+
+BinNode* BinTree::findLatestParentStack(BinNode* binNode1, BinNode* binNode2)
+{
+	stack<BinNode*> st1;
+	if(!getPosOfNode(root, binNode1, st1))
+	{
+		return NULL;
+	}
+
+	stack<BinNode*> st2;
+	if(!getPosOfNode(root, binNode2, st2))
+	{
+		return NULL;
+	}
+
+	BinNode* ret = NULL;
+
+	while(!st1.empty() && !st2.empty() && st1.top() == st2.top())
+	{
+		ret = st1.top();
+		st1.pop();
+		st2.pop();
+	}
+	return ret;
+}
+bool BinTree::getPosOfNode(BinNode* t, BinNode* binNode, stack<BinNode*>& st)
+{
+	if(t == NULL)
+	{
+		return false;
+	}
+	if(t == binNode)
+	{
+		st.push(t);
+		return true;
+	}
+	if(getPosOfNode(t->lc, binNode, st) || getPosOfNode(t->rc, binNode, st))
+	{
+		st.push(t);
+		return true;
+	}
+	return false;
+}
+
+BinNode* BinTree::findLatestParentPtr(BinNode* binNode1, BinNode* binNode2)
+{
+	stack<BinNode*> st1;
+	while(binNode1 != NULL)
+	{
+		st1.push(binNode1);
+		binNode1 = binNode1->p;
+	}
+
+	stack<BinNode*> st2;
+	while(binNode2 != NULL)
+	{
+		st2.push(binNode2);
+		binNode2 = binNode2->p;
+	}
+	
+	BinNode* ret = NULL;
+	
+	while(!st1.empty() && !st2.empty() && st1.top() == st2.top())
+	{
+		ret = st1.top();
+		st1.pop();
+		st2.pop();
+	}
+	return ret;
+}
+
+void BinTree::findPath(BinNode* t, int sum, stack<BinNode*>& st, bool isParentInPath)
+{
+	if(t == NULL)
+	{
+		return;
+	}
+
+	//Select parent, at least one ancestor in path
+	st.push(t);
+	if(t->value == sum)
+	{
+		stack<BinNode*> tempSt;
+		while(!st.empty())
+		{
+			tempSt.push(st.top());
+			st.pop();
+		}
+		while(!tempSt.empty())
+		{
+			cout<<tempSt.top()->value<<" ";
+			st.push(tempSt.top());
+			tempSt.pop();
+		}
+		cout<<endl;
+	}
+	findPath(t->lc, sum - t->value, st, true);
+	//st doesn't include the result of the call of "t->lc", because the "st.pop()" called after every "push".
+	findPath(t->rc, sum - t->value, st, true);
+	st.pop();
+
+	//No ancestor in path
+	if(!isParentInPath)
+	{
+		findPath(t->lc, sum, st, false);
+		findPath(t->rc, sum, st, false);
+	}
+}
+
+BinNode* BinTree::findClosestToMid(int x)
+{
+	if(root == NULL)
+	{
+		return NULL;
+	}
+	BinNode* min = root;
+	while(min->lc != NULL)
+	{
+		min = min->lc;
+	}
+
+	BinNode* max = root;
+	while(max->rc != NULL)
+	{
+		max = max->rc;
+	}
+
+	int f = (min->value + max->value) >> 1;
+	if(x != -1)
+	{
+		f = x;
+	}
+
+	BinNode* t = root;
+
+	BinNode* prev = NULL;
+	while(t != NULL)
+	{
+		if(t->value <= f)
+		{
+			t = t->rc;
+		}
+		else
+		{
+			prev = t;
+			t = t->lc;
+		}
+	}
+	return prev;
 }

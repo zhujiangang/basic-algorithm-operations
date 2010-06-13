@@ -399,7 +399,7 @@ void testBinTree()
 	binTree.levelOrder();
 	
 	int pos = 1;
-	BinNode* binNode = binTree.getNodeByID(binTree.getRoot(), 1);
+	BinNode* binNode = binTree.getNodeByID(binTree.getRoot(), 6);
 	if(binNode != NULL)
 	{
 		if(binTree.getPosOfNode(binTree.getRoot(), binNode, &pos))
@@ -408,7 +408,7 @@ void testBinTree()
 		}
 	}
 
-	BinNode* binNode2 = binTree.getNodeByID(binTree.getRoot(), 4);
+	BinNode* binNode2 = binTree.getNodeByID(binTree.getRoot(), 10);
 	BinNode* parentNode = binTree.findLatestParent(binNode, binNode2);
 	if(parentNode != NULL)
 	{
@@ -417,6 +417,45 @@ void testBinTree()
 	else
 	{
 		cout<<"Can't find parent"<<endl;
+	}
+
+	parentNode = NULL;
+	parentNode = binTree.findLatestParentStack(binNode, binNode2);
+	if(parentNode != NULL)
+	{
+		cout<<"Parent("<<binNode->value<<","<<binNode2->value<<")="<<parentNode->value<<endl;
+	}
+	else
+	{
+		cout<<"Can't find parent"<<endl;
+	}
+
+	parentNode = NULL;
+	parentNode = binTree.findLatestParentPtr(binNode, binNode2);
+	if(parentNode != NULL)
+	{
+		cout<<"Parent("<<binNode->value<<","<<binNode2->value<<")="<<parentNode->value<<endl;
+	}
+	else
+	{
+		cout<<"Can't find parent"<<endl;
+	}
+
+	stack<BinNode*> stPath;
+	binTree.findPath(binTree.getRoot(), 3, stPath, false);
+
+	int b[n] = {1,4,3,2,7,6,10,9,8,8};
+	cout<<checkSeqIfPostOrderOfBST(b, n)<<endl;
+
+	BinNode* closest = NULL;
+	
+	for(int i = 0; i < n + 2; i++)
+	{
+		closest = binTree.findClosestToMid(i);
+		if(closest != NULL)
+		{
+			cout<<i<<","<<closest->value<<endl;
+		}
 	}
 }
 int main(int argc, char* argv[])
