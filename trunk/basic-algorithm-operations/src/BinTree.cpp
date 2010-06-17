@@ -695,3 +695,83 @@ BinNode* BinTree::findClosestToMid(int x)
 	}
 	return prev;
 }
+
+
+void BinTree::transformToDoubleLink(BinNode* t, DoubleLinkNode*& tail)
+{
+	if(t == NULL)
+	{
+		return;
+	}
+
+	if(t->lc != NULL)
+	{
+		transformToDoubleLink(t->lc, tail);
+	}
+
+	tail->next = new DoubleLinkNode(t->value, tail, NULL);
+	tail = tail->next;
+
+	if(t->rc != NULL)
+	{
+		transformToDoubleLink(t->rc, tail);
+	}
+}
+
+void BinTree::transformToDoubleLink2(BinNode* t, DoubleLinkNode*& head)
+{
+	if(t == NULL)
+	{
+		return;
+	}
+	
+	if(t->rc != NULL)
+	{
+		transformToDoubleLink2(t->rc, head);
+	}
+	
+
+	if(head == NULL)
+	{
+		head = new DoubleLinkNode(t->value);
+	}
+	else
+	{
+		head->prev = new DoubleLinkNode(t->value, NULL, head);
+	 	head = head->prev;
+	}
+	
+	if(t->lc != NULL)
+	{
+		transformToDoubleLink2(t->lc, head);
+	}
+}
+
+void BinTree::swap(BinNode* t)
+{
+	if(t == NULL)
+	{
+		return;
+	}
+	queue<BinNode*> que;
+	que.push(t);
+
+	while(!que.empty())
+	{
+		t = que.front();
+		que.pop();
+
+		BinNode* tmp = t->lc;
+		t->lc = t->rc;
+		t->rc = tmp;
+
+		if(t->lc != NULL)
+		{
+			que.push(t->lc);
+		}
+		if(t->rc != NULL)
+		{
+			que.push(t->rc);
+		}
+	}
+}
