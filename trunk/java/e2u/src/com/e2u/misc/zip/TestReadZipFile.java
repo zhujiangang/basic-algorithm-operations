@@ -87,8 +87,7 @@ public class TestReadZipFile {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-//		readZip("C:/Temp/test/lib/bbms.jar");
-		scanZipDir("C:/Temp/test", "com/tellabs/inm/oam/Logging");
+		scanZipDir("C:/Temp/test", "com/e2u/mis");
 	}
 
 }
