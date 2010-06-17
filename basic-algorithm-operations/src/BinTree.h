@@ -31,6 +31,19 @@ public:
 	BinNode* p;
 };
 
+class DoubleLinkNode
+{
+public:
+	DoubleLinkNode(int val = -1, DoubleLinkNode* pPrev = NULL, DoubleLinkNode* pNext = NULL)
+		: value(val), prev(pPrev), next(pNext)
+	{
+	}
+public:
+	int value;
+	DoubleLinkNode* prev;
+	DoubleLinkNode* next;	
+};
+
 class Visitor
 {
 public:
@@ -119,6 +132,18 @@ public:
 	/* Suppose f(n)=(min+max)/2, find the closest node that greater than f(n)
 	/************************************************************************/
 	BinNode* findClosestToMid(int x = -1);
+
+
+	/************************************************************************/
+	/* transform the binary tree to a double-link                           */
+	/************************************************************************/
+	void transformToDoubleLink(BinNode* t, DoubleLinkNode*& tail);
+	void transformToDoubleLink2(BinNode* t, DoubleLinkNode*& tail);
+
+	/************************************************************************/
+	/* Swap the left and right children of the tree and all sub-trees       */
+	/************************************************************************/
+	void swap(BinNode* t);
 private:
 	BinNode* buildInOrder(int data[], int start, int end);
 	void deleteTree(BinNode* t);

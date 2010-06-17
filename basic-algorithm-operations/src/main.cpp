@@ -457,6 +457,28 @@ void testBinTree()
 			cout<<i<<","<<closest->value<<endl;
 		}
 	}
+
+	binTree.swap(binTree.getRoot());
+
+	DoubleLinkNode *tail = /*new DoubleLinkNode(-1)*/ NULL;
+	binTree.transformToDoubleLink2(binTree.getRoot(), tail);
+
+ 	DoubleLinkNode *pdnode = NULL;
+// 	while(pdnode != NULL)
+// 	{
+// 		cout<<pdnode->value<<" ";
+// 		pdnode = pdnode->next;
+// 
+// 	}
+// 	cout<<endl;
+
+	pdnode = tail;
+	while(pdnode != NULL)
+	{
+		cout<<pdnode->value<<" ";
+		pdnode = pdnode->next;
+	}
+	cout<<endl;
 }
 int main(int argc, char* argv[])
 {
