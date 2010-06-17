@@ -138,12 +138,18 @@ public:
 	/* transform the binary tree to a double-link                           */
 	/************************************************************************/
 	void transformToDoubleLink(BinNode* t, DoubleLinkNode*& tail);
-	void transformToDoubleLink2(BinNode* t, DoubleLinkNode*& tail);
+	void transformToDoubleLink2(BinNode* t, DoubleLinkNode*& head);
+
+	//This implement doesn't create a new double-link, but use the original tree space,
+	//take left-child as the previous pointer, right-child as the next pointer
+	void transformToDoubleLink3(BinNode* t, BinNode*& head);
 
 	/************************************************************************/
 	/* Swap the left and right children of the tree and all sub-trees       */
 	/************************************************************************/
 	void swap(BinNode* t);
+
+	BinNode* find(int val);
 private:
 	BinNode* buildInOrder(int data[], int start, int end);
 	void deleteTree(BinNode* t);

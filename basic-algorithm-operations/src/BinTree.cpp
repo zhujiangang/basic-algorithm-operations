@@ -747,6 +747,36 @@ void BinTree::transformToDoubleLink2(BinNode* t, DoubleLinkNode*& head)
 	}
 }
 
+void BinTree::transformToDoubleLink3(BinNode* t, BinNode*& head)
+{
+	if(t == NULL)
+	{
+		return;
+	}
+	
+	if(t->rc != NULL)
+	{
+		transformToDoubleLink3(t->rc, head);
+	}
+	
+	
+	if(head == NULL)
+	{
+		head = t;
+	}
+	else
+	{
+		head->lc = t;
+		t->rc = head;
+		head = t;
+	}
+	
+	if(t->lc != NULL)
+	{
+		transformToDoubleLink3(t->lc, head);
+	}
+}
+
 void BinTree::swap(BinNode* t)
 {
 	if(t == NULL)
@@ -774,4 +804,25 @@ void BinTree::swap(BinNode* t)
 			que.push(t->rc);
 		}
 	}
+}
+
+BinNode* BinTree::find(int val)
+{
+	BinNode* t = root;
+	while(t != NULL)
+	{
+		if(val < t->value)
+		{
+			t = t->lc;
+		}
+		else if(val > t->value)
+		{
+			t = t->rc;
+		}
+		else
+		{
+			return t;
+		}
+	}
+	return NULL;
 }
