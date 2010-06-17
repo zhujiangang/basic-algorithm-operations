@@ -275,14 +275,16 @@ void testStringOper()
 
 void testArrayOper()
 {
-	const int n = 100;
+	const int n = 10;
 	int a[n];
 	genseq(a, n);
-	genrand(a, n, 100);
+	genrand(a, n, n);
 	quickSort(a, n);
 	output(a, n);
 
-	printSumPairsDup(a, n, 60);
+//	printSumPairsDup(a, n, n * 3);
+
+	cout<<binarySearch(a, 0, n - 1, 0.3 * n)<<endl;
 }
 
 
@@ -458,7 +460,7 @@ void testBinTree()
 		}
 	}
 
-	binTree.swap(binTree.getRoot());
+//	binTree.swap(binTree.getRoot());
 
 	DoubleLinkNode *tail = /*new DoubleLinkNode(-1)*/ NULL;
 	binTree.transformToDoubleLink2(binTree.getRoot(), tail);
@@ -479,6 +481,29 @@ void testBinTree()
 		pdnode = pdnode->next;
 	}
 	cout<<endl;
+
+	BinNode* bhead = NULL;
+	binTree.transformToDoubleLink3(binTree.getRoot(), bhead);
+
+	BinNode* pnode = bhead, *pnode_last = bhead;
+	while(pnode != NULL)
+	{
+		pnode_last = pnode;
+		cout<<pnode->value<<" ";
+		pnode = pnode->rc;
+	}
+	cout<<endl;
+
+	cout<<pnode_last->value<<endl;
+
+	pnode = pnode_last;
+	while(pnode != NULL)
+	{
+		cout<<pnode->value<<" ";
+		pnode = pnode->lc;
+	}
+	cout<<endl;
+
 }
 int main(int argc, char* argv[])
 {
@@ -487,9 +512,9 @@ int main(int argc, char* argv[])
 //	testFileOper();
 //	testLinkedList();
 //	testStringOper();
-//	testArrayOper();
+	testArrayOper();
 //	testStackQueue();
-	testBinTree();
+//	testBinTree();
 	return 0;
 }
 

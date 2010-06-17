@@ -105,3 +105,31 @@ bool checkSeqIfPostOrderOfBST(int a[], int n)
 {
 	return checkSeqIfPostOrderOfBST(a, 0, n - 1);
 }
+
+/************************************************************************/
+/* 3. Binary search from an array                                       */
+/************************************************************************/
+int binarySearch(int a[], int from, int to, int key)
+{
+	if(from > to)
+	{
+		return -1;
+	}
+	while(from <= to)
+	{
+		int mid = (from + to) >> 1;
+		if(key < a[mid])
+		{
+			to = mid - 1;
+		}
+		else if(key > a[mid])
+		{
+			from = mid + 1;
+		}
+		else
+		{
+			return mid;
+		}
+	}
+	return -(from + 1);
+}

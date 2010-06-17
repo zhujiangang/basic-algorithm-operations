@@ -17,4 +17,9 @@ void printSumPairsDup(int a[], int n, int sum);
 /* 2. Check an array if a post order of BST                             */
 /************************************************************************/
 bool checkSeqIfPostOrderOfBST(int a[], int n);
+
+/************************************************************************/
+/* 3. Binary search from an array                                       */
+/************************************************************************/
+int binarySearch(int a[], int from, int to, int key);
 #endif
