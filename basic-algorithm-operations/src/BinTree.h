@@ -44,6 +44,17 @@ public:
 	DoubleLinkNode* next;	
 };
 
+class qnode
+{
+public:
+	int lvl;
+	int l, h;
+	int f;
+	int lr;
+};
+
+BinNode* createTree(int in[], int level[], int n);
+
 class Visitor
 {
 public:
@@ -57,6 +68,12 @@ public:
 };
 
 extern OutputVisitor outputVisitor;
+
+enum ChildType
+{
+	LEFT_CHILD,
+	RIGHT_CHILD
+};
 
 enum VisitType
 {
@@ -75,7 +92,7 @@ enum VisitType
 class BinTree
 {
 public:
-	BinTree() : root(NULL) {}
+	BinTree(BinNode* t = NULL) : root(t) {}
 	BinTree(int data[], int len);
 	virtual ~BinTree();
 	BinNode* getRoot()
@@ -144,12 +161,15 @@ public:
 	//take left-child as the previous pointer, right-child as the next pointer
 	void transformToDoubleLink3(BinNode* t, BinNode*& head);
 
+	BinNode* transformToDoubleLink4(BinNode* t, BinNode* head);
+
 	/************************************************************************/
 	/* Swap the left and right children of the tree and all sub-trees       */
 	/************************************************************************/
 	void swap(BinNode* t);
 
 	BinNode* find(int val);
+	void insert(int val);
 private:
 	BinNode* buildInOrder(int data[], int start, int end);
 	void deleteTree(BinNode* t);

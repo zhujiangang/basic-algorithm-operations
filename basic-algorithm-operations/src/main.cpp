@@ -446,7 +446,7 @@ void testBinTree()
 	stack<BinNode*> stPath;
 	binTree.findPath(binTree.getRoot(), 3, stPath, false);
 
-	int b[n] = {1,4,3,2,7,6,10,9,8,8};
+	int b[n] = {1,4,3/*,2,7,6,10,9,8,8*/};
 	cout<<checkSeqIfPostOrderOfBST(b, n)<<endl;
 
 	BinNode* closest = NULL;
@@ -483,27 +483,37 @@ void testBinTree()
 	cout<<endl;
 
 	BinNode* bhead = NULL;
-	binTree.transformToDoubleLink3(binTree.getRoot(), bhead);
+//	binTree.transformToDoubleLink3(binTree.getRoot(), bhead);
+// 	bhead = binTree.transformToDoubleLink4(binTree.getRoot(), bhead);
+// 
+// 	BinNode* pnode = bhead, *pnode_last = bhead;
+// 	while(pnode != NULL)
+// 	{
+// 		pnode_last = pnode;
+// 		cout<<pnode->value<<" ";
+// 		pnode = pnode->rc;
+// 	}
+// 	cout<<endl;
+// 
+// 	cout<<pnode_last->value<<endl;
+// 
+// 	pnode = pnode_last;
+// 	while(pnode != NULL)
+// 	{
+// 		cout<<pnode->value<<" ";
+// 		pnode = pnode->lc;
+// 	}
+// 	cout<<endl;
 
-	BinNode* pnode = bhead, *pnode_last = bhead;
-	while(pnode != NULL)
-	{
-		pnode_last = pnode;
-		cout<<pnode->value<<" ";
-		pnode = pnode->rc;
-	}
-	cout<<endl;
+	int in[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+	int level[] = {5, 2, 8, 1, 3, 6, 9, 4, 7, 10};
+	BinNode* t = createTree(in, level, 10);
 
-	cout<<pnode_last->value<<endl;
-
-	pnode = pnode_last;
-	while(pnode != NULL)
-	{
-		cout<<pnode->value<<" ";
-		pnode = pnode->lc;
-	}
-	cout<<endl;
-
+	BinTree tree(t);
+	tree.preOrder();
+	tree.inOrder();
+	tree.postOrder();
+	tree.levelOrder();
 }
 int main(int argc, char* argv[])
 {
@@ -512,9 +522,9 @@ int main(int argc, char* argv[])
 //	testFileOper();
 //	testLinkedList();
 //	testStringOper();
-	testArrayOper();
+//	testArrayOper();
 //	testStackQueue();
-//	testBinTree();
+	testBinTree();
 	return 0;
 }
 
