@@ -12,6 +12,134 @@ using std::list;
 
 OutputVisitor outputVisitor;
 
+BinNode* createTree(int in[], int level[], int n)
+{
+	if(n < 1)
+	{
+		return NULL;
+	}
+	qnode s;
+	queue<qnode> que;
+	int r = 0;
+
+	BinNode* root = NULL;
+	BinNode* p = NULL;
+	root = p = new BinNode(level[0]);
+
+	int i;
+	for(i = 0; i < n; i++)
+	{
+		if(in[i] == level[0])
+		{
+			break;
+		}
+	}
+	if(i == 0) //no left child
+	{
+		s.lvl = ++r;
+		s.l = i + 1;
+		s.h = n - 1;
+		s.f = (int)p;
+		s.lr = RIGHT_CHILD;
+		que.push(s);
+	}
+	else if(i == n - 1) //no right child
+	{
+		s.lvl = ++r;
+		s.l = 0;
+		s.h = i - 1;
+		s.f = (int)p;
+		s.lr = LEFT_CHILD;
+		que.push(s);
+	}
+	else //has both left and right child
+	{
+		s.lvl = ++r;
+		s.l = 0;
+		s.h = i - 1;
+		s.f = (int)p;
+		s.lr = LEFT_CHILD;
+		que.push(s);
+
+		s.lvl = ++r;
+		s.l = i + 1;
+		s.h = n - 1;
+		s.f = (int)p;
+		s.lr = RIGHT_CHILD;
+		que.push(s);
+	}
+
+	
+	BinNode* father;
+	int low, high;
+	while(!que.empty())
+	{
+		s = que.front();
+		que.pop();
+
+		father = (BinNode*)s.f;
+		for(i = s.l; i < s.h; i++)
+		{
+			if(in[i] == level[s.lvl])
+			{
+				break;
+			}
+		}
+		p = new BinNode(level[s.lvl]);
+		if(s.lr == LEFT_CHILD)
+		{
+			father->lc = p;
+		}
+		else
+		{
+			father->rc = p;
+		}
+
+		if(i == s.l && i == s.h)
+		{
+			continue;
+		}
+
+		if(i == s.l)
+		{
+			s.lvl = ++r;
+			s.l = i + 1;
+			s.f = (int)p;
+			s.lr = RIGHT_CHILD;
+			que.push(s);
+		}
+		else if(i == s.h)
+		{
+			s.lvl = ++r;
+			s.h = i - 1;
+			s.f = (int)p;
+			s.lr = LEFT_CHILD;
+			que.push(s);
+		}
+		else
+		{
+			low = s.l;
+			high = s.h;
+
+
+			s.lvl = ++r;
+			s.l = low;
+			s.h = i - 1;
+			s.f = (int)p;
+			s.lr = LEFT_CHILD; 
+			que.push(s);
+
+			s.lvl = ++r;
+			s.l = i + 1;
+			s.h = high;
+			s.f = (int)p;
+			s.lr = RIGHT_CHILD;
+			que.push(s);
+		}
+	}
+
+	return root;
+}
 
 void OutputVisitor::visit(BinNode* root)
 {
@@ -777,6 +905,37 @@ void BinTree::transformToDoubleLink3(BinNode* t, BinNode*& head)
 	}
 }
 
+BinNode* BinTree::transformToDoubleLink4(BinNode* t, BinNode* head)
+{
+	if(t == NULL)
+	{
+		return NULL;
+	}
+	
+	if(t->rc != NULL)
+	{
+		head = transformToDoubleLink4(t->rc, head);
+	}
+		
+	if(head == NULL)
+	{
+		head = t;
+	}
+	else
+	{
+		head->lc = t;
+		t->rc = head;
+		head = t;
+	}
+	
+	if(t->lc != NULL)
+	{
+		head = transformToDoubleLink4(t->lc, head);
+	}
+
+	return head;
+}
+
 void BinTree::swap(BinNode* t)
 {
 	if(t == NULL)
@@ -825,4 +984,37 @@ BinNode* BinTree::find(int val)
 		}
 	}
 	return NULL;
+}
+
+void BinTree::insert(int val)
+{
+	if(root == NULL)
+	{
+		root = new BinNode(val);
+		return;
+	}
+	BinNode* t = root;
+	BinNode* parent = NULL;
+
+	do 
+	{
+		parent = t;
+		if(val <= t->value)
+		{
+			t = t->lc;
+		}
+		else if(val > t->value)
+		{
+			t = t->rc;
+		}
+	} while (t != NULL);
+
+	if(val <= parent->value)
+	{
+		parent->lc = new BinNode(val, NULL, NULL, parent);
+	}
+	else
+	{
+		parent->rc = new BinNode(val, NULL, NULL, parent);
+	}
 }
