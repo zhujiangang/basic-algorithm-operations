@@ -12,14 +12,41 @@ using std::list;
 
 OutputVisitor outputVisitor;
 
-BinNode* createTree(int in[], int level[], int n)
+bool compare(BinNode* t1, BinNode* t2)
+{
+	//Both are NULL
+	if(t1 == NULL && t2 == NULL)
+	{
+		return true;
+	}
+	//One of them is NULL
+	if(t1 == NULL || t2 == NULL)
+	{
+		return false;
+	}
+	if(t1->value != t2->value)
+	{
+		return false;
+	}
+	if(!compare(t1->lc, t2->lc))
+	{
+		return false;
+	}
+	return compare(t1->rc, t2->rc);
+}
+
+bool compare(BinTree& t1, BinTree& t2)
+{
+	return compare(t1.getRoot(), t2.getRoot());
+}
+BinNode* createTreeByInLevel(const int in[], const int level[], int n)
 {
 	if(n < 1)
 	{
 		return NULL;
 	}
-	qnode s;
-	queue<qnode> que;
+	LevelOrderVisitNode s;
+	queue<LevelOrderVisitNode> que;
 	int r = 0;
 
 	BinNode* root = NULL;
@@ -27,19 +54,26 @@ BinNode* createTree(int in[], int level[], int n)
 	root = p = new BinNode(level[0]);
 
 	int i;
+	bool found = false;
 	for(i = 0; i < n; i++)
 	{
 		if(in[i] == level[0])
 		{
+			found = true;
 			break;
 		}
+	}
+	//The in-order and level-order is not the one tree's valid visit order
+	if(!found)
+	{
+		return NULL;
 	}
 	if(i == 0) //no left child
 	{
 		s.lvl = ++r;
 		s.l = i + 1;
 		s.h = n - 1;
-		s.f = (int)p;
+		s.p = p;
 		s.lr = RIGHT_CHILD;
 		que.push(s);
 	}
@@ -48,7 +82,7 @@ BinNode* createTree(int in[], int level[], int n)
 		s.lvl = ++r;
 		s.l = 0;
 		s.h = i - 1;
-		s.f = (int)p;
+		s.p = p;
 		s.lr = LEFT_CHILD;
 		que.push(s);
 	}
@@ -57,14 +91,14 @@ BinNode* createTree(int in[], int level[], int n)
 		s.lvl = ++r;
 		s.l = 0;
 		s.h = i - 1;
-		s.f = (int)p;
+		s.p = p;
 		s.lr = LEFT_CHILD;
 		que.push(s);
 
 		s.lvl = ++r;
 		s.l = i + 1;
 		s.h = n - 1;
-		s.f = (int)p;
+		s.p = p;
 		s.lr = RIGHT_CHILD;
 		que.push(s);
 	}
@@ -77,13 +111,20 @@ BinNode* createTree(int in[], int level[], int n)
 		s = que.front();
 		que.pop();
 
-		father = (BinNode*)s.f;
-		for(i = s.l; i < s.h; i++)
+		father = s.p;
+		found = false;
+		for(i = s.l; i <= s.h; i++)
 		{
 			if(in[i] == level[s.lvl])
 			{
+				found = true;
 				break;
 			}
+		}
+		//The in-order and level-order is not the one tree's valid visit order
+		if(!found)
+		{
+			return NULL;
 		}
 		p = new BinNode(level[s.lvl]);
 		if(s.lr == LEFT_CHILD)
@@ -95,7 +136,7 @@ BinNode* createTree(int in[], int level[], int n)
 			father->rc = p;
 		}
 
-		if(i == s.l && i == s.h)
+		if(s.l == s.h)
 		{
 			continue;
 		}
@@ -104,7 +145,7 @@ BinNode* createTree(int in[], int level[], int n)
 		{
 			s.lvl = ++r;
 			s.l = i + 1;
-			s.f = (int)p;
+			s.p = p;
 			s.lr = RIGHT_CHILD;
 			que.push(s);
 		}
@@ -112,7 +153,7 @@ BinNode* createTree(int in[], int level[], int n)
 		{
 			s.lvl = ++r;
 			s.h = i - 1;
-			s.f = (int)p;
+			s.p = p;
 			s.lr = LEFT_CHILD;
 			que.push(s);
 		}
@@ -125,19 +166,401 @@ BinNode* createTree(int in[], int level[], int n)
 			s.lvl = ++r;
 			s.l = low;
 			s.h = i - 1;
-			s.f = (int)p;
+			s.p = p;
 			s.lr = LEFT_CHILD; 
 			que.push(s);
 
 			s.lvl = ++r;
 			s.l = i + 1;
 			s.h = high;
-			s.f = (int)p;
+			s.p = p;
 			s.lr = RIGHT_CHILD;
 			que.push(s);
 		}
 	}
 
+	return root;
+}
+
+BinNode* createTreeByInLevel2(const int in[], const int level[], int n)
+{
+	if(n < 1)
+	{
+		return NULL;
+	}
+	LevelOrderVisitNode s;
+	queue<LevelOrderVisitNode> que;
+	int r = 0;
+	
+	BinNode* root = NULL;
+	BinNode* p = NULL;
+	root = p = new BinNode(level[0]);
+
+	s.l = 0;
+	s.h = n - 1;
+	s.lvl = r;
+	s.p = p;
+	que.push(s);
+	
+	int i;
+	bool found = false;
+
+	int l, h, lvl;
+
+	while(!que.empty())
+	{
+		s = que.front();
+		que.pop();
+
+		for(i = s.l; i <= s.h; i++)
+		{
+			if(in[i] == level[s.lvl])
+			{
+				found = true;
+				break;
+			}
+		}
+		if(!found)
+		{
+			return NULL;
+		}
+
+		lvl = s.lvl;
+		l = s.l;
+		h = s.h;
+		p = s.p;
+		//No left child
+		if(i == l)
+		{
+			p->lc = NULL;
+		}
+		else
+		{
+			++r;
+			p->lc = new BinNode(level[r]);
+			
+			s.l = l;
+			s.h = i - 1;
+			s.lvl = r;
+			s.p = p->lc;
+
+			que.push(s);
+		}
+
+		//No right child
+		if(i == h)
+		{
+			p->rc = NULL;
+		}
+		else
+		{
+			++r;
+			p->rc = new BinNode(level[r]);
+
+			s.l = i + 1;
+			s.h = h;
+			s.lvl = r;
+			s.p = p->rc;
+
+			que.push(s);
+		}
+	}
+	return root;
+}
+
+BinNode* createTreeByInPre(const int in[], int inBegin, int inEnd, const int pre[], int preBegin, int preEnd)
+{
+	int i;
+	bool found = false;
+	for(i = inBegin; i <= inEnd; i++)
+	{
+		if(in[i] == pre[preBegin])
+		{
+			found = true;
+			break;
+		}
+	}
+	//Invalid in-order and pre-order sequence
+	if(!found)
+	{
+		return NULL;
+	}
+
+	BinNode* root = new BinNode(in[i]);
+
+	if(inBegin == inEnd)
+	{
+		return root;
+	}
+
+	//no left child
+	if(i == inBegin)
+	{
+		root->lc = NULL;
+		root->rc = createTreeByInPre(in, i + 1, inEnd, pre, preBegin + 1, preEnd);
+		root->rc->p = root;
+	}
+	//no right child
+	else if(i == inEnd)
+	{
+		root->lc = createTreeByInPre(in, inBegin, inEnd - 1, pre, preBegin + 1, preEnd);
+		root->rc = NULL;
+		root->lc->p = root;		
+	}
+	//have both left and right child
+	else
+	{
+		root->lc = createTreeByInPre(in, inBegin, i - 1, pre, preBegin + 1, preBegin + i - inBegin);
+		root->rc = createTreeByInPre(in, i + 1, inEnd, pre, preBegin + i - inBegin + 1, preEnd);
+
+		root->lc->p = root;
+		root->rc->p = root;
+	}
+	return root;
+}
+
+BinNode* createTreeByInPost(const int in[], int inBegin, int inEnd, const int post[], int postBegin, int postEnd)
+{
+	int i;
+	bool found = false;
+	for(i = inBegin; i <= inEnd; i++)
+	{
+		if(in[i] == post[postEnd])
+		{
+			found = true;
+			break;
+		}
+	}
+	//Invalid in-order and pre-order sequence
+	if(!found)
+	{
+		return NULL;
+	}
+	
+	BinNode* root = new BinNode(in[i]);
+	
+	if(inBegin == inEnd)
+	{
+		return root;
+	}
+	
+	//no left child
+	if(i == inBegin)
+	{
+		root->lc = NULL;
+		root->rc = createTreeByInPost(in, i + 1, inEnd, post, postBegin, postEnd - 1);
+		root->rc->p = root;
+	}
+	//no right child
+	else if(i == inEnd)
+	{
+		root->lc = createTreeByInPost(in, inBegin, inEnd - 1, post, postBegin, postEnd - 1);
+		root->rc = NULL;
+		root->lc->p = root;		
+	}
+	//have both left and right child
+	else
+	{
+		root->lc = createTreeByInPost(in, inBegin, i - 1, post, postBegin, postBegin + i - inBegin - 1);
+		root->rc = createTreeByInPost(in, i + 1, inEnd, post, postBegin + i - inBegin, postEnd - 1);
+		
+		root->lc->p = root;
+		root->rc->p = root;
+	}
+	return root;
+}
+
+BinNode* createTreeByInPreWithStack(const int in[], int inBegin, int inEnd, const int pre[], int preBegin, int preEnd)
+{
+	int i;
+	bool found = false;
+
+	BinNode* root = new BinNode(pre[preBegin]);
+
+	//Only one element
+	if(inBegin == inEnd)
+	{
+		return root;
+	}
+
+	queue<PreOrPostOrderVisitNode> que;
+
+	PreOrPostOrderVisitNode node;
+	node.p = root;
+	node.li = inBegin;
+	node.hi = inEnd;
+	node.lp = preBegin;
+	node.hp = preEnd;
+
+	que.push(node);
+
+	int li, hi;
+	int lp, hp;
+	BinNode* p;
+
+	while(!que.empty())
+	{
+		node = que.front();
+		que.pop();
+
+		found = false;
+		for(i = node.li; i <= node.hi; i++)
+		{
+			if(in[i] == pre[node.lp])
+			{
+				found = true;
+				break;
+			}
+		}
+		//Invalid in-order and pre-order sequence
+		if(!found)
+		{
+			return NULL;
+		}
+
+		//no children
+		if(node.li == node.hi)
+		{
+			continue;
+		}
+
+		li = node.li;
+		hi = node.hi;
+		lp = node.lp;
+		hp = node.hp;
+		p = node.p;
+
+		//no left child
+		if(i == li)
+		{
+			p->lc = NULL;
+		}
+		else
+		{
+			p->lc = new BinNode(pre[lp + 1]);
+			node.p = p->lc;
+			node.li = li;
+			node.hi = i - 1;
+			node.lp = lp + 1;
+			node.hp = lp + i - li;
+
+			que.push(node);
+		}
+
+		if(i == hi)
+		{
+			p->rc = NULL;
+		}
+		else
+		{
+			p->rc = new BinNode(pre[lp + i - li + 1]);
+			node.p = p->rc;
+			node.li = i + 1;
+			node.hi = hi;
+			node.lp = lp + i - li + 1;
+			node.hp = hp;
+			
+			que.push(node);
+		}
+	}
+
+	return root;
+}
+
+BinNode* createTreeByInPostWithStack(const int in[], int inBegin, int inEnd, const int post[], int postBegin, int postEnd)
+{
+	int i;
+	bool found = false;
+	
+	BinNode* root = new BinNode(post[postEnd]);
+	
+	//Only one element
+	if(inBegin == inEnd)
+	{
+		return root;
+	}
+	
+	queue<PreOrPostOrderVisitNode> que;
+	
+	PreOrPostOrderVisitNode node;
+	node.p = root;
+	node.li = inBegin;
+	node.hi = inEnd;
+	node.lp = postBegin;
+	node.hp = postEnd;
+	
+	que.push(node);
+	
+	int li, hi;
+	int lp, hp;
+	BinNode* p;
+	
+	while(!que.empty())
+	{
+		node = que.front();
+		que.pop();
+		
+		found = false;
+		for(i = node.li; i <= node.hi; i++)
+		{
+			if(in[i] == post[node.hp])
+			{
+				found = true;
+				break;
+			}
+		}
+		//Invalid in-order and pre-order sequence
+		if(!found)
+		{
+			return NULL;
+		}
+		
+// 		//no children
+// 		if(node.li == node.hi)
+// 		{
+// 			continue;
+// 		}
+		
+		li = node.li;
+		hi = node.hi;
+		lp = node.lp;
+		hp = node.hp;
+		p = node.p;
+		
+		//no left child
+		if(i == li)
+		{
+			p->lc = NULL;
+		}
+		else
+		{
+			p->lc = new BinNode(post[lp + i - li - 1]);
+			node.p = p->lc;
+			node.li = li;
+			node.hi = i - 1;
+			node.lp = lp;
+			node.hp = lp + i - li - 1;
+			
+			que.push(node);
+		}
+		
+		if(i == hi)
+		{
+			p->rc = NULL;
+		}
+		else
+		{
+			p->rc = new BinNode(post[hp - 1]);
+			node.p = p->rc;
+			node.li = i + 1;
+			node.hi = hi;
+			node.lp = lp + i - li;
+			node.hp = hp - 1;
+			
+			que.push(node);
+		}
+	}
+	
 	return root;
 }
 

@@ -44,16 +44,35 @@ public:
 	DoubleLinkNode* next;	
 };
 
-class qnode
+//The information about level-order and in-order
+class LevelOrderVisitNode
 {
 public:
-	int lvl;
-	int l, h;
-	int f;
-	int lr;
+	BinNode* p; //Parent node or the current node.
+	int lvl;    //Level-order index, it's the root node of this subtree
+	int l, h;	//In-order sequence low and high bound
+	int lr;     //left or right child?
 };
 
-BinNode* createTree(int in[], int level[], int n);
+//The information about pre-order or post-order and in-order
+class PreOrPostOrderVisitNode
+{
+public:
+	BinNode* p;
+	int li, hi;
+	int lp, hp;
+};
+
+BinNode* createTreeByInLevel(const int in[], const int level[], int n);
+BinNode* createTreeByInLevel2(const int in[], const int level[], int n);
+
+BinNode* createTreeByInPre(const int in[], int inBegin, int inEnd, const int pre[], int preBegin, int preEnd);
+BinNode* createTreeByInPost(const int in[], int inBegin, int inEnd, const int post[], int postBegin, int postEnd);
+
+
+BinNode* createTreeByInPreWithStack(const int in[], int inBegin, int inEnd, const int pre[], int preBegin, int preEnd);
+BinNode* createTreeByInPostWithStack(const int in[], int inBegin, int inEnd, const int post[], int postBegin, int postEnd);
+
 
 class Visitor
 {
@@ -179,4 +198,7 @@ private:
 private:
 	BinNode* root;
 };
+
+bool compare(BinNode* t1, BinNode* t2);
+bool compare(BinTree& t1, BinTree& t2);
 #endif
