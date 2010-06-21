@@ -384,6 +384,51 @@ void testStackQueue()
 	}
 }
 
+void showTree(BinTree& ptree, char type = 0)
+{
+	static int count = 0;
+	count++;
+	cout<<endl;
+	
+	//Recursive
+	if(type == 0)
+	{
+		cout<<"=====================Start ("<<count<<") Recursive====================="<<endl;
+		ptree.preOrder();
+		ptree.inOrder();
+		ptree.postOrder();
+		
+	}
+	//Stack
+	else if(type == 1)
+	{
+		cout<<"=====================Start ("<<count<<") Stack========================="<<endl;
+		ptree.preOrderStack();
+		ptree.inOrderStack();
+		ptree.postOrderStack();
+	}
+	ptree.levelOrder();	
+	cout<<"=============================End============================="<<endl;
+}
+
+void showTree(BinNode* t, char type = 0)
+{
+	BinTree ptree(t);
+	showTree(ptree, type);
+}
+
+void showCompareResult(BinNode* t1, BinNode* t2)
+{
+	if(compare(t1, t2))
+	{
+		cout<<"Equals"<<endl;
+	}
+	else
+	{
+		cout<<"Differs"<<endl;
+	}
+}
+
 void testBinTree()
 {
 	const int n = 10;
@@ -392,13 +437,27 @@ void testBinTree()
 	output(a, n);
 
 	BinTree binTree(a, n);
-	binTree.preOrder();
-	binTree.preOrderStack();
-	binTree.inOrder();
-	binTree.inOrderStack();
-	binTree.postOrder();
-	binTree.postOrderStack();
-	binTree.levelOrder();
+
+	showTree(binTree);
+	showTree(binTree, 1);
+
+	int pre[]   = {5, 2, 1, 3, 4, 8, 6, 7, 9, 10};
+	int in[]    = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+	int post[]  = {1, 4, 3, 2, 7, 6, 10, 9, 8, 5};
+	int level[] = {5, 2, 8, 1, 3, 6, 9, 4, 7, 10};	
+	
+	showCompareResult(binTree.getRoot(), createTreeByInLevel(in, level, n));
+	showCompareResult(binTree.getRoot(), createTreeByInLevel2(in, level, n));
+	showCompareResult(binTree.getRoot(), createTreeByInPre(in, 0, COUNTOF(in) - 1, pre, 0, COUNTOF(in) - 1));
+	showCompareResult(binTree.getRoot(), createTreeByInPreWithStack(in, 0, COUNTOF(in) - 1, pre, 0, COUNTOF(pre) - 1));
+	showCompareResult(binTree.getRoot(), createTreeByInPost(in, 0, COUNTOF(in) - 1, post, 0, COUNTOF(post) - 1));
+	showCompareResult(binTree.getRoot(), createTreeByInPostWithStack(in, 0, COUNTOF(in) - 1, post, 0, COUNTOF(post) - 1));
+	showTree(createTreeByInLevel(in, level, n));
+	showTree(createTreeByInLevel2(in, level, n));
+	showTree(createTreeByInPre(in, 0, COUNTOF(in) - 1, pre, 0, COUNTOF(in) - 1));
+	showTree(createTreeByInPreWithStack(in, 0, COUNTOF(in) - 1, pre, 0, COUNTOF(pre) - 1));
+	showTree(createTreeByInPost(in, 0, COUNTOF(in) - 1, post, 0, COUNTOF(post) - 1));
+	showTree(createTreeByInPostWithStack(in, 0, COUNTOF(in) - 1, post, 0, COUNTOF(post) - 1));
 	
 	int pos = 1;
 	BinNode* binNode = binTree.getNodeByID(binTree.getRoot(), 6);
@@ -504,16 +563,6 @@ void testBinTree()
 // 		pnode = pnode->lc;
 // 	}
 // 	cout<<endl;
-
-	int in[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
-	int level[] = {5, 2, 8, 1, 3, 6, 9, 4, 7, 10};
-	BinNode* t = createTree(in, level, 10);
-
-	BinTree tree(t);
-	tree.preOrder();
-	tree.inOrder();
-	tree.postOrder();
-	tree.levelOrder();
 }
 int main(int argc, char* argv[])
 {
