@@ -213,4 +213,11 @@ public class BmpReader {
 		}
 
 	}
+	
+	
+	
+	
+	
+	
+	
 }
