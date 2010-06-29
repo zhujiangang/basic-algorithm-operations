@@ -36,7 +36,7 @@ class TestRunner implements Runnable
 
 	public void run()
 	{
-		System.out.println("[Thread]-" + Thread.currentThread().getName() + ", " + runnerName + " start to run");
+		System.out.println("[START]-" + Thread.currentThread().getName() + ", " + runnerName + " start to run in " + runTime + " seconds.");
 		try
 		{
 			Thread.sleep(runTime * 1000);
@@ -45,6 +45,6 @@ class TestRunner implements Runnable
 		{
 			e.printStackTrace();
 		}
-		System.out.println("[Thread]-" + Thread.currentThread().getName() + ", " + runnerName + " end to run");
+		System.out.println("[FINISH]-" + Thread.currentThread().getName() + ", " + runnerName + " end to run in " + runTime + " seconds.");
 	}
 }
