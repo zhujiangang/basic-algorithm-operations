@@ -78,6 +78,7 @@ class MyFileContentListener implements FileContentListener
 		else if(line.trim().startsWith("</programEntity>"))
 		{
 			pw.println(line.substring(2));
+			pw.close();
 			pw = null;
 			curFileName = null;
 		}
