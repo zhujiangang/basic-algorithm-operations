@@ -2,6 +2,8 @@ package com.e2u.thread;
 
 import java.util.LinkedList;
 
+
+//From: http://blog.csdn.net/ruanruoshi/archive/2006/04/10/657133.aspx
 public class ThreadPool
 {
 	static final long IDLE_TIMEOUT = 60000L;
@@ -31,25 +33,36 @@ public class ThreadPool
 
 	public synchronized void run(Runnable runner)
 	{
-		Worker worker;
+		Worker worker = null;
 
 		if(runner == null)
 		{
 			throw new NullPointerException();
 		}
-
-		// get a worker from free list...
-		if(!pool.isEmpty())
+		
+		try
 		{
-			worker = (Worker) pool.removeFirst();
+			//no free worker available
+			while(pool.isEmpty())
+			{
+				if(nextWorkerId < maxsize)
+				{
+					worker = new Worker(name + "-" + ++nextWorkerId);
+					worker.start();
+					pool.addLast(worker);
+					System.out.println("Thread " + worker.getName() + " Created.");
+				}
+				else
+				{
+					wait();
+				}
+			}
 		}
-		else
+		catch(Exception e)
 		{
-			// ...no free worker available, create new one...
-			worker = new Worker(name + "-" + ++nextWorkerId);
-			worker.start();
+			e.printStackTrace();
 		}
-
+		worker = (Worker) pool.removeFirst();
 		// ...and wake up worker to service incoming runner
 		worker.wakeup(runner);
 	}
@@ -80,6 +93,7 @@ public class ThreadPool
 		{
 			// Add to free list
 			pool.addLast(worker);
+			notifyAll();
 			return false; // continue
 		}
 		return true; // die
@@ -123,7 +137,10 @@ public class ThreadPool
 				if(runner == null)
 				{
 					if(notifyTimeout(this))
+					{
+						System.out.println("Thread " + getName() + " Died.");
 						return;
+					}	
 					else
 						continue;
 				}
@@ -136,7 +153,10 @@ public class ThreadPool
 				{
 					runner = null;
 					if(notifyFree(this))
+					{
+						System.out.println("Thread " + getName() + " Died.");
 						return;
+					}						
 				}
 			}
 		}
