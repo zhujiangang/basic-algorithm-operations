@@ -18,3 +18,5 @@ FOR /F "tokens=1,2 delims= " %%i in ("%TMPSTR%") do (
 del /F /Q %TMP_FILE%
 
 echo %IPSTR%
+
+pause

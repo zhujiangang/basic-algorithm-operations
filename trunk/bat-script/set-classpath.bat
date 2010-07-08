@@ -1,4 +1,4 @@
-
+@echo off
 setlocal ENABLEDELAYEDEXPANSION
 IF ERRORLEVEL 1 (
     echo Unable to enable DELAYED EXPANSION
