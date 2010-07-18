@@ -35,11 +35,11 @@ public class GUIFramework
 
 class GridBagPanel extends JPanel
 {
-    private JLabel serverLabel = new JLabel("Server");
+    private JLabel serverLabel = new JLabel("Server:");
     private JTextField serverField = new JTextField();
     private JLabel serverDescriptionLabel = new JLabel("Server Address");
 
-    private JLabel portLabel = new JLabel("Port");
+    private JLabel portLabel = new JLabel("Port:");
     private JTextField portField = new JTextField();
     private JLabel portDescriptionLabel = new JLabel("Port Number");
 
@@ -60,20 +60,20 @@ class GridBagPanel extends JPanel
         inputPanel.setLayout(new GridBagLayout());
 
         inputPanel.add(serverLabel, new GridBagConstraints(0, 0, 1, 1, 0.0, 0.0,
-            GridBagConstraints.WEST, GridBagConstraints.NONE, new Insets(10, 5, 0, 5), 0, 0));
-        inputPanel.add(serverField, new GridBagConstraints(1, 0, 1, 1, 1.0, 0.0,
-            GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL, new Insets(10, 5, 0, 5), 0, 0));
-        inputPanel.add(createRedStarLabel(), new GridBagConstraints(2, 0, 1, 1, 0.0, 0.0,
-            GridBagConstraints.WEST, GridBagConstraints.HORIZONTAL, new Insets(10, 15, 0, 5), 0, 0));            
+            GridBagConstraints.EAST, GridBagConstraints.NONE, new Insets(10, 5, 0, 5), 0, 0));
+        inputPanel.add(createRedStarLabel(), new GridBagConstraints(1, 0, 1, 1, 0.0, 0.0,
+            GridBagConstraints.EAST, GridBagConstraints.HORIZONTAL, new Insets(10, 15, 0, 5), 0, 0)); 
+        inputPanel.add(serverField, new GridBagConstraints(2, 0, 1, 1, 1.0, 0.0,
+            GridBagConstraints.WEST, GridBagConstraints.HORIZONTAL, new Insets(10, 5, 0, 5), 0, 0));        
         inputPanel.add(serverDescriptionLabel, new GridBagConstraints(3, 0, 1, 1, 0.0, 0.0,
             GridBagConstraints.WEST, GridBagConstraints.HORIZONTAL, new Insets(10, 0, 0, 15), 0, 0));
         
         inputPanel.add(portLabel, new GridBagConstraints(0, 1, 1, 1, 0.0, 0.0,
-            GridBagConstraints.WEST, GridBagConstraints.NONE, new Insets(5, 5, 0, 5), 0, 0));
-        inputPanel.add(portField, new GridBagConstraints(1, 1, 1, 1, 1.0, 0.0,
-            GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL, new Insets(5, 5, 0, 5), 0, 0));
-//        inputPanel.add(createRedStarLabel(), new GridBagConstraints(2, 1, 1, 1, 0.0, 0.0,
-//            GridBagConstraints.WEST, GridBagConstraints.HORIZONTAL, new Insets(5, 15, 0, 5), 0, 0));
+            GridBagConstraints.EAST, GridBagConstraints.NONE, new Insets(5, 5, 0, 5), 0, 0));
+        inputPanel.add(createRedStarLabel(), new GridBagConstraints(1, 1, 1, 1, 0.0, 0.0,
+            GridBagConstraints.EAST, GridBagConstraints.HORIZONTAL, new Insets(5, 15, 0, 5), 0, 0));
+        inputPanel.add(portField, new GridBagConstraints(2, 1, 1, 1, 1.0, 0.0,
+            GridBagConstraints.WEST, GridBagConstraints.HORIZONTAL, new Insets(5, 5, 0, 5), 0, 0));
         inputPanel.add(portDescriptionLabel, new GridBagConstraints(3, 1, 1, 1, 0.0, 0.0,
             GridBagConstraints.WEST, GridBagConstraints.HORIZONTAL, new Insets(5, 0, 0, 15), 0, 0));
         
@@ -100,9 +100,9 @@ class GridBagPanel extends JPanel
     
     private JLabel createRedStarLabel()
     {
-        JLabel starLabel = new JLabel("(*)");
+        JLabel starLabel = new JLabel("*");
         Font defaultFont = starLabel.getFont();
-        Font font = new Font(defaultFont.getName(), Font.BOLD, defaultFont.getSize());
+        Font font = new Font(defaultFont.getName(), Font.BOLD, defaultFont.getSize() + 5);
         starLabel.setFont(font);
         starLabel.setForeground(Color.RED);
         return starLabel;
