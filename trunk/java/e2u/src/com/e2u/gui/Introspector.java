@@ -2,14 +2,20 @@ package com.e2u.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Insets;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.lang.reflect.Field;
 import java.util.HashSet;
 import java.util.Set;
 
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTree;
+import javax.swing.SwingUtilities;
 import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.TreePath;
 
 public class Introspector
 {
@@ -24,6 +30,7 @@ public class Introspector
         leafNodeClassSet.add(getClass("java.lang.Float"));
         leafNodeClassSet.add(getClass("java.lang.Double"));
         leafNodeClassSet.add(getClass("java.lang.String"));
+        leafNodeClassSet.add(getClass("java.lang.Object"));
     }
         
     private Class clazz = null;
@@ -46,6 +53,27 @@ public class Introspector
                 return new Insets(5, 5, 5, 5);
             }
         };
+        tree.addMouseListener(new MouseAdapter()
+		{
+			public void mouseClicked(MouseEvent e)
+			{
+				if(SwingUtilities.isRightMouseButton(e))
+				{
+					TreePath tp = tree.getPathForLocation(e.getX(), e.getY());
+
+					if(tp != null)
+					{
+						tree.setSelectionPath(tp);
+						DefaultMutableTreeNode node = (DefaultMutableTreeNode) tp
+							.getLastPathComponent();
+						
+						JPopupMenu  menu = new JPopupMenu();
+						menu.add(new JMenuItem(node.toString()));
+						menu.show(e.getComponent(), e.getX(), e.getY());
+					}
+				}
+			}
+		});
 
         tree.setEditable(true);
         JScrollPane scrollPane = new JScrollPane(tree);
