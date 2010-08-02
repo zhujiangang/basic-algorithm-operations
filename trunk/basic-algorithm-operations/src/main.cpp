@@ -11,6 +11,7 @@
 #include "ArrayOper.h"
 #include "StackQueue.h"
 #include "BinTree.h"
+#include "LinkedListEx.h"
 
 void testCombineMath()
 {
@@ -564,6 +565,45 @@ void testBinTree()
 // 	}
 // 	cout<<endl;
 }
+
+class Point
+{
+public:
+	int x, y;
+	virtual ~Point()
+	{
+		cout<<"Destructor: x = "<<x<<", y="<<y<<endl;
+	}
+};
+
+
+
+void testLinkedListEx()
+{
+	Point point;
+	point.x = 0;
+	point.y = 10;
+
+	ListNode<Point>* head = new ListNode<Point>(point);
+
+	ListNode<Point>* p = head;
+	for(int i = 0; i < 3; i++)
+	{
+		p->next = new ListNode<Point>();
+		p = p->next;
+	}
+
+	p = head;
+	ListNode<Point>* temp;
+	while(p != NULL)
+	{
+		temp = p;
+		p = p->next;
+		delete temp;
+	}
+	ListNode<Point>::free();
+	cout<<"end"<<endl;
+}
 int main(int argc, char* argv[])
 {
 //	testCombineMath();
@@ -573,7 +613,8 @@ int main(int argc, char* argv[])
 //	testStringOper();
 //	testArrayOper();
 //	testStackQueue();
-	testBinTree();
+//	testBinTree();
+	testLinkedListEx();
 	return 0;
 }
 
