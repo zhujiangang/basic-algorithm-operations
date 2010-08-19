@@ -90,28 +90,7 @@ public class MatchSort
 		Map<Integer, Match> map = new TreeMap<Integer, Match>();
 		for(int i = 0; i < matchCount; i++)
 		{
-			Match match = new Match();
-			
-			match.id = generateMatchID();
-			match.player1 = new MatchPlayerInfo();
-			match.player1.playerID = (i + 1);
-			match.player1.foul = 0;
-			
-			match.player2 = new MatchPlayerInfo();
-			match.player2.playerID = matchCount + (i + 1);
-			match.player2.foul = 0;
-			
-			//In odd match, first player is the small number
-			if(i % 2 == 0)
-			{
-				match.firstPlayer = MatchUtil.FIRST_PLAYER_1;
-			}
-			//In even match, first player is the big number
-			else
-			{
-				match.firstPlayer = MatchUtil.FIRST_PLAYER_2;
-			}
-			
+			Match match = generateMatch( (i + 1), matchCount + (i + 1), (i % 2) == 0 );		
 			map.put(Integer.valueOf(match.id), match);
 		}
 		
@@ -289,6 +268,14 @@ public class MatchSort
 	{
 		Match match = new Match();
 		match.id = generateMatchID();
+		
+		if(!isP1First)
+		{
+			int tmp = p1;
+			p1 = p2;
+			p2 = tmp;
+		}
+		
 		match.player1 = new MatchPlayerInfo();
 		match.player1.playerID = p1;
 		match.player1.foul = 0;
@@ -297,14 +284,28 @@ public class MatchSort
 		match.player2.playerID = p2;
 		match.player2.foul = 0;
 		
-		if(isP1First)
+		return match;
+	}
+	
+	public Match generateMatch(int p1, int p2, int firstPlayerID)
+	{
+		if(p2 == firstPlayerID)
 		{
-			match.firstPlayer = MatchUtil.FIRST_PLAYER_1;
+			p2 = p1;
+			p1 = firstPlayerID;
 		}
-		else
-		{
-			match.firstPlayer = MatchUtil.FIRST_PLAYER_2;
-		}
+		Match match = new Match();
+		
+		match.id = generateMatchID();
+		
+		match.player1 = new MatchPlayerInfo();
+		match.player1.playerID = p1;
+		match.player1.foul = 0;
+		
+		match.player2 = new MatchPlayerInfo();
+		match.player2.playerID = p2;
+		match.player2.foul = 0;
+		
 		return match;
 	}
 	
@@ -315,7 +316,7 @@ public class MatchSort
 		for(Iterator<Player> iter = players.iterator(); iter.hasNext(); )
 		{
 			Player player = iter.next();
-			player.calMinorScore();
+			player.calAllOfflineMetrics();
 		}
 	}
 	public void sortCurrentPlayers()

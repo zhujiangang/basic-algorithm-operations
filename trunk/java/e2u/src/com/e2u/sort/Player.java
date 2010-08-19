@@ -78,6 +78,13 @@ public class Player
 		}
 		return result;
 	}
+	/**
+	 * Calculate all the offline metrics of a players
+	 */
+	public synchronized void calAllOfflineMetrics()
+	{
+		calMinorScore();
+	}
 	public synchronized void calMinorScore()
 	{
 		int minorScoreMode = MatchDataSource.getInstance().getMinorScoreMode();
@@ -108,6 +115,16 @@ public class Player
 	public boolean isFirstPlayerInLastMatch()
 	{
 		return isFirstPlayerInMatch(1);
+	}
+	
+	/**
+	 * 
+	 * @return true, if this round need
+	 */
+	public boolean requireFirstThisRound()
+	{
+		//@TODO
+		return true;
 	}
 	
 	public int getScoreInLastMatch()
