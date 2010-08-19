@@ -20,6 +20,14 @@ public class Player
 	public int foul = 0;  //online
 	public int firstWinRound = 0; //offline calculate
 	
+	//online, the metric value of the player start with the first hand.
+	//If the player start with the first hand, firstHandBalance--,
+	//else with second hand, firstHandBalance++;
+	public int firstHandBalance = 0;
+	
+	//how many sequence times the player in firstHand or secondHand
+	public int seqFirstHand = 0;
+	
 	public synchronized void addMatch(int matchID)
 	{
 		Match match = MatchDataSource.getInstance().getMatch(matchID);
@@ -39,6 +47,32 @@ public class Player
 		else
 		{
 			foul += match.player2.foul;
+		}
+		
+		//First hand
+		if(id == match.getFirstPlayerID())
+		{
+		    firstHandBalance--;
+		    if(seqFirstHand <= 0)
+		    {
+		        seqFirstHand = 1;
+		    }
+		    else
+		    {
+		        seqFirstHand++;
+		    }
+		}
+		else
+		{
+		    firstHandBalance++;
+	        if(seqFirstHand >= 0)
+            {
+                seqFirstHand = -1;
+            }
+            else
+            {
+                seqFirstHand--;
+            }
 		}
 	}
 	
@@ -119,12 +153,29 @@ public class Player
 	
 	/**
 	 * 
-	 * @return true, if this round need
+	 * @return true, if this round need first
 	 */
-	public boolean requireFirstThisRound()
+	public int requireFirstThisRound()
 	{
-		//@TODO
-		return true;
+	    if(firstHandBalance > 0)
+	    {
+	        return 1;
+	    }
+	    else if(firstHandBalance < 0)
+	    {
+	        return -1;
+	    }
+	    
+	    if(seqFirstHand > 0)
+	    {
+	        return -1;
+	    }
+	    else if(seqFirstHand < 0)
+	    {
+	        return 1;
+	    }
+	    
+		return 0;
 	}
 	
 	public int getScoreInLastMatch()
@@ -154,8 +205,8 @@ public class Player
 	
 	public String toString()
 	{
-		String format = "[id]=%3d, [score]=%3d, [minorScore]=%3d, [winRoundCount]=%2d, " +
+		String format = "[id]=%3d, [firstHandBalance]=%2d, [seqFirstHand]=%2d, [score]=%3d, [minorScore]=%3d, [winRoundCount]=%2d, " +
 				"[foul]=%3d, [firstWinRound]=%3d";		
-		return String.format(format, id, score, minorScore, winRoundCount, foul, firstWinRound);
+		return String.format(format, id, firstHandBalance, seqFirstHand, score, minorScore, winRoundCount, foul, firstWinRound);
 	}
 }
