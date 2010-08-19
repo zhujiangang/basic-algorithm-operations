@@ -5,7 +5,7 @@ public class Match
 	public int id = MatchUtil.COMMON_INVALID;
 	public MatchPlayerInfo player1 = null;
 	public MatchPlayerInfo player2 = null;
-	public byte firstPlayer = MatchUtil.COMMON_INVALID;
+//	public byte firstPlayer = MatchUtil.COMMON_INVALID;
 	public byte result = MatchUtil.COMMON_INVALID;
 	
 	public int hashCode()
@@ -24,14 +24,7 @@ public class Match
 	
 	public int getFirstPlayerID()
 	{
-		if(firstPlayer == MatchUtil.FIRST_PLAYER_1)
-		{
-			return player1.playerID;
-		}
-		else
-		{
-			return player2.playerID;
-		}
+		return player1.playerID;
 	}
 	
 	public String toString()
