@@ -163,6 +163,34 @@ public class MatchUtil
 		return round % 2 == 1;
 	}
 	
+	/**
+	 * @param a
+	 * @param startIndex
+	 * @param endIndex
+	 * @param sepIndex the start index of the second part
+	 */
+	public static void rotate(Object[] a, int startIndex, int endIndex, int sepIndex)
+	{
+		reverse(a, startIndex, sepIndex - 1);
+		reverse(a, sepIndex, endIndex);
+		reverse(a, startIndex, endIndex);
+	}
+	public static void reverse(Object[] a, int from, int to)
+	{
+		while(from < to)
+		{
+			swap(a, from, to);
+			from++;
+			to--;
+		}
+	}
+	public static void swap(Object[] a, int x, int y)
+	{
+		Object temp = a[x];
+		a[x] = a[y];
+		a[y] = temp;
+	}
+	
 	public static boolean isDebug()
 	{
 		return DEBUG;

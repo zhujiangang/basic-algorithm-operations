@@ -3,6 +3,7 @@ package com.e2u.sort;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
@@ -17,6 +18,7 @@ public class MatchSort
 	private int matchIDGenerator = 0;
 	
 	private Player[] playerSortBuf = null;
+	private Map<Integer, Section> scoreSectionMap = new HashMap<Integer, Section>();
 	
 	public MatchSort(int playerCount, int roundCount)
 	{
@@ -135,7 +137,131 @@ public class MatchSort
 		updateRound();
 		updateAllPlayers();
 		sortCurrentPlayers();
-		
+				
+		Map<Integer, Match> map = new TreeMap<Integer, Match>();
+		calPlayerMatches2(map);		
+		MatchDataSource.getInstance().getMatchMap().put(Integer.valueOf(this.curRound), map);
+	}
+	
+	private void calPlayerMatches2(Map<Integer, Match> map)
+	{
+		//Indicate if the player has been selected.
+		boolean[] flags = new boolean[playerSortBuf.length];
+		for(int i = 0; i < flags.length; i++)
+		{
+			flags[i] = false;
+		}		
+		int count = 0;
+		int p1 = 0;
+		int p2;
+		for(p1 = 0; count < playerCount; p1++)
+		{
+			if(flags[p1])
+			{
+				continue;
+			}
+			for(p2 = p1 + 1; p2 < playerSortBuf.length; p2++)
+			{
+				if(flags[p2])
+				{
+					continue;
+				}
+				if(MatchDataSource.getInstance().isFightBefore(playerSortBuf[p1].id, playerSortBuf[p2].id))
+				{
+					continue;
+				}
+				break;
+			}
+			
+			if(p2 >= playerSortBuf.length)
+			{
+				throw new IllegalArgumentException("[Fatal Error]: can't find a suitable player 2: p1 = " + p1);
+			}
+			
+			//p1 and p2 doesn't meet before
+			boolean isP1LastFirst = playerSortBuf[p1].isFirstPlayerInLastMatch();
+			boolean isP2LastFirst = playerSortBuf[p2].isFirstPlayerInLastMatch();
+			//Perfect
+			if( (isP1LastFirst && !isP2LastFirst) || (!isP1LastFirst && isP2LastFirst) )
+			{
+				flags[p1] = true;
+				flags[p2] = true;
+				Match match = generateMatch(playerSortBuf[p1].id, playerSortBuf[p2].id, !isP1LastFirst);
+				map.put(match.id, match);
+			}
+			//p1 and p2 has the same first hand in the last match
+			else
+			{
+				int oldp2 = p2;
+				
+				while(true)
+				{
+					//Find a same score opponent for p1
+					p2++;
+					for(; p2 < playerSortBuf.length; p2++)
+					{
+						if(!flags[p2])
+						{
+							break;
+						}
+					}
+					//No more available p2
+					if(p2 >= playerSortBuf.length)
+					{
+						p2 = oldp2;
+						break;
+					}
+					//The score of new p2 is less than the old p2
+					else if(playerSortBuf[p2].score != playerSortBuf[oldp2].score)
+					{
+						p2 = oldp2;
+						break;
+					}
+					//meeted
+					else if(MatchDataSource.getInstance().isFightBefore(playerSortBuf[p1].id, playerSortBuf[p2].id))
+					{
+						continue;
+					}
+					else if(playerSortBuf[p2].isFirstPlayerInLastMatch() == isP1LastFirst)
+					{
+						continue;
+					}
+					else
+					{
+						break;
+					}
+				}
+				
+				isP2LastFirst = playerSortBuf[p2].isFirstPlayerInLastMatch();
+				
+				flags[p1] = true;
+				flags[p2] = true;
+				if( (isP1LastFirst && !isP2LastFirst) || (!isP1LastFirst && isP2LastFirst) )
+				{
+					Match match = generateMatch(playerSortBuf[p1].id, playerSortBuf[p2].id, !isP1LastFirst);
+					map.put(match.id, match);
+				}
+				else
+				{
+					//prefer little
+					if(MatchUtil.littleEndian(curRound))
+					{
+						Match match = generateMatch(playerSortBuf[p1].id, playerSortBuf[p2].id, true);
+						map.put(match.id, match);
+					}
+					else
+					{
+						Match match = generateMatch(playerSortBuf[p1].id, playerSortBuf[p2].id, false);
+						map.put(match.id, match);
+					}
+				}
+			}
+			
+			count += 2;
+		}	
+	}
+	private void calPlayerMatches(Map<Integer, Match> map)
+	{
 		//Indicate if the player has been selected.
 		boolean[] flags = new boolean[playerSortBuf.length];
 		for(int i = 0; i < flags.length; i++)
@@ -143,7 +269,6 @@ public class MatchSort
 			flags[i] = false;
 		}
 		
-		Map<Integer, Match> map = new TreeMap<Integer, Match>();
 		int count = 0;
 		int p1 = 0;
 		int p2;
@@ -260,8 +385,6 @@ public class MatchSort
 			
 			count += 2;
 		}
-		
-		MatchDataSource.getInstance().getMatchMap().put(Integer.valueOf(this.curRound), map);
 	}
 	
 	private Match generateMatch(int p1, int p2, boolean isP1First)
@@ -322,7 +445,9 @@ public class MatchSort
 	public void sortCurrentPlayers()
 	{
 		initPlayerSortBuf();
-		Arrays.sort(playerSortBuf, new PlayerComparator(curRound));
+//		Arrays.sort(playerSortBuf, new PlayerComparator(curRound));
+		Arrays.sort(playerSortBuf, ComparatorFactory.getComparatorForMatchPlayer(curRound));
+		moveSmallers();
 		if(MatchUtil.isDebug())
 		{
 			MatchUtil.printSeparator();
@@ -331,6 +456,98 @@ public class MatchSort
 				showPlayer(playerSortBuf[i]);
 			}
 		}
+	}
+	private void moveSmallers()
+	{
+		int startIndex = 0, endIndex, sepIndex = 0;
+		int reqFirstCount = 0, reqSecondCount = 0;
+		
+		int curScore = playerSortBuf[0].score, score;
+		
+		if(playerSortBuf[0].requireFirstThisRound() > 0)
+		{
+			reqFirstCount++;
+		}
+		else
+		{
+			sepIndex = 0;
+			reqSecondCount++;
+		}
+		
+		for(int i = 1; i < playerSortBuf.length; i++)
+		{
+			score = playerSortBuf[i].score;
+			//In the same score section
+			if(score == curScore)
+			{
+				if(playerSortBuf[i].requireFirstThisRound() > 0)
+				{
+					reqFirstCount++;
+				}
+				else
+				{
+					sepIndex = i;
+					reqSecondCount++;
+				}
+				
+				//Last
+				if(i == playerSortBuf.length - 1)
+				{
+					endIndex = i;
+					if(reqFirstCount > 0 && reqSecondCount > 0 && reqFirstCount > reqSecondCount)
+					{
+						MatchUtil.rotate(playerSortBuf, startIndex, endIndex, sepIndex);
+					}
+				}			
+			}
+			else
+			{
+				endIndex = i - 1;
+				
+				if(reqFirstCount > 0 && reqSecondCount > 0 && reqFirstCount > reqSecondCount)
+				{
+					MatchUtil.rotate(playerSortBuf, startIndex, endIndex, sepIndex);
+				}
+				
+				startIndex = i;
+				curScore = playerSortBuf[i].score;
+				reqFirstCount = 0;
+				reqSecondCount = 0;
+				if(playerSortBuf[i].requireFirstThisRound() > 0)
+				{
+					reqFirstCount++;
+				}
+				else
+				{
+					sepIndex = i;
+					reqSecondCount++;
+				}
+			}
+		}
+	}
+	
+	private void calScoreSectionMap()
+	{
+		scoreSectionMap.clear();
+		
+		int upperFrom = MatchUtil.COMMON_INVALID;
+		int upperto = MatchUtil.COMMON_INVALID;
+		int lowerFrom = MatchUtil.COMMON_INVALID;
+		int lowerTo = MatchUtil.COMMON_INVALID;
+			
+		int curScore = playerSortBuf[0].score, score;
+		
+		if(playerSortBuf[0].requireFirstThisRound() > 0)
+		{
+			upperFrom = 0;
+			upperto = 0;
+		}
+		else
+		{
+			lowerFrom = 0;
+			lowerTo = 0;
+		}
+	
 	}
 	public void showArrangeTable()
 	{
