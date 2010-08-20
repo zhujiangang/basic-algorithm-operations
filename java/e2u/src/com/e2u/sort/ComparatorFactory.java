@@ -32,12 +32,35 @@ public class ComparatorFactory
                 return ret;
             }
 
+            //who has more second hands
             ret = p1.firstHandBalance - p2.firstHandBalance;
             if(ret != 0)
             {
+            	//who has more first hands who is more front
+            	if(p1.firstHandBalance < 0 && p2.firstHandBalance < 0)
+            	{
+            		ret = (-1) * ret;
+            	}
                 return ret;
             }
             
+            //lian xian
+            ret = p1.seqFirstHand - p2.seqFirstHand;
+            if(ret != 0)
+            {
+            	if( !(p1.seqFirstHand > 0 && p2.seqFirstHand > 0) )
+            	{
+            		ret = (-1) * ret;
+            	}
+            	return ret;
+            }
+            
+            
+            ret = p1.id - p2.id;
+            if(MatchUtil.littleEndian(curRound))
+            {
+            	ret = (-1) * ret;
+            }   
             return ret;
         }
     }
