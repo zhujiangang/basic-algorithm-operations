@@ -21,8 +21,8 @@ public class Player
 	public int firstWinRound = 0; //offline calculate
 	
 	//online, the metric value of the player start with the first hand.
-	//If the player start with the first hand, firstHandBalance--,
-	//else with second hand, firstHandBalance++;
+	//If the player start with the first hand, firstHandBalance++,
+	//else with second hand, firstHandBalance--;
 	public int firstHandBalance = 0;
 	
 	//how many sequence times the player in firstHand or secondHand
@@ -52,7 +52,7 @@ public class Player
 		//First hand
 		if(id == match.getFirstPlayerID())
 		{
-		    firstHandBalance--;
+		    firstHandBalance++;
 		    if(seqFirstHand <= 0)
 		    {
 		        seqFirstHand = 1;
@@ -64,7 +64,7 @@ public class Player
 		}
 		else
 		{
-		    firstHandBalance++;
+		    firstHandBalance--;
 	        if(seqFirstHand >= 0)
             {
                 seqFirstHand = -1;
@@ -157,13 +157,16 @@ public class Player
 	 */
 	public int requireFirstThisRound()
 	{
-	    if(firstHandBalance > 0)
+	    if(firstHandBalance != 0)
 	    {
-	        return 1;
-	    }
-	    else if(firstHandBalance < 0)
-	    {
-	        return -1;
+	        if(firstHandBalance > 0)
+	        {
+	            return -1;
+	        }
+	        else
+	        {
+	            return 1;
+	        }
 	    }
 	    
 	    if(seqFirstHand > 0)

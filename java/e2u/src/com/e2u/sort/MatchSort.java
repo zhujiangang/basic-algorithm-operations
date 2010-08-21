@@ -3,9 +3,13 @@ package com.e2u.sort;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
@@ -17,9 +21,9 @@ public class MatchSort
 	private int minorScoreMode = MatchUtil.MINOR_SCORE_OPPONENT_MODE;
 	private int matchIDGenerator = 0;
 	
-	private Player[] playerSortBuf = null;
-	private Map<Integer, Section> scoreSectionMap = new HashMap<Integer, Section>();
-	
+
+	private Map<Integer, SectionSelectee> scoreSectionMap = new TreeMap<Integer, SectionSelectee>(ComparatorFactory.getComparator4Score());
+	private Set<Integer> matchedPlayerSet = new HashSet<Integer>();
 	public MatchSort(int playerCount, int roundCount)
 	{
 		this.playerCount = playerCount;
@@ -32,8 +36,6 @@ public class MatchSort
 			this.roundCount = roundCount;
 		}
 		this.curRound = 0;
-		
-		playerSortBuf = new Player[this.playerCount];
 	}
 	
 	public int getCurRound()
@@ -70,17 +72,6 @@ public class MatchSort
 			player.matchList = new ArrayList<Integer>();
 			
 			MatchDataSource.getInstance().getPlayerMap().put(Integer.valueOf(player.id), player);
-		}
-	}
-	public void initPlayerSortBuf()
-	{
-		Collection<Player> players = MatchDataSource.getInstance().getPlayerMap().values();
-		
-		int i = 0;
-		for(Iterator<Player> iter = players.iterator(); iter.hasNext();)
-		{
-			Player player = iter.next();
-			playerSortBuf[i++] = player;
 		}
 	}
 	public void startArrange()
@@ -138,255 +129,162 @@ public class MatchSort
 		updateAllPlayers();
 		sortCurrentPlayers();
 				
+		matchedPlayerSet.clear();
 		Map<Integer, Match> map = new TreeMap<Integer, Match>();
-		calPlayerMatches2(map);		
+		doArrangeMatch(map);
 		MatchDataSource.getInstance().getMatchMap().put(Integer.valueOf(this.curRound), map);
 	}
 	
-	private void calPlayerMatches2(Map<Integer, Match> map)
+	private Player getMatchedPlayer(Player player)
 	{
-		//Indicate if the player has been selected.
-		boolean[] flags = new boolean[playerSortBuf.length];
-		for(int i = 0; i < flags.length; i++)
-		{
-			flags[i] = false;
-		}		
-		int count = 0;
-		int p1 = 0;
-		int p2;
-		for(p1 = 0; count < playerCount; p1++)
-		{
-			if(flags[p1])
-			{
-				continue;
-			}
-			for(p2 = p1 + 1; p2 < playerSortBuf.length; p2++)
-			{
-				if(flags[p2])
-				{
-					continue;
-				}
-				if(MatchDataSource.getInstance().isFightBefore(playerSortBuf[p1].id, playerSortBuf[p2].id))
-				{
-					continue;
-				}
-				break;
-			}
-			
-			if(p2 >= playerSortBuf.length)
-			{
-				throw new IllegalArgumentException("[Fatal Error]: can't find a suitable player 2: p1 = " + p1);
-			}
-			
-			//p1 and p2 doesn't meet before
-			boolean isP1LastFirst = playerSortBuf[p1].isFirstPlayerInLastMatch();
-			boolean isP2LastFirst = playerSortBuf[p2].isFirstPlayerInLastMatch();
-			//Perfect
-			if( (isP1LastFirst && !isP2LastFirst) || (!isP1LastFirst && isP2LastFirst) )
-			{
-				flags[p1] = true;
-				flags[p2] = true;
-				Match match = generateMatch(playerSortBuf[p1].id, playerSortBuf[p2].id, !isP1LastFirst);
-				map.put(match.id, match);
-			}
-			//p1 and p2 has the same first hand in the last match
-			else
-			{
-				int oldp2 = p2;
-				
-				while(true)
-				{
-					//Find a same score opponent for p1
-					p2++;
-					for(; p2 < playerSortBuf.length; p2++)
-					{
-						if(!flags[p2])
-						{
-							break;
-						}
-					}
-					//No more available p2
-					if(p2 >= playerSortBuf.length)
-					{
-						p2 = oldp2;
-						break;
-					}
-					//The score of new p2 is less than the old p2
-					else if(playerSortBuf[p2].score != playerSortBuf[oldp2].score)
-					{
-						p2 = oldp2;
-						break;
-					}
-					//meeted
-					else if(MatchDataSource.getInstance().isFightBefore(playerSortBuf[p1].id, playerSortBuf[p2].id))
-					{
-						continue;
-					}
-					else if(playerSortBuf[p2].isFirstPlayerInLastMatch() == isP1LastFirst)
-					{
-						continue;
-					}
-					else
-					{
-						break;
-					}
-				}
-				
-				isP2LastFirst = playerSortBuf[p2].isFirstPlayerInLastMatch();
-				
-				flags[p1] = true;
-				flags[p2] = true;
-				if( (isP1LastFirst && !isP2LastFirst) || (!isP1LastFirst && isP2LastFirst) )
-				{
-					Match match = generateMatch(playerSortBuf[p1].id, playerSortBuf[p2].id, !isP1LastFirst);
-					map.put(match.id, match);
-				}
-				else
-				{
-					//prefer little
-					if(MatchUtil.littleEndian(curRound))
-					{
-						Match match = generateMatch(playerSortBuf[p1].id, playerSortBuf[p2].id, true);
-						map.put(match.id, match);
-					}
-					else
-					{
-						Match match = generateMatch(playerSortBuf[p1].id, playerSortBuf[p2].id, false);
-						map.put(match.id, match);
-					}
-				}
-			}
-			
-			count += 2;
-		}	
-	}
-	private void calPlayerMatches(Map<Integer, Match> map)
-	{
-		//Indicate if the player has been selected.
-		boolean[] flags = new boolean[playerSortBuf.length];
-		for(int i = 0; i < flags.length; i++)
-		{
-			flags[i] = false;
-		}
-		
-		int count = 0;
-		int p1 = 0;
-		int p2;
-		for(p1 = 0; count < playerCount; p1++)
-		{
-			if(flags[p1])
-			{
-				continue;
-			}
-			//Select p2
-			for(p2 = p1 + 1; p2 < playerSortBuf.length; p2++)
-			{
-				if(!flags[p2])
-				{
-					break;
-				}
-			}
-			
-			//Is fight before?
-			while(MatchDataSource.getInstance().isFightBefore(playerSortBuf[p1].id, playerSortBuf[p2].id))
-			{
-				p2++;
-				for(; p2 < playerSortBuf.length; p2++)
-				{
-					if(!flags[p2])
-					{
-						break;
-					}
-				}
-				if(p2 >= playerSortBuf.length)
-				{
-					throw new IllegalArgumentException("[Fatal Error]: can't find a suitable player 2: p1 = " + p1);
-				}
-			}
-			
-			//p1 and p2 doesn't meet before
-			boolean isP1LastFirst = playerSortBuf[p1].isFirstPlayerInLastMatch();
-			boolean isP2LastFirst = playerSortBuf[p2].isFirstPlayerInLastMatch();
-			//Perfect
-			if( (isP1LastFirst && !isP2LastFirst) || (!isP1LastFirst && isP2LastFirst) )
-			{
-				flags[p1] = true;
-				flags[p2] = true;
-				Match match = generateMatch(playerSortBuf[p1].id, playerSortBuf[p2].id, !isP1LastFirst);
-				map.put(match.id, match);
-			}
-			//p1 and p2 has the same first hand in the last match
-			else
-			{
-				int oldp2 = p2;
-				
-				while(true)
-				{
-					//Find a same score opponent for p1
-					p2++;
-					for(; p2 < playerSortBuf.length; p2++)
-					{
-						if(!flags[p2])
-						{
-							break;
-						}
-					}
-					//No more available p2
-					if(p2 >= playerSortBuf.length)
-					{
-						p2 = oldp2;
-						break;
-					}
-					//The score of new p2 is less than the old p2
-					else if(playerSortBuf[p2].score != playerSortBuf[oldp2].score)
-					{
-						p2 = oldp2;
-						break;
-					}
-					//meeted
-					else if(MatchDataSource.getInstance().isFightBefore(playerSortBuf[p1].id, playerSortBuf[p2].id))
-					{
-						continue;
-					}
-					else if(playerSortBuf[p2].isFirstPlayerInLastMatch() == isP1LastFirst)
-					{
-						continue;
-					}
-					else
-					{
-						break;
-					}
-				}
-				
-				isP2LastFirst = playerSortBuf[p2].isFirstPlayerInLastMatch();
-				
-				flags[p1] = true;
-				flags[p2] = true;
-				if( (isP1LastFirst && !isP2LastFirst) || (!isP1LastFirst && isP2LastFirst) )
-				{
-					Match match = generateMatch(playerSortBuf[p1].id, playerSortBuf[p2].id, !isP1LastFirst);
-					map.put(match.id, match);
-				}
-				else
-				{
-					//prefer little
-					if(MatchUtil.littleEndian(curRound))
-					{
-						Match match = generateMatch(playerSortBuf[p1].id, playerSortBuf[p2].id, true);
-						map.put(match.id, match);
-					}
-					else
-					{
-						Match match = generateMatch(playerSortBuf[p1].id, playerSortBuf[p2].id, false);
-						map.put(match.id, match);
-					}
-				}
-			}
-			
-			count += 2;
-		}
+	    Iterator<Map.Entry<Integer, SectionSelectee>> iter = null;
+	    SectionSelectee ssee = null;
+	    Player candidatePlayer = null;
+	    for(iter = scoreSectionMap.entrySet().iterator(); iter.hasNext(); )
+	    {
+            Map.Entry<Integer, SectionSelectee> entry = iter.next();            
+            ssee = entry.getValue();
+            
+            //First
+            if(player.requireFirstThisRound() > 0)
+            {
+                candidatePlayer = getMatchedPlayer(player, ssee.reqSecondPlayerList, false);
+                if(candidatePlayer != null)
+                {
+                    return candidatePlayer;
+                }
+                candidatePlayer = getMatchedPlayer(player, ssee.reqFirstPlayerList, true);
+                if(candidatePlayer != null)
+                {
+                    return candidatePlayer;
+                }             
+            }
+            else
+            {
+                candidatePlayer = getMatchedPlayer(player, ssee.reqFirstPlayerList, false);
+                if(candidatePlayer != null)
+                {
+                    return candidatePlayer;
+                }
+                candidatePlayer = getMatchedPlayer(player, ssee.reqSecondPlayerList, true);
+                if(candidatePlayer != null)
+                {
+                    return candidatePlayer;
+                }                 
+            }
+	    }
+	    return null;
 	}
 	
+	private void arrangeMatch(List<Player> playerList, Map<Integer, Match> map)
+	{
+	    if(playerList == null || playerList.isEmpty())
+	    {
+	        return;
+	    }
+	    Player p1 = null, p2 = null;        
+	    Iterator<Player> p1Iter = null;
+	    for(p1Iter = playerList.iterator(); p1Iter.hasNext(); )
+        {
+            p1 = p1Iter.next();
+            if(matchedPlayerSet.contains(p1.id))
+            {
+                continue;
+            }
+            p2 = getMatchedPlayer(p1);
+            if(p2 == null)
+            {
+                throw new IllegalArgumentException("No available matched player for " + p1.id);
+            }
+            
+            Match match = generateMatch(p1, p2);
+            map.put(match.id, match);
+            
+            matchedPlayerSet.add(p1.id);
+            matchedPlayerSet.add(p2.id);
+        }
+	}
+	
+	private Player getMatchedPlayer(Player player, List<Player> candidateList, boolean isReverse)
+	{
+	    if(candidateList == null || candidateList.isEmpty())
+	    {
+	        return null;
+	    }
+        Player candidatePlayer = null;
+        int i, end, step;
+        if(!isReverse)
+        {
+            i = 0;
+            end = candidateList.size();
+            step = 1;
+        }
+        else
+        {
+            i = candidateList.size() - 1;
+            end = -1;
+            step = -1;
+        }
+        for(; i != end; i += step)
+        {
+            candidatePlayer = candidateList.get(i);
+            //same one
+            if(candidatePlayer.id == player.id)
+            {
+                continue;
+            }
+            //has selected
+            if(matchedPlayerSet.contains(candidatePlayer.id))
+            {
+                continue;
+            }
+            //has fighted
+            if(MatchDataSource.getInstance().isFightBefore(player.id, candidatePlayer.id))
+            {
+                continue;
+            }
+            return candidatePlayer;
+        }
+        return null;
+	}
+	
+	private void doArrangeMatch(Map<Integer, Match> map)
+	{
+	    Iterator<Map.Entry<Integer, SectionSelectee>> iter = null;
+	    SectionSelectee ssee = null;
+	    
+        for(iter = scoreSectionMap.entrySet().iterator(); iter.hasNext(); )
+        {
+            Map.Entry<Integer, SectionSelectee> entry = iter.next();            
+            ssee = entry.getValue();
+            
+            arrangeMatch(ssee.getLessPlayerList(), map);
+            arrangeMatch(ssee.getMorePlayerList(), map);
+        }
+	}
+	private Match generateMatch(Player p1, Player p2)
+	{
+        Match match = new Match();
+        match.id = generateMatchID();
+        
+        Comparator<Player> comp = ComparatorFactory.getComparator4SelectFirst(curRound);
+        //p2 is less than p1, the less one is first.
+        if(comp.compare(p1, p2) > 0)
+        {
+            Player tempPlayer = p1;
+            p1 = p2;
+            p2 = tempPlayer;
+        }
+        match.player1 = new MatchPlayerInfo();
+        match.player1.playerID = p1.id;
+        match.player1.foul = 0;
+        
+        match.player2 = new MatchPlayerInfo();
+        match.player2.playerID = p2.id;
+        match.player2.foul = 0;
+        
+        return match;	    
+	}
 	private Match generateMatch(int p1, int p2, boolean isP1First)
 	{
 		Match match = new Match();
@@ -444,111 +342,46 @@ public class MatchSort
 	}
 	public void sortCurrentPlayers()
 	{
-		initPlayerSortBuf();
-//		Arrays.sort(playerSortBuf, new PlayerComparator(curRound));
-		Arrays.sort(playerSortBuf, ComparatorFactory.getComparatorForMatchPlayer(curRound));
-		moveSmallers();
+	    scoreSectionMap.clear();
+	    
+        Collection<Player> players = MatchDataSource.getInstance().getPlayerMap().values();
+        SectionSelectee ssee = null;
+        for(Iterator<Player> iter = players.iterator(); iter.hasNext(); )
+        {
+            Player player = iter.next();
+            
+            if(!scoreSectionMap.containsKey(player.score))
+            {
+                ssee = new SectionSelectee();
+                scoreSectionMap.put(player.score, ssee);
+            }
+            else
+            {
+                ssee = scoreSectionMap.get(player.score);
+            }
+            
+            ssee.addPlayer(player);
+        }
+        
+        Comparator<Player> comparator = ComparatorFactory.getComparatorInOneSection(curRound);
+
+        for(Iterator<SectionSelectee> iter = scoreSectionMap.values().iterator(); iter.hasNext(); )
+        {
+            ssee = iter.next();
+            ssee.sort(comparator);
+        }
 		if(MatchUtil.isDebug())
 		{
-			MatchUtil.printSeparator();
-			for(int i = 0; i < playerSortBuf.length; i++)
-			{
-				showPlayer(playerSortBuf[i]);
-			}
+			printSeparator();
+	        for(Iterator<Map.Entry<Integer, SectionSelectee>> iter = scoreSectionMap.entrySet().iterator(); iter.hasNext(); )
+	        {
+	            Map.Entry<Integer, SectionSelectee> entry = iter.next();
+	            
+	            showSectionSelectee(entry.getValue());
+	        }
 		}
 	}
-	private void moveSmallers()
-	{
-		int startIndex = 0, endIndex, sepIndex = 0;
-		int reqFirstCount = 0, reqSecondCount = 0;
-		
-		int curScore = playerSortBuf[0].score, score;
-		
-		if(playerSortBuf[0].requireFirstThisRound() > 0)
-		{
-			reqFirstCount++;
-		}
-		else
-		{
-			sepIndex = 0;
-			reqSecondCount++;
-		}
-		
-		for(int i = 1; i < playerSortBuf.length; i++)
-		{
-			score = playerSortBuf[i].score;
-			//In the same score section
-			if(score == curScore)
-			{
-				if(playerSortBuf[i].requireFirstThisRound() > 0)
-				{
-					reqFirstCount++;
-				}
-				else
-				{
-					sepIndex = i;
-					reqSecondCount++;
-				}
-				
-				//Last
-				if(i == playerSortBuf.length - 1)
-				{
-					endIndex = i;
-					if(reqFirstCount > 0 && reqSecondCount > 0 && reqFirstCount > reqSecondCount)
-					{
-						MatchUtil.rotate(playerSortBuf, startIndex, endIndex, sepIndex);
-					}
-				}			
-			}
-			else
-			{
-				endIndex = i - 1;
-				
-				if(reqFirstCount > 0 && reqSecondCount > 0 && reqFirstCount > reqSecondCount)
-				{
-					MatchUtil.rotate(playerSortBuf, startIndex, endIndex, sepIndex);
-				}
-				
-				startIndex = i;
-				curScore = playerSortBuf[i].score;
-				reqFirstCount = 0;
-				reqSecondCount = 0;
-				if(playerSortBuf[i].requireFirstThisRound() > 0)
-				{
-					reqFirstCount++;
-				}
-				else
-				{
-					sepIndex = i;
-					reqSecondCount++;
-				}
-			}
-		}
-	}
-	
-	private void calScoreSectionMap()
-	{
-		scoreSectionMap.clear();
-		
-		int upperFrom = MatchUtil.COMMON_INVALID;
-		int upperto = MatchUtil.COMMON_INVALID;
-		int lowerFrom = MatchUtil.COMMON_INVALID;
-		int lowerTo = MatchUtil.COMMON_INVALID;
-			
-		int curScore = playerSortBuf[0].score, score;
-		
-		if(playerSortBuf[0].requireFirstThisRound() > 0)
-		{
-			upperFrom = 0;
-			upperto = 0;
-		}
-		else
-		{
-			lowerFrom = 0;
-			lowerTo = 0;
-		}
-	
-	}
+
 	public void showArrangeTable()
 	{
 		Map<Integer, Match> map = MatchDataSource.getInstance().getMatchMap().get(Integer.valueOf(this.curRound));
@@ -571,6 +404,15 @@ public class MatchSort
 	{
 		System.out.println(player);
 	}
+	public static void showSectionSelectee(SectionSelectee ssee)
+	{
+	    System.out.println(ssee);
+	}
+	
+	public void printSeparator()
+	{
+	    System.out.printf("================round %2d=================\n", curRound);
+	}
 	
 	public static void main(String args[])
 	{
@@ -585,12 +427,12 @@ public class MatchSort
 		
 		for(int i = 0; i < roundCount; i++)
 		{
-			MatchUtil.printSeparator();
+		    matchSort.printSeparator();
 			matchSort.showArrangeTable();
 			
 			matchSort.playMath();
 			
-			MatchUtil.printSeparator();
+			matchSort.printSeparator();
 			matchSort.showResult();
 			
 			//not last round match
@@ -599,7 +441,7 @@ public class MatchSort
 				matchSort.arrange();
 			}
 		}
-		MatchUtil.printSeparator();
+		matchSort.printSeparator();
 		
 		matchSort.sortCurrentPlayers();
 	}
