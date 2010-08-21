@@ -201,6 +201,14 @@ public class MatchUtil
 		System.out.println("=====================================");
 	}
 	
+	public static void debug(String str)
+	{
+	    if(isDebug())
+	    {
+	        System.out.println(str);
+	    }
+	}
+	
 	public static void ut()
 	{
 		for(int i = 0; i < 33; i++)

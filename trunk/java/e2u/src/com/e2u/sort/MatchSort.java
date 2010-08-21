@@ -24,6 +24,8 @@ public class MatchSort
 
 	private Map<Integer, SectionSelectee> scoreSectionMap = new TreeMap<Integer, SectionSelectee>(ComparatorFactory.getComparator4Score());
 	private Set<Integer> matchedPlayerSet = new HashSet<Integer>();
+	
+	private int failedTime = 0;
 	public MatchSort(int playerCount, int roundCount)
 	{
 		this.playerCount = playerCount;
@@ -60,6 +62,18 @@ public class MatchSort
 	{
 		matchIDGenerator++;
 		return matchIDGenerator;
+	}
+	private synchronized int getCurMatchID()
+	{
+	    return matchIDGenerator;
+	}
+	private synchronized void removeMatchID()
+	{
+	    if(matchIDGenerator == 0)
+	    {
+	        throw new IllegalArgumentException("[Fatal Error]: matchIDGenerator = 0");
+	    }
+	    matchIDGenerator--;
 	}
 	public void initPlayerInformation(int count)
 	{
@@ -130,6 +144,7 @@ public class MatchSort
 		sortCurrentPlayers();
 				
 		matchedPlayerSet.clear();
+		failedTime = 0;
 		Map<Integer, Match> map = new TreeMap<Integer, Match>();
 		doArrangeMatch(map);
 		MatchDataSource.getInstance().getMatchMap().put(Integer.valueOf(this.curRound), map);
@@ -176,11 +191,11 @@ public class MatchSort
 	    return null;
 	}
 	
-	private void arrangeMatch(List<Player> playerList, Map<Integer, Match> map)
+	private boolean arrangeMatch(List<Player> playerList, Map<Integer, Match> map)
 	{
 	    if(playerList == null || playerList.isEmpty())
 	    {
-	        return;
+	        return true;
 	    }
 	    Player p1 = null, p2 = null;        
 	    Iterator<Player> p1Iter = null;
@@ -193,16 +208,31 @@ public class MatchSort
             }
             p2 = getMatchedPlayer(p1);
             if(p2 == null)
-            {
-                throw new IllegalArgumentException("No available matched player for " + p1.id);
+            {                            
+//                return false;
+                do
+                {
+                    failedTime++;
+                    MatchUtil.debug("failedTime="  + failedTime + ", No available matched player for " + p1.id);
+                    if(failedTime > MatchDataSource.getInstance().getPlayerMap().size())
+                    {
+                        MatchUtil.debug("Too many failed times. failedTime = " + failedTime);
+                        System.exit(-1);
+                    }
+                    removePreviousMatches(Math.min(failedTime, map.size() - 1), map);
+                    p2 = getMatchedPlayer(p1);
+                }
+                while(p2 == null);   
+                MatchUtil.debug("Found failedTime="  + failedTime + ", p1 = " + p1.id + ", p2 = " + p2.id);
             }
-            
             Match match = generateMatch(p1, p2);
             map.put(match.id, match);
             
             matchedPlayerSet.add(p1.id);
             matchedPlayerSet.add(p2.id);
         }
+	    
+	    return true;
 	}
 	
 	private Player getMatchedPlayer(Player player, List<Player> candidateList, boolean isReverse)
@@ -253,14 +283,23 @@ public class MatchSort
 	    Iterator<Map.Entry<Integer, SectionSelectee>> iter = null;
 	    SectionSelectee ssee = null;
 	    
-        for(iter = scoreSectionMap.entrySet().iterator(); iter.hasNext(); )
-        {
-            Map.Entry<Integer, SectionSelectee> entry = iter.next();            
-            ssee = entry.getValue();
-            
-            arrangeMatch(ssee.getLessPlayerList(), map);
-            arrangeMatch(ssee.getMorePlayerList(), map);
-        }
+	    while(matchedPlayerSet.size() != MatchDataSource.getInstance().getPlayerMap().size())
+	    {
+	        for(iter = scoreSectionMap.entrySet().iterator(); iter.hasNext(); )
+	        {
+	            Map.Entry<Integer, SectionSelectee> entry = iter.next();            
+	            ssee = entry.getValue();
+	            
+	            if(!arrangeMatch(ssee.getLessPlayerList(), map))
+	            {
+	                break;
+	            }
+	            if(!arrangeMatch(ssee.getMorePlayerList(), map))
+	            {
+	                break;
+	            }
+	        }	        
+	    }
 	}
 	private Match generateMatch(Player p1, Player p2)
 	{
@@ -284,6 +323,27 @@ public class MatchSort
         match.player2.foul = 0;
         
         return match;	    
+	}
+	
+	private void removePreviousMatches(int previousCount, Map<Integer, Match> map)
+	{
+	    Match match = null;
+	    for(int i = 0; i < previousCount; i++)
+	    {
+	        if(map.containsKey(getCurMatchID()))
+	        {
+	            match = map.get(getCurMatchID());
+
+	            map.remove(match.id);
+	            matchedPlayerSet.remove(match.player1.playerID);
+	            matchedPlayerSet.remove(match.player2.playerID);
+	            removeMatchID();
+	        }
+	        else
+	        {
+	            throw new IllegalArgumentException("The match doesn't exist, matchID = " + getCurMatchID());
+	        }
+	    }
 	}
 	private Match generateMatch(int p1, int p2, boolean isP1First)
 	{
@@ -417,7 +477,7 @@ public class MatchSort
 	public static void main(String args[])
 	{
 		int playerCount = 10;
-		int roundCount = 6;
+		int roundCount = 7;
 		
 		MatchSort matchSort = new MatchSort(playerCount, roundCount);
 		matchSort.initPlayerInformation(playerCount);
