@@ -114,4 +114,17 @@ public class MatchDataSource
 		}
 		throw new IllegalArgumentException("[Error]: the player doesn't join the match, player=" + playerID + ", match=" + match);
 	}
+	
+	public Player getOpponent(int playerID, Match match)
+    {
+        if(match.player1.playerID == playerID)
+        {
+            return getPlayer(match.player2.playerID);
+        }
+        else if(match.player2.playerID == playerID)
+        {
+            return getPlayer(match.player1.playerID);
+        }
+        throw new IllegalArgumentException("[Error]: the player doesn't join the match, player=" + playerID + ", match=" + match);
+    }
 }

@@ -208,22 +208,34 @@ public class MatchSort
             }
             p2 = getMatchedPlayer(p1);
             if(p2 == null)
-            {                            
-//                return false;
-                do
+            {    
+                MatchUtil.debug("failedTime="  + failedTime + ", No available matched player for " + p1.id);
+                failedTime++;
+                removePreviousMatches(Math.min(failedTime, map.size()), map);
+                
+                if(failedTime > MatchDataSource.getInstance().getPlayerMap().size())
                 {
-                    failedTime++;
-                    MatchUtil.debug("failedTime="  + failedTime + ", No available matched player for " + p1.id);
-                    if(failedTime > MatchDataSource.getInstance().getPlayerMap().size())
-                    {
-                        MatchUtil.debug("Too many failed times. failedTime = " + failedTime);
-                        System.exit(-1);
-                    }
-                    removePreviousMatches(Math.min(failedTime, map.size() - 1), map);
-                    p2 = getMatchedPlayer(p1);
+                    MatchUtil.debug("Too many failed times. failedTime = " + failedTime);
+                    //System.exit(-1);
                 }
-                while(p2 == null);   
+                p2 = getMatchedPlayer(p1);
+                
+                while(p2 == null)
+                {     
+                    MatchUtil.debug("failedTime="  + failedTime + ", No available matched player for " + p1.id);
+                    removePreviousMatches(Math.min(1, map.size() - 1), map);
+                    p2 = getMatchedPlayer(p1);
+                } 
                 MatchUtil.debug("Found failedTime="  + failedTime + ", p1 = " + p1.id + ", p2 = " + p2.id);
+                
+                {
+                    Match match = generateMatch(p1, p2);
+                    map.put(match.id, match);
+                    
+                    matchedPlayerSet.add(p1.id);
+                    matchedPlayerSet.add(p2.id);
+                    return false;
+                }
             }
             Match match = generateMatch(p1, p2);
             map.put(match.id, match);
@@ -327,6 +339,8 @@ public class MatchSort
 	
 	private void removePreviousMatches(int previousCount, Map<Integer, Match> map)
 	{
+	    this.printSeparator();
+	    MatchUtil.debug("removePreviousMatches, previousCount="  + previousCount);
 	    Match match = null;
 	    for(int i = 0; i < previousCount; i++)
 	    {
@@ -334,6 +348,7 @@ public class MatchSort
 	        {
 	            match = map.get(getCurMatchID());
 
+	            MatchUtil.debug(match.toString());
 	            map.remove(match.id);
 	            matchedPlayerSet.remove(match.player1.playerID);
 	            matchedPlayerSet.remove(match.player2.playerID);
@@ -344,6 +359,18 @@ public class MatchSort
 	            throw new IllegalArgumentException("The match doesn't exist, matchID = " + getCurMatchID());
 	        }
 	    }
+	    
+	    for(Iterator<Map.Entry<Integer, Match>> matchIter = map.entrySet().iterator(); matchIter.hasNext(); )
+        {
+            Map.Entry<Integer, Match> matchEntry = matchIter.next();
+            showMatch(matchEntry.getValue());
+        }
+	    this.printSeparator();
+	}
+	
+	private void getClosestOpponent(int previousCount, Map<Integer, Match> map)
+	{
+	    
 	}
 	private Match generateMatch(int p1, int p2, boolean isP1First)
 	{
@@ -477,7 +504,7 @@ public class MatchSort
 	public static void main(String args[])
 	{
 		int playerCount = 10;
-		int roundCount = 7;
+		int roundCount = 6;
 		
 		MatchSort matchSort = new MatchSort(playerCount, roundCount);
 		matchSort.initPlayerInformation(playerCount);

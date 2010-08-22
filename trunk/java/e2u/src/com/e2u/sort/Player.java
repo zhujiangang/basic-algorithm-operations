@@ -1,5 +1,6 @@
 package com.e2u.sort;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Player
@@ -190,6 +191,20 @@ public class Player
 		Integer matchID = matchList.get(matchList.size() - 1);
 		Match match = MatchDataSource.getInstance().getMatch(matchID);
 		return MatchUtil.getTheRoundScore(id, match);
+	}
+	
+	public List<Player> getAllOpponentList()
+	{
+	    List<Player> opponentList = new ArrayList<Player>(matchList.size());
+	    
+	    Match match = null;
+	    for(int i = 0, size = matchList.size(); i < size; i++)
+	    {
+	        match = MatchDataSource.getInstance().getMatch(matchList.get(i));
+	        opponentList.add(MatchDataSource.getInstance().getOpponent(id, match));
+	    }
+	    
+	    return opponentList;
 	}
 	
 	public int hashCode()
