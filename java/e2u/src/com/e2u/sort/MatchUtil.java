@@ -1,6 +1,7 @@
 package com.e2u.sort;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
@@ -190,6 +191,30 @@ public class MatchUtil
 		a[x] = a[y];
 		a[y] = temp;
 	}
+	public static void swap(int[] a, int x, int y)
+	{
+		int temp = a[x];
+		a[x] = a[y];
+		a[y] = temp;
+	}
+	
+	public static boolean perm(int in[], int begin, int end, PermCallBack pcb, List params)
+	{
+		if(begin == end)
+		{
+			return pcb.doOper(in, params);
+		}
+		else
+		{
+			for(int i = begin; i <= end; i++)
+			{
+				swap(in, begin, i);
+				perm(in, begin + 1, end, pcb, params);
+				swap(in, begin, i);
+			}
+		}
+		return true;
+	}
 	
 	public static boolean isDebug()
 	{
@@ -207,6 +232,27 @@ public class MatchUtil
 	    {
 	        System.out.println(str);
 	    }
+	}
+	
+	public static class Perm
+	{
+		private int[] in = null;
+		private int begin;
+		private int end;
+		private int cursor;
+		
+		public Perm(int[] in, int begin, int end)
+		{
+			this.in = in;
+			this.begin = begin;
+			this.end = end;
+			this.cursor = 0;
+		}
+		
+		private boolean doPerm()
+		{
+			return true;
+		}
 	}
 	
 	public static void ut()
