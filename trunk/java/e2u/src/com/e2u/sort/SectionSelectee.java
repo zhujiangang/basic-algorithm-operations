@@ -71,6 +71,62 @@ public class SectionSelectee
         }
     }
     
+    public Player getFirstPlayer()
+    {
+    	List<Player> lessPlayerList = getLessPlayerList();
+    	if(!lessPlayerList.isEmpty())
+    	{
+    		return lessPlayerList.get(0);
+    	}
+    	else
+    	{
+    		return getMorePlayerList().get(0);
+    	}
+    }
+    public Player getNextPlayer(Player player)
+    {
+    	List<Player> lessPlayerList = getLessPlayerList();
+    	List<Player> morePlayerList = getMorePlayerList();
+    	
+    	int index = lessPlayerList.indexOf(player);
+    	
+    	//Doesn't exist in less list
+    	if(index == -1)
+    	{
+    		index = morePlayerList.indexOf(player);
+    		//Doesn't exist in more list either.
+    		if(index == -1)
+    		{
+    			throw new IllegalArgumentException("[Fatal]: Player doesn't exist in this section, player = " + player);
+    		}
+    		//last one, no next
+    		if(index == morePlayerList.size() - 1)
+    		{
+    			return null;
+    		}
+    		else
+    		{
+    			return morePlayerList.get(index + 1);
+    		}
+    	}
+    	else
+    	{
+    		//last one
+    		if(index == lessPlayerList.size() - 1)
+    		{
+    			if(morePlayerList.isEmpty())
+    			{
+    				return null;
+    			}
+    			else
+    			{
+    				return morePlayerList.get(0);
+    			}
+    		}
+    		return lessPlayerList.get(index + 1);
+    	}
+    }
+    
     public String toString()
     {
         StringBuffer sb = new StringBuffer();
