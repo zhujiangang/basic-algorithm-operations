@@ -151,7 +151,6 @@ public class MatchSort implements PermCallBack
 		failedMap.clear();
 		failedList.clear();
 		preProcessMatchList.clear();
-		failedTime = 0;
 		Map<Integer, Match> map = new TreeMap<Integer, Match>();
 		doArrangeMatch(map);
 		MatchDataSource.getInstance().getMatchMap().put(Integer.valueOf(this.curRound), map);
@@ -215,92 +214,37 @@ public class MatchSort implements PermCallBack
             }
             p2 = getMatchedPlayer(p1);
             if(p2 == null)
-            {    
+            {   
+            	MatchUtil.debug(String.format("[START]: p1=%2d, NO OPPONENT", p1.id));
+            	incFailedTime(p1.id);
+            	MatchUtil.debug(String.format("[END]: p1=%2d, NO OPPONENT", p1.id));
+            	continue;
             	/*
-                MatchUtil.debug("failedTime="  + failedTime + ", No available matched player for " + p1.id);
-                failedTime++;
-                removePreviousMatches(Math.min(failedTime, map.size()), map);
-                
-                if(failedTime > MatchDataSource.getInstance().getPlayerMap().size())
-                {
-                    MatchUtil.debug("Too many failed times. failedTime = " + failedTime);
-                    System.exit(-1);
-                }
-                p2 = getMatchedPlayer(p1);
-                
-                while(p2 == null)
-                {     
-                    MatchUtil.debug("failedTime="  + failedTime + ", No available matched player for " + p1.id);
-                    removePreviousMatches(Math.min(1, map.size() - 1), map);
-                    p2 = getMatchedPlayer(p1);
-                } 
-                MatchUtil.debug("Found failedTime="  + failedTime + ", p1 = " + p1.id + ", p2 = " + p2.id);
-                */
-            	MatchUtil.debug("START: No available matched player for " + p1.id);
-            	List<Player> greaterFailedList = new ArrayList<Player>();
-            	int maxFailed = 0;
-            	Player tempP1, tempP2;
+            	MatchUtil.debug(String.format("[START]: p1=%2d, NO OPPONENT", p1.id));
+            	
+            	List<Player> missMatchPlayerList = new ArrayList<Player>();
+
             	incFailedTime(p1.id);
             	if(getFailedTime(p1.id) >= 2)
-            	{            	
-//            		maxFailed = getGreaterFailedPlayer(2, greaterFailedList);
-//            		Collections.rotate(greaterFailedList, 1 - maxFailed);
-            		greaterFailedList.addAll(failedList);
+            	{
+            		missMatchPlayerList.addAll(failedList);
             	}
             	else
             	{
-            		greaterFailedList.add(p1);
-            		tempP2 = getNextPlayer(p1);
-            		if(tempP2 != null)
-            		{
-            			greaterFailedList.add(tempP2);
-            		}           		
-            	}
+            		missMatchPlayerList.add(p1);
+//            		p2 = getNextPlayer(p1);
+//            		if(p2 != null)
+//            		{
+//            			missMatchPlayerList.add(p2);
+//            		}           		
+            	}  
+            	
+            	if(!searchMatchForFailed(missMatchPlayerList, map))
             	{
-            		
-            		for(int i = 0, size = greaterFailedList.size(); i < size; i++)
-            		{
-            			if(map.isEmpty())
-            			{
-            				MatchUtil.debug("DeadLock, system exit. " + greaterFailedList);
-            				System.err.println("DeadLock, system exit. " + greaterFailedList);
-//            				System.exit(-1);
-            				//Perm all
-                        	int[] in = new int[greaterFailedList.size()];
-                        	for(int j = 0; j < in.length; j++)
-                        	{
-                        		in[j] = j;
-                        	}
-                        	List params = new ArrayList(2);
-                        	params.add(greaterFailedList);
-                        	params.add(map);
-                        	MatchUtil.perm(in, 0, in.length - 1, this, params);
-            			}
-            			tempP1 = greaterFailedList.get(i);
-            			if(matchedPlayerSet.contains(tempP1.id))
-            			{
-            				continue;
-            			}
-            			tempP2 = getMatchedPlayer(tempP1);
-            			while(tempP2 == null)
-            			{
-                			if(map.size() <= 0)
-                			{
-                				MatchUtil.debug("DeadLock2, system exit. " + greaterFailedList);
-                				System.err.println("DeadLock2, system exit. " + greaterFailedList);
-                				System.exit(-1);
-                			}
-            				removePreviousMatches(Math.min(1, map.size()), map);
-            				tempP2 = getMatchedPlayer(tempP1);
-            			}
-            			
-            			preProcessMatchList.add(preGenerateMatch(tempP1, tempP2));
-                        matchedPlayerSet.add(tempP1.id);
-                        matchedPlayerSet.add(tempP2.id);
-            		}
-            		
-            		greaterFailedList.clear();
-            	}
+            		throw new IllegalArgumentException("DeadLock, missMatchPlayerList = " + missMatchPlayerList);
+            	}  
+            	missMatchPlayerList.clear();
+     		
             	Match match = null;
             	for(int i = 0, size = preProcessMatchList.size(); i < size; i++)
             	{
@@ -311,8 +255,10 @@ public class MatchSort implements PermCallBack
             	}
             	
             	preProcessMatchList.clear();
-            	MatchUtil.debug("END: No available matched player for " + p1.id);
+            	MatchUtil.debug(String.format("[END]: p1=%2d, NO OPPONENT", p1.id));
             	return true;
+            	
+            	*/
             }
             Match match = generateMatch(p1, p2);
             map.put(match.id, match);
@@ -324,14 +270,100 @@ public class MatchSort implements PermCallBack
 	    return true;
 	}
 	
+	public boolean searchMatchForFailed(List<Player> playerList, Map<Integer, Match> map)
+	{
+		boolean ret = false;
+		//1. rotate outside
+		ret = rotateSearch(playerList, map, true);
+		if(ret)
+		{
+			return true;
+		}
+		//2. rotate inside
+		ret = rotateSearch(playerList, map, false);
+		if(ret)
+		{
+			return true;
+		}
+		
+		List params = new ArrayList(2);
+    	params.add(playerList);
+    	params.add(map);
+    	
+    	//3. perm outside
+    	params.add(Boolean.TRUE);   	
+    	ret = MatchUtil.perm(playerList.size(), this, params);
+    	if(ret)
+		{
+			return true;
+		}
+		//4. perm inside
+    	params.set(2, Boolean.FALSE);   	
+    	ret = MatchUtil.perm(playerList.size(), this, params);
+    	if(ret)
+		{
+			return true;
+		}
+    	return false;
+	}
+	
+	//Rotate use
+	public boolean rotateSearch(List<Player> playerList, Map<Integer, Match> map, boolean isOutSide)
+	{
+		boolean ret = false;
+		for(int i = 0, size = playerList.size(); i < size; i++)
+		{
+			if(isOutSide)
+			{
+				ret = searchMatchOutFailedList(playerList, map, null);
+			}
+			else
+			{
+				ret = searchMatchInFailedList(playerList, map, null);
+			}
+			if(ret)
+			{
+				//restore orders
+				Collections.rotate(playerList, i);
+				return true;
+			}
+			//Move forward 1 step
+			Collections.rotate(playerList, -1);
+		}
+		return false;
+	}
+	//Perm use
 	public boolean doOper(int[] a, List params)
 	{
+		restorePreProcessMatchList();
 		List<Player> playerList = (List<Player>)params.get(0);
 		Map<Integer, Match> map = (Map<Integer, Match>)params.get(1);
-		Player player = null, opponet = null;
-		for(int i = 0; i < a.length; i++)
+		Boolean bOutSide = (Boolean)params.get(2);
+		
+		if(bOutSide.booleanValue())
 		{
-			player = playerList.get(i);
+			return searchMatchOutFailedList(playerList, map, a);
+		}
+		else
+		{
+			return searchMatchInFailedList(playerList, map, a);
+		}
+	}
+	
+	private boolean searchMatchOutFailedList(List<Player> playerList, Map<Integer, Match> map, int a[])
+	{
+		restorePreProcessMatchList();
+		Player player = null, opponet = null;
+		for(int i = 0, size = playerList.size(); i < size; i++)
+		{
+			if(a != null)
+			{
+				player = playerList.get(a[i]);
+			}
+			else
+			{
+				player = playerList.get(i);
+			}			
 			
 			if(matchedPlayerSet.contains(player.id))
 			{
@@ -355,6 +387,83 @@ public class MatchSort implements PermCallBack
 		}
 		
 		return true;
+	}
+	
+	//Internal search
+	private boolean searchMatchInFailedList(List<Player> playerList, Map<Integer, Match> map, int a[])
+	{
+		restorePreProcessMatchList();
+		Player player = null, opponent = null;
+		int i, size = playerList.size();
+		for(i = 0; i < size - 1; i++)
+		{
+			if(a != null)
+			{
+				player = playerList.get(a[i]);
+			}
+			else
+			{
+				player = playerList.get(i);
+			}			
+			
+			if(matchedPlayerSet.contains(player.id))
+			{
+				continue;
+			}
+			opponent = null;
+			for(int j = i + 1; j < size; j++)
+			{
+				if(a != null)
+				{
+					opponent = playerList.get(a[j]);
+				}
+				else
+				{
+					opponent = playerList.get(j);
+				}
+				if(matchedPlayerSet.contains(opponent.id))
+				{
+					opponent = null;
+					continue;
+				}
+				if(MatchDataSource.getInstance().isFightBefore(player.id, opponent.id))
+				{
+					opponent = null;
+					continue;
+				}
+				else
+				{
+					break;
+				}
+			}			
+			if(opponent == null)
+			{
+				return false;
+			}
+			else
+			{
+				preProcessMatchList.add(preGenerateMatch(player, opponent));
+	            matchedPlayerSet.add(player.id);
+	            matchedPlayerSet.add(opponent.id);
+			}
+		}
+		
+		if( i == (size - 1) )
+		{
+			//Look for the opponent outside
+			opponent = getMatchedPlayer(player);
+			if(opponent == null)
+			{
+				return false;
+			}
+			else
+			{
+				preProcessMatchList.add(preGenerateMatch(player, opponent));
+	            matchedPlayerSet.add(player.id);
+	            matchedPlayerSet.add(opponent.id);
+			}
+		}
+		return true;		
 	}
 	
 	private void restorePreProcessMatchList()
@@ -469,7 +578,7 @@ public class MatchSort implements PermCallBack
 	    Iterator<Map.Entry<Integer, SectionSelectee>> iter = null;
 	    SectionSelectee ssee = null;
 	    
-	    while(matchedPlayerSet.size() != MatchDataSource.getInstance().getPlayerMap().size())
+	    do
 	    {
 	        for(iter = scoreSectionMap.entrySet().iterator(); iter.hasNext(); )
 	        {
@@ -484,8 +593,30 @@ public class MatchSort implements PermCallBack
 	            {
 	                break;
 	            }
-	        }	        
+	        }
+	        
+	        if(!failedList.isEmpty())
+	        {
+            	if(!searchMatchForFailed(failedList, map))
+            	{
+            		throw new IllegalArgumentException("DeadLock, missMatchPlayerList = " + failedList);
+            	}  
+            	failedList.clear();
+            	failedMap.clear();
+     		
+            	Match match = null;
+            	for(int i = 0, size = preProcessMatchList.size(); i < size; i++)
+            	{
+            		match = preProcessMatchList.get(i);
+            		
+            		match = generateMatch(match.player1.playerID, match.player2.playerID);
+            		map.put(match.id, match);            		
+            	}
+            	
+            	preProcessMatchList.clear();
+	        }
 	    }
+	    while(matchedPlayerSet.size() != MatchDataSource.getInstance().getPlayerMap().size());
 	}
 	private Match generateMatch(int player1ID, int player2ID)
 	{
@@ -541,7 +672,7 @@ public class MatchSort implements PermCallBack
 	        {
 	            match = map.get(getCurMatchID());
 
-	            MatchUtil.debug(match.toString());
+	            MatchUtil.debug("Removed: " + match.toString());
 	            map.remove(match.id);
 	            matchedPlayerSet.remove(match.player1.playerID);
 	            matchedPlayerSet.remove(match.player2.playerID);
@@ -552,13 +683,13 @@ public class MatchSort implements PermCallBack
 	            throw new IllegalArgumentException("The match doesn't exist, matchID = " + getCurMatchID());
 	        }
 	    }
+//	    for(Iterator<Map.Entry<Integer, Match>> matchIter = map.entrySet().iterator(); matchIter.hasNext(); )
+//        {
+//            Map.Entry<Integer, Match> matchEntry = matchIter.next();
+//            showMatch(matchEntry.getValue());
+//        }
+//	    this.printSeparator();
 	    MatchUtil.debug("End removePreviousMatches, previousCount="  + previousCount);
-	    for(Iterator<Map.Entry<Integer, Match>> matchIter = map.entrySet().iterator(); matchIter.hasNext(); )
-        {
-            Map.Entry<Integer, Match> matchEntry = matchIter.next();
-            showMatch(matchEntry.getValue());
-        }
-	    this.printSeparator();
 	}
 	
 	private void getClosestOpponent(int previousCount, Map<Integer, Match> map)
@@ -715,12 +846,6 @@ public class MatchSort implements PermCallBack
 	public void printSeparator()
 	{
 	    System.out.printf("================round %2d=================\n", curRound);
-	}
-	
-	private static class CallBackParam
-	{
-		public List<Player> playerList;
-		public Map<Integer, Match> map;
 	}
 	
 	public static void main(String args[])
