@@ -1,5 +1,6 @@
 package com.e2u.sort;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -198,10 +199,21 @@ public class MatchUtil
 		a[y] = temp;
 	}
 	
+	private static int count = 0;
+	public static boolean perm(int size, PermCallBack pcb, List params)
+	{
+		int[] in = new int[size];
+		for(int i = 0; i < size; i++)
+		{
+			in[i] = i;
+		}
+		return perm(in, 0, size - 1, pcb, params);
+	}
 	public static boolean perm(int in[], int begin, int end, PermCallBack pcb, List params)
 	{
 		if(begin == end)
 		{
+			count++;
 			return pcb.doOper(in, params);
 		}
 		else
@@ -209,11 +221,14 @@ public class MatchUtil
 			for(int i = begin; i <= end; i++)
 			{
 				swap(in, begin, i);
-				perm(in, begin + 1, end, pcb, params);
+				if(perm(in, begin + 1, end, pcb, params))
+				{
+					return true;
+				}
 				swap(in, begin, i);
 			}
 		}
-		return true;
+		return false;
 	}
 	
 	public static boolean isDebug()
@@ -234,32 +249,52 @@ public class MatchUtil
 	    }
 	}
 	
-	public static class Perm
+	private static class PermCallBackImp implements PermCallBack
 	{
-		private int[] in = null;
-		private int begin;
-		private int end;
-		private int cursor;
-		
-		public Perm(int[] in, int begin, int end)
+		public boolean doOper(int[] a, List params)
 		{
-			this.in = in;
-			this.begin = begin;
-			this.end = end;
-			this.cursor = 0;
-		}
-		
-		private boolean doPerm()
-		{
-			return true;
+			if(a[0] == 3 && a[1] == 2 && a[2] == 4)
+			{
+				for(int i = 0; i < a.length; i++)
+				{
+					System.out.print(" " + a[i]);
+				}
+				System.out.println();
+				Object obj = params.get(0);
+				System.out.println(obj);
+				return true;
+			}
+			return false;
 		}
 	}
 	
 	public static void ut()
 	{
-		for(int i = 0; i < 33; i++)
+//		for(int i = 0; i < 33; i++)
+//		{
+//			System.out.printf("log2(%d) = %d\n", (i + 1), log2(i + 1));
+//		}
+//		
+//		int[] a = new int[5];
+//		for(int i = 0; i < a.length; i++)
+//		{
+//			a[i] = i;
+//		}
+		List params = new ArrayList();
+		params.add("abcdefg");
+		int size = 5;
+		if(perm(size, new PermCallBackImp(), params))
 		{
-			System.out.printf("log2(%d) = %d\n", (i + 1), log2(i + 1));
+			System.out.println("true Out now, count = " + count);
+//			for(int i = 0; i < size; i++)
+//			{
+//				System.out.print(" " + a[i]);
+//			}
+			System.out.println();
+		}
+		else
+		{
+			System.out.println("false Out now, count = " + count);
 		}
 	}
 	public static void main(String[] args)
