@@ -28,6 +28,7 @@ public class MatchSort implements PermCallBack
 	private Map<Integer, Integer> failedMap = new HashMap<Integer, Integer>();
 	private List<Player> failedList = new ArrayList<Player>();
 	private List<Match> preProcessMatchList = new ArrayList<Match>();
+	private TreeSet<Integer> curRoundMatchIDSet = new TreeSet<Integer>();
 	
 	private int failedTime = 0;
 	public MatchSort(int playerCount, int roundCount)
@@ -61,23 +62,46 @@ public class MatchSort implements PermCallBack
 	private void updateRound()
 	{
 		curRound++;
+		
+		generateCurRoundMatchID();
 	}
 	private synchronized int generateMatchID()
 	{
 		matchIDGenerator++;
 		return matchIDGenerator;
 	}
-	private synchronized int getCurMatchID()
+	private synchronized int selectFirstMatchID()
 	{
-	    return matchIDGenerator;
+		if(curRoundMatchIDSet.isEmpty())
+		{
+			throw new IllegalArgumentException("[Fatal Error]: No available Match ID");
+		}
+		int firstID = curRoundMatchIDSet.first();
+		curRoundMatchIDSet.remove(firstID);
+		return firstID;
 	}
-	private synchronized void removeMatchID()
+	private synchronized int getFirstMatchID()
 	{
-	    if(matchIDGenerator == 0)
-	    {
-	        throw new IllegalArgumentException("[Fatal Error]: matchIDGenerator = 0");
-	    }
-	    matchIDGenerator--;
+		if(curRoundMatchIDSet.isEmpty())
+		{
+			throw new IllegalArgumentException("[Fatal Error]: No available Match ID");
+		}
+		return curRoundMatchIDSet.first();
+	}
+	
+	private synchronized void removeMatch(Map<Integer, Match> map, int matchID)
+	{
+		if(!map.containsKey(matchID))
+		{
+			throw new IllegalArgumentException("[Fatal Error]: The match ID doesn't exist, matchID = " + matchID);
+		}		
+        Match match = map.get(matchID);
+        
+        map.remove(matchID);
+        matchedPlayerSet.remove(match.player1.playerID);
+        matchedPlayerSet.remove(match.player2.playerID);
+        
+        curRoundMatchIDSet.add(matchID);
 	}
 	public void initPlayerInformation(int count)
 	{
@@ -151,9 +175,20 @@ public class MatchSort implements PermCallBack
 		failedMap.clear();
 		failedList.clear();
 		preProcessMatchList.clear();
-		Map<Integer, Match> map = new TreeMap<Integer, Match>();
+		TreeMap<Integer, Match> map = new TreeMap<Integer, Match>();
 		doArrangeMatch(map);
 		MatchDataSource.getInstance().getMatchMap().put(Integer.valueOf(this.curRound), map);
+	}
+	
+	private void generateCurRoundMatchID()
+	{
+		curRoundMatchIDSet.clear();
+		
+		int half = playerCount / 2;
+		for(int i = 0; i < half; i++)
+		{
+			curRoundMatchIDSet.add(generateMatchID());
+		}
 	}
 	
 	private Player getMatchedPlayer(Player player)
@@ -270,7 +305,24 @@ public class MatchSort implements PermCallBack
 	    return true;
 	}
 	
-	public boolean searchMatchForFailed(List<Player> playerList, Map<Integer, Match> map)
+	private Match searchOpponentInMatch(TreeMap<Integer, Match> map, Player player)
+	{
+		for(int key = map.lastKey(); !map.isEmpty(); key = map.lowerKey(key))
+		{
+			Match match = map.get(key);
+			if(!MatchDataSource.getInstance().isFightBefore(player.id, match.player1.playerID))
+			{
+				return match;
+			}
+			if(!MatchDataSource.getInstance().isFightBefore(player.id, match.player2.playerID))
+			{
+				return match;
+			}
+		}
+		return null;
+	}
+	
+	public boolean searchMatchForFailed(List<Player> playerList, TreeMap<Integer, Match> map)
 	{
 		boolean ret = false;
 		//1. rotate outside
@@ -308,7 +360,7 @@ public class MatchSort implements PermCallBack
 	}
 	
 	//Rotate use
-	public boolean rotateSearch(List<Player> playerList, Map<Integer, Match> map, boolean isOutSide)
+	public boolean rotateSearch(List<Player> playerList, TreeMap<Integer, Match> map, boolean isOutSide)
 	{
 		boolean ret = false;
 		for(int i = 0, size = playerList.size(); i < size; i++)
@@ -337,7 +389,7 @@ public class MatchSort implements PermCallBack
 	{
 		restorePreProcessMatchList();
 		List<Player> playerList = (List<Player>)params.get(0);
-		Map<Integer, Match> map = (Map<Integer, Match>)params.get(1);
+		TreeMap<Integer, Match> map = (TreeMap<Integer, Match>)params.get(1);
 		Boolean bOutSide = (Boolean)params.get(2);
 		
 		if(bOutSide.booleanValue())
@@ -350,7 +402,7 @@ public class MatchSort implements PermCallBack
 		}
 	}
 	
-	private boolean searchMatchOutFailedList(List<Player> playerList, Map<Integer, Match> map, int a[])
+	private boolean searchMatchOutFailedList(List<Player> playerList, TreeMap<Integer, Match> map, int a[])
 	{
 		restorePreProcessMatchList();
 		Player player = null, opponet = null;
@@ -573,7 +625,7 @@ public class MatchSort implements PermCallBack
         return null;
 	}
 	
-	private void doArrangeMatch(Map<Integer, Match> map)
+	private void doArrangeMatch(TreeMap<Integer, Match> map)
 	{
 	    Iterator<Map.Entry<Integer, SectionSelectee>> iter = null;
 	    SectionSelectee ssee = null;
@@ -628,7 +680,7 @@ public class MatchSort implements PermCallBack
 	private Match generateMatch(Player p1, Player p2)
 	{
         Match match = new Match();
-        match.id = generateMatchID();
+        match.id = selectFirstMatchID();
         
         Comparator<Player> comp = ComparatorFactory.getComparator4SelectFirst(curRound);
         //p2 is less than p1, the less one is first.
@@ -661,27 +713,28 @@ public class MatchSort implements PermCallBack
         return match;
 	}
 	
-	private void removePreviousMatches(int previousCount, Map<Integer, Match> map)
+	private void removePreviousMatches(int previousCount, TreeMap<Integer, Match> map)
 	{
 	    MatchUtil.debug("Start removePreviousMatches, previousCount="  + previousCount);
 	    this.printSeparator();
 	    Match match = null;
+	    int matchID = 0;
 	    for(int i = 0; i < previousCount; i++)
 	    {
-	        if(map.containsKey(getCurMatchID()))
-	        {
-	            match = map.get(getCurMatchID());
+	    	if(map.isEmpty())
+	    	{
+	    		throw new IllegalArgumentException("The match map is empty now");
+	    	}
+	    	matchID = map.lastKey();
+            match = map.get(matchID);
 
-	            MatchUtil.debug("Removed: " + match.toString());
-	            map.remove(match.id);
-	            matchedPlayerSet.remove(match.player1.playerID);
-	            matchedPlayerSet.remove(match.player2.playerID);
-	            removeMatchID();
-	        }
-	        else
-	        {
-	            throw new IllegalArgumentException("The match doesn't exist, matchID = " + getCurMatchID());
-	        }
+            MatchUtil.debug("Removed: " + match.toString());
+            
+            map.remove(matchID);
+            matchedPlayerSet.remove(match.player1.playerID);
+            matchedPlayerSet.remove(match.player2.playerID);
+            
+            curRoundMatchIDSet.add(matchID);
 	    }
 //	    for(Iterator<Map.Entry<Integer, Match>> matchIter = map.entrySet().iterator(); matchIter.hasNext(); )
 //        {
@@ -691,15 +744,10 @@ public class MatchSort implements PermCallBack
 //	    this.printSeparator();
 	    MatchUtil.debug("End removePreviousMatches, previousCount="  + previousCount);
 	}
-	
-	private void getClosestOpponent(int previousCount, Map<Integer, Match> map)
-	{
-	    
-	}
 	private Match generateMatch(int p1, int p2, boolean isP1First)
 	{
 		Match match = new Match();
-		match.id = generateMatchID();
+		match.id = this.selectFirstMatchID();
 		
 		if(!isP1First)
 		{
@@ -707,28 +755,6 @@ public class MatchSort implements PermCallBack
 			p1 = p2;
 			p2 = tmp;
 		}
-		
-		match.player1 = new MatchPlayerInfo();
-		match.player1.playerID = p1;
-		match.player1.foul = 0;
-		
-		match.player2 = new MatchPlayerInfo();
-		match.player2.playerID = p2;
-		match.player2.foul = 0;
-		
-		return match;
-	}
-	
-	public Match generateMatch(int p1, int p2, int firstPlayerID)
-	{
-		if(p2 == firstPlayerID)
-		{
-			p2 = p1;
-			p1 = firstPlayerID;
-		}
-		Match match = new Match();
-		
-		match.id = generateMatchID();
 		
 		match.player1 = new MatchPlayerInfo();
 		match.player1.playerID = p1;
