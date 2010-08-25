@@ -1,0 +1,9 @@
+
+#This shell file converts matching problems in the DIMACS input 
+#format (.edge) to problems for Rothberg's weighted matching code wmatch.
+
+case $# in 
+0|1)  echo "Usage: edge_to_wmatch  input.edge  input.wmat"; exit 1
+esac
+
+awk -f double.a <$1 | sort +0 -1 | awk -f strip.a >$2
