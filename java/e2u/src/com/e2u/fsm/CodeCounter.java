@@ -19,6 +19,11 @@ public class CodeCounter
 	private static final int STAT_FIRST_SQM = 10;
 	private static final int STAT_ESC_AFTER_FIRST_SQM = 11;
 	
+	
+	private static final int COUNT_0_CODE_1_COMMENT = 0;
+	private static final int COUNT_1_CODE_0_COMMENT = 2;
+	private static final int COUNT_1_CODE_1_COMMENT = 3;
+	
 	private int codeCount = 0;
 	private int commentCount = 0;
 	private int spaceCount = 0;
@@ -274,12 +279,14 @@ public class CodeCounter
 			e.printStackTrace();
 		}
 	}
-	
 	public void parse1(BufferedReader reader)
 	{
 		String line = null;
 		int curStat = STAT_NONE;
 		int ch = -1;
+		
+		int codeSeg = 0;
+		int commentSeg = 0;
 		try
 		{
 			while( (line = reader.readLine()) != null)
@@ -299,6 +306,9 @@ public class CodeCounter
 					continue;
 				}
 
+				codeSeg = 0;
+				commentSeg = 0;
+				boolean isSpace = true;
 				if(curStat == STAT_STAR_AFTER_SLASH || curStat == STAT_STAR_IN_BLOCK_COMMENT || curStat == STAT_ESC_AFTER_SECOND_STAR)
 				{
 					
@@ -326,31 +336,79 @@ public class CodeCounter
 							{
 								curStat = STAT_FIRST_SQM;
 							}
+							else if(!isSpace(ch))
+							{
+							    isSpace = false;
+							}
 							if(i == size - 1)
 							{
-								codeCount++;
+//								codeCount++;
+								if(commentSeg > 0)
+                                {
+                                    //setting
+                                    commentCount++;
+                                    codeCount++;
+                                }
+                                else
+                                {
+                                    codeCount++;
+                                }
 							}
 							break;
 						}
 						case STAT_FIRST_SLASH:
 						{
+						    /**/ /*int a = 3;     int b = 6;*/
+						    /**/ /*int a = 3;     int b = 6;*/ //
+						    /* a   */     ///
+						    /**/ int a;/*int a = 3;     int b = 6;*/ int b; //
+						    /**/ int c;/*int a = 3;     int b = 6;*/
+						    /**/ int aa;/*int a = 3;     int b = 6;*/ int aaab; //
+                            /**/ int caa;/*int a = 3;     int b = 6;*/
+                            
+                            int bbbb = 9
+                             /  /*  adfd */ (    222 /   6 /*  **/ )  / //  dfsa/
+                            4;
 							if(ch == '/')
 							{
 								curStat = STAT_SECOND_SLASH;
+								if(!isSpace)
+								{
+								    isSpace = true;
+								    codeSeg++;								    
+								}
+								commentSeg++;
 							}
 							else if(ch == '*')
 							{
 								curStat = STAT_STAR_AFTER_SLASH;
+								if(!isSpace)
+                                {
+								    isSpace = true;
+                                    codeSeg++;                             
+                                }
+								commentSeg++;
 							}
 							else
 							{
 								curStat = STAT_NONE;
+								isSpace = false;
 							}
 							if(i == size - 1)
 							{
 								if(curStat == STAT_SECOND_SLASH || curStat == STAT_STAR_AFTER_SLASH)
 								{
-									commentCount++;
+									//commentCount++;
+								    if(codeSeg > 0 && commentSeg > 0)
+								    {
+								        //setting
+								        commentCount++;
+								        codeCount++;
+								    }
+								    else
+								    {
+								        commentCount++;
+								    }
 								}
 								else
 								{
@@ -388,10 +446,11 @@ public class CodeCounter
 							else if(ch == '/')
 							{
 								curStat = STAT_NONE;
-								if(i != size - 1)
-								{
-									commentCount++;
-								}
+								isSpace = true;
+//								if(i != size - 1)
+//								{
+//									commentCount++;
+//								}
 							}
 							//Any other keys
 							else
@@ -400,7 +459,17 @@ public class CodeCounter
 							}
 							if(i == size - 1)
 							{
-								commentCount++;
+//								commentCount++;
+								if(codeSeg > 0 && commentSeg > 0)
+                                {
+                                    //setting
+                                    commentCount++;
+                                    codeCount++;
+                                }
+                                else
+                                {
+                                    commentCount++;
+                                }
 							}
 							break;
 						}
