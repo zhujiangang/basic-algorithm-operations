@@ -27,6 +27,7 @@ public class CodeCounter
 	private int codeCount = 0;
 	private int commentCount = 0;
 	private int spaceCount = 0;
+	private int lineCount = 0;
 	
 	private boolean isSpace(int ch)
 	{
@@ -284,6 +285,7 @@ public class CodeCounter
 		String line = null;
 		int curStat = STAT_NONE;
 		int ch = -1;
+		char dbgChar = 0;
 		
 		int codeSeg = 0;
 		int commentSeg = 0;
@@ -291,6 +293,7 @@ public class CodeCounter
 		{
 			while( (line = reader.readLine()) != null)
 			{
+				lineCount++;
 				line = line.trim();
 				if(line.isEmpty())
 				{
@@ -319,7 +322,8 @@ public class CodeCounter
 				}
 				for(int i = 0, size = line.length(); i < size; i++)
 				{
-					ch = line.charAt(i);				
+					ch = line.charAt(i);
+					dbgChar = (char)ch;
 					switch(curStat)
 					{
 						case STAT_NONE:
@@ -422,6 +426,10 @@ public class CodeCounter
 							if(i == size - 1)
 							{
 								commentCount++;
+								if(codeSeg > 0)
+								{
+									codeCount++;
+								}
 							}
 							break;
 						}
@@ -451,6 +459,10 @@ public class CodeCounter
 //								{
 //									commentCount++;
 //								}
+							}
+							else if(ch == '*')
+							{
+								//do nothing
 							}
 							//Any other keys
 							else
@@ -548,12 +560,11 @@ public class CodeCounter
 	}
 	public void showResult()
 	{
+		System.out.printf("LINE COUNT = %d\n", lineCount);
 		System.out.printf("CODE COUNT = %d\n", codeCount);
 		System.out.printf("COMMENT COUNT = %d\n", commentCount);
 		System.out.printf("BLANK COUNT = %d\n", spaceCount);
-
 	}
-	
 	public static void main(String[] args)
 	{
 		CodeCounter cc = new CodeCounter();
@@ -571,6 +582,5 @@ public class CodeCounter
 		{
 			// TODO: handle exception
 		}
-		
 	}
 }
