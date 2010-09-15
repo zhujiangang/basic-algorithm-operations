@@ -5,10 +5,9 @@ import java.io.File;
 import java.io.FileReader;
 
 /**
- * A class for count source code.
  * The expected formats include: c/c++, java
  */
-public class CodeCounter2
+public class CCByFSM
 {
 	/**
 	 * All the states in the FSM.
@@ -292,7 +291,7 @@ public class CodeCounter2
 		}
 	}
 	
-	public CodeCounter2()
+	public CCByFSM()
 	{
 		curStat = STAT_NONE;
 		
@@ -480,7 +479,7 @@ public class CodeCounter2
 	
 	public static void main(String[] args)
 	{
-		CodeCounter2 cc = new CodeCounter2();
+		CCByFSM cc = new CCByFSM();
 		BufferedReader reader = null;
 		try
 		{
