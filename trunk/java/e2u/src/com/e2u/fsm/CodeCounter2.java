@@ -4,8 +4,15 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 
+/**
+ * A class for count source code.
+ * The expected formats include: c/c++, java
+ */
 public class CodeCounter2
 {
+	/**
+	 * All the states in the FSM.
+	 */
 	private static final int STAT_NONE = 0;
 	private static final int STAT_FIRST_SLASH = 1;
 	private static final int STAT_SECOND_SLASH = 2;
@@ -17,36 +24,70 @@ public class CodeCounter2
 	private static final int STAT_FIRST_SQM = 8;
 	private static final int STAT_ESC_AFTER_FIRST_SQM = 9;
 	
-	private static final int COUNT_0_CODE_1_COMMENT = 0;
-	private static final int COUNT_1_CODE_0_COMMENT = 2;
-	private static final int COUNT_1_CODE_1_COMMENT = 3;
+	/**
+	 * The first state and the last state
+	 */
+	public static final int STAT_FIRST = STAT_NONE;
+	public static final int STAT_LAST = STAT_ESC_AFTER_FIRST_SQM;
 	
-	private int codeCount = 0;
-	private int commentCount = 0;
-	private int spaceCount = 0;
-	private int lineCount = 0;
+	/**
+	 * The mode to determine how to count when code and comment are in the same one line
+	 */
+	public static final int COUNT_0_CODE_0_COMMENT = 0;
+	public static final int COUNT_0_CODE_1_COMMENT = 1;
+	public static final int COUNT_1_CODE_0_COMMENT = 2;
+	public static final int COUNT_1_CODE_1_COMMENT = 3;
 	
+	
+	/**
+	 * The current used mode for one line contains both code and comment
+	 */
+	private int modeCodeCommentInOneLine = COUNT_0_CODE_0_COMMENT;
+	
+	/**
+	 * The mode to determine the blank to be which type
+	 */
+	public static final int COUNT_BLANK_LINE_AS_BLANK_IN_COMMENT_BLOCK = 0;
+	public static final int COUNT_BLANK_LINE_AS_COMMENT_IN_COMMENT_BLOCK = 1;
+	
+	/**
+	 * The current mode used to determine the blank line type
+	 */
+	private int modeCountBlankLine = COUNT_BLANK_LINE_AS_BLANK_IN_COMMENT_BLOCK;
+	
+	/**
+	 * The following is the processing result
+	 */
+	//Total line count
+	private int totalLine = 0;
+	//Code line count
+	private int codeLine = 0;
+	//Comment line count
+	private int commentLine = 0;
+	//Mixed line count ( the line contains both comment and code )
+	private int mixedLine = 0;
+	//Blank line count
+	private int blankLine = 0;
+	
+	/**
+	 * Internal variables
+	 */
+	//Current state
 	private int curStat = STAT_NONE;
+	//Code segment count encountered in this line
 	private int codeSeg = 0;
+	//Comment segment count encountered in this line
 	private int commentSeg = 0;
-	private boolean bAllBlank = true; 
+	//In the non-comment segment, is it all blank?
+	//In the comment segment, is the previous code segment all blank?
+	private boolean isAllBlank = true; 
 	
 	
-	private int modeCodeCommentInOneLine = COUNT_1_CODE_1_COMMENT;
+	/**
+	 * FSM
+	 */
 	
-	private int[][] successor = 
-	{
-		{STAT_FIRST_SLASH, STAT_FIRST_QM, STAT_FIRST_SQM, STAT_NONE},  //  STAT_NONE
-		{STAT_SECOND_SLASH, STAT_STAR_AFTER_SLASH, STAT_NONE},        //  STAT_FIRST_SLASH
-		{STAT_SECOND_SLASH},                  //  STAT_SECOND_SLASH
-		{STAT_STAR_IN_BLOCK_COMMENT, STAT_STAR_AFTER_SLASH},             //  STAT_STAR_AFTER_SLASH
-		{STAT_NONE, STAT_ESC_AFTER_SECOND_STAR, STAT_STAR_IN_BLOCK_COMMENT, STAT_STAR_AFTER_SLASH},       //  STAT_STAR_IN_BLOCK_COMMENT
-		{STAT_STAR_AFTER_SLASH},                  //  STAT_ESC_AFTER_SECOND_STAR
-		{STAT_ESC_AFTER_FIRST_QM, STAT_NONE, STAT_FIRST_QM},      //  STAT_FIRST_QM
-		{STAT_FIRST_QM},                  //  STAT_ESC_AFTER_FIRST_QM
-		{STAT_ESC_AFTER_FIRST_SQM, STAT_NONE, STAT_FIRST_SQM},       //  STAT_FIRST_SQM
-		{STAT_FIRST_SQM},                  //  STAT_ESC_AFTER_FIRST_SQM
-	};
+	//State transition chart
 	private String[][] grammar = 
 	{
 		{"/", "\"", "'", ""},  //  STAT_NONE
@@ -58,7 +99,22 @@ public class CodeCounter2
 		{"\\", "\"", ""},      //  STAT_FIRST_QM
 		{""},                  //  STAT_ESC_AFTER_FIRST_QM
 		{"\\", "'", ""},       //  STAT_FIRST_SQM
-		{""},                  //  STAT_ESC_AFTER_FIRST_SQM
+		{""}                   //  STAT_ESC_AFTER_FIRST_SQM
+	};
+	
+	//Next state
+	private int[][] successor = 
+	{
+		{STAT_FIRST_SLASH, STAT_FIRST_QM, STAT_FIRST_SQM, STAT_NONE},  
+		{STAT_SECOND_SLASH, STAT_STAR_AFTER_SLASH, STAT_NONE},
+		{STAT_SECOND_SLASH}, 
+		{STAT_STAR_IN_BLOCK_COMMENT, STAT_STAR_AFTER_SLASH},
+		{STAT_NONE, STAT_ESC_AFTER_SECOND_STAR, STAT_STAR_IN_BLOCK_COMMENT, STAT_STAR_AFTER_SLASH},
+		{STAT_STAR_AFTER_SLASH},
+		{STAT_ESC_AFTER_FIRST_QM, STAT_NONE, STAT_FIRST_QM},
+		{STAT_FIRST_QM},
+		{STAT_ESC_AFTER_FIRST_SQM, STAT_NONE, STAT_FIRST_SQM},
+		{STAT_FIRST_SQM}
 	};
 	private int[] nextLineState = 
 	{
@@ -79,7 +135,7 @@ public class CodeCounter2
 	private OnAction iCommentAction = new IncCommentOnLastCharAction();
 	private OnAction iCodeAction = new IncCodeOnLastCharAction();
 	private OnAction commentEndAction = new CommentEndAction();
-	OnAction[][] actions = 
+	private OnAction[][] actions = 
 	{
 		{cbmsAction, cbmsAction, cbmsAction, cbmsAction},
 		{csiAction, csiAction, csiAction},
@@ -119,7 +175,7 @@ public class CodeCounter2
 				{
 					if(!isSpace(ch))
 					{
-						bAllBlank = false;
+						isAllBlank = false;
 					}
 					break;
 				}
@@ -145,17 +201,17 @@ public class CodeCounter2
 			{
 				if(!theGrammar[i].isEmpty() && theGrammar[i].indexOf(ch) != -1)
 				{
-					if(!bAllBlank)
+					if(!isAllBlank)
 					{
 						codeSeg++;
-						bAllBlank = true;					    							    
+						isAllBlank = true;					    							    
 					}
 					commentSeg++;
 					break;
 				}
 				else if(theGrammar[i].isEmpty())
 				{
-					bAllBlank = false;
+					isAllBlank = false;
 					break;
 				}
 			}
@@ -165,8 +221,7 @@ public class CodeCounter2
 			{
 				if(codeSeg > 0 && commentSeg > 0)
 			    {
-					countCode();
-					countComment();
+					countCodeCommentInOneLine();
 			    }
 				else
 				{
@@ -174,12 +229,12 @@ public class CodeCounter2
 					{
 						if(!theGrammar[i].isEmpty() && theGrammar[i].indexOf(ch) != -1)
 						{
-							commentCount++;
+							commentLine++;
 							break;
 						}
 						else if(theGrammar[i].isEmpty())
 						{
-							codeCount++;
+							codeLine++;
 							break;
 						}
 					}
@@ -196,7 +251,7 @@ public class CodeCounter2
 			{
 				commentSeg++;
 			}
-			bAllBlank = true;
+			isAllBlank = true;
 			super.action(line, chIndex);
 		}
 	}
@@ -209,9 +264,12 @@ public class CodeCounter2
 			{
 				if(codeSeg > 0)
 				{
-					countCode();
+					countCodeCommentInOneLine();
 				}
-				commentCount++;			
+				else
+				{
+					commentLine++;
+				}							
 			}
 		}
 	}
@@ -224,15 +282,38 @@ public class CodeCounter2
 			{
 				if(commentSeg > 0)
 				{
-					countComment();
+					countCodeCommentInOneLine();
 				}
-				codeCount++;
+				else
+				{
+					codeLine++;
+				}				
 			}
 		}
 	}
 	
+	public CodeCounter2()
+	{
+		curStat = STAT_NONE;
+		
+		codeSeg = 0;
+		commentSeg = 0;
+		isAllBlank = true;
+		
+		totalLine = 0;
+		codeLine = 0;
+		commentLine = 0;
+		mixedLine = 0;
+		blankLine = 0;
+	}
+	
+	/**
+	 * Start to work, count the code lines
+	 * @param reader
+	 */
 	public void parse(BufferedReader reader)
 	{
+		curStat = STAT_NONE;
 		String line = null;
 		try
 		{
@@ -240,20 +321,20 @@ public class CodeCounter2
 			{
 				codeSeg = 0;
 				commentSeg = 0;
-				bAllBlank = true;
+				isAllBlank = true;
 								
-				lineCount++;
+				totalLine++;
 				
 				line = line.trim();
 				if(line.isEmpty())
 				{
-					spaceCount++;
+					countBlankLineInCommentBlock();
 					continue;
 				}				
 
 				for(int i = 0, size = line.length(); i < size; i++)
 				{
-					transition(line, i, curStat);
+					curStat = transition(line, i, curStat);
 				}				
 			}
 		}
@@ -262,8 +343,17 @@ public class CodeCounter2
 			e.printStackTrace();
 		}
 	}
-	private void transition(String line, int chIndex, int state)
+	
+	/**
+	 * State transition function
+	 * @param line
+	 * @param chIndex
+	 * @param state
+	 * @return
+	 */
+	private int transition(String line, int chIndex, int state)
 	{
+		int nextState = -1;
 		String[] grammars = grammar[state];
 		int ch = line.charAt(chIndex);
 		for(int i = 0; i < grammars.length; i++)
@@ -274,40 +364,48 @@ public class CodeCounter2
 				{
 					actions[state][i].action(line, chIndex);
 				}
-				curStat = successor[state][i];
+				nextState = successor[state][i];
 				//Last char
 				if(chIndex == line.length() - 1)
 				{
-					curStat = nextLineState[curStat];
+					nextState = nextLineState[nextState];
 				}
 				break;    
 			}
 		}
-		if(curStat < STAT_NONE || curStat > STAT_ESC_AFTER_FIRST_SQM)
+		if(nextState < STAT_FIRST || nextState > STAT_LAST)
 		{
-			throw new IllegalArgumentException("Fatal Error: result = " + curStat);
+			throw new IllegalArgumentException("Fatal Error: result = " + nextState);
 		}
+		return nextState;
 	}
-	private void countCode()
+	private void countCodeCommentInOneLine()
 	{
-		countCode(modeCodeCommentInOneLine);
+		countCodeCommentInOneLine(modeCodeCommentInOneLine);
 	}
-	private void countCode(int mode)
+	private void countCodeCommentInOneLine(int mode)
 	{
+		mixedLine++;
 		switch(mode)
 		{
+			case COUNT_0_CODE_0_COMMENT:
+			{
+				break;
+			}
 			case COUNT_0_CODE_1_COMMENT:
 			{
+				commentLine++;
 				break;
 			}
 			case COUNT_1_CODE_0_COMMENT:
 			{
-				codeCount++;
+				codeLine++;
 				break;
 			}
 			case COUNT_1_CODE_1_COMMENT:
 			{
-				codeCount++;
+				codeLine++;
+				commentLine++;
 				break;
 			}
 			default:
@@ -317,34 +415,50 @@ public class CodeCounter2
 			}
 		}
 	}
-	private void countComment()
+	private void countBlankLineInCommentBlock()
 	{
-		countComment(modeCodeCommentInOneLine);
-	}
-	private void countComment(int mode)
-	{
-		switch(mode)
+		if(curStat == STAT_STAR_AFTER_SLASH)
 		{
-			case COUNT_0_CODE_1_COMMENT:
+			switch(modeCountBlankLine)
 			{
-				commentCount++;
-				break;
-			}
-			case COUNT_1_CODE_0_COMMENT:
-			{
-				break;
-			}
-			case COUNT_1_CODE_1_COMMENT:
-			{
-				commentCount++;
-				break;
-			}
-			default:
-			{
-				System.out.println("Unknown mode : " + mode);
-				break;
+				case COUNT_BLANK_LINE_AS_BLANK_IN_COMMENT_BLOCK:
+				{
+					blankLine++;
+					break;
+				}
+				case COUNT_BLANK_LINE_AS_COMMENT_IN_COMMENT_BLOCK:
+				{
+					commentLine++;
+					break;
+				}
+				default:
+				{
+					System.out.println("Unknown mode : " + modeCountBlankLine);
+					break;
+				}
 			}
 		}
+		else
+		{
+			blankLine++;
+		}
+	}		
+	public int getModeCodeCommentInOneLine()
+	{
+		return modeCodeCommentInOneLine;
+	}
+	public void setModeCodeCommentInOneLine(
+		int modeCodeCommentInOneLine)
+	{
+		this.modeCodeCommentInOneLine = modeCodeCommentInOneLine;
+	}
+	public int getModeCountBlankLine()
+	{
+		return modeCountBlankLine;
+	}
+	public void setModeCountBlankLine(int modeCountBlankLine)
+	{
+		this.modeCountBlankLine = modeCountBlankLine;
 	}
 	
 	private boolean isSpace(int ch)
@@ -357,10 +471,11 @@ public class CodeCounter2
 	}
 	public void showResult()
 	{
-		System.out.printf("LINE COUNT = %d\n", lineCount);
-		System.out.printf("CODE COUNT = %d\n", codeCount);
-		System.out.printf("COMMENT COUNT = %d\n", commentCount);
-		System.out.printf("BLANK COUNT = %d\n", spaceCount);
+		System.out.printf("Total Line Count = %d\n", totalLine);
+		System.out.printf("Code Line Count = %d\n", codeLine);
+		System.out.printf("Comment Line Count = %d\n", commentLine);
+		System.out.printf("Mixed Line Count = %d\n", mixedLine);
+		System.out.printf("Blank Line Count = %d\n", blankLine);
 	}
 	
 	public static void main(String[] args)
