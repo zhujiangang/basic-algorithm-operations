@@ -1,6 +1,8 @@
 #if !defined(AFX_DIRTREEVIEW_H__5A7A6967_9EA6_43AE_9FAC_F8FA843DF9FC__INCLUDED_)
 #define AFX_DIRTREEVIEW_H__5A7A6967_9EA6_43AE_9FAC_F8FA843DF9FC__INCLUDED_
 
+#include "ShellTreeCtrl.h"
+
 #if _MSC_VER > 1000
 #pragma once
 #endif // _MSC_VER > 1000
@@ -10,7 +12,7 @@
 /////////////////////////////////////////////////////////////////////////////
 // CDirTreeView view
 
-class CDirTreeView : public CScrollView
+class CDirTreeView : public CShellTreeCtrl
 {
 protected:
 	CDirTreeView();           // protected constructor used by dynamic creation
@@ -26,8 +28,7 @@ public:
 	// ClassWizard generated virtual function overrides
 	//{{AFX_VIRTUAL(CDirTreeView)
 	protected:
-	virtual void OnDraw(CDC* pDC);      // overridden to draw this view
-	virtual void OnInitialUpdate();     // first time after construct
+	virtual BOOL PreCreateWindow(CREATESTRUCT& cs);
 	//}}AFX_VIRTUAL
 
 // Implementation

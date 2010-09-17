@@ -140,22 +140,28 @@ BOOL CMainFrame::OnCmdMsg(UINT nID, int nCode, void* pExtra, AFX_CMDHANDLERINFO*
 
 BOOL CMainFrame::OnCreateClient(LPCREATESTRUCT lpcs, CCreateContext* pContext) 
 {	
-	m_wndSplitter1.setMinSize(CSize(0, 100));
-	m_wndSplitter2.setMinSize(CSize(100, 0));
+	m_wndSplitterTopDown.setMinSize(CSize(0, 330));
+	m_wndSplitterLeftRight.setMinSize(CSize(270, 0));
 
-	m_wndSplitter1.CreateStatic(this, 2, 1);	
-	m_wndSplitter2.CreateStatic(&m_wndSplitter1, 1, 2,
-		WS_CHILD | WS_VISIBLE, m_wndSplitter1.IdFromRowCol(0, 0));
-	m_wndSplitter2.CreateView(0, 0, RUNTIME_CLASS(CDirTreeView), CSize(300, 0), NULL);
-	m_wndSplitter2.CreateView(0, 1, RUNTIME_CLASS(CFileListView), CSize(0, 0), NULL);
+	m_wndSplitterTopDown.CreateStatic(this, 2, 1);	
+	m_wndSplitterLeftRight.CreateStatic(&m_wndSplitterTopDown, 1, 2,
+		WS_CHILD | WS_VISIBLE, m_wndSplitterTopDown.IdFromRowCol(0, 0));
+	m_wndSplitterLeftRight.CreateView(0, 0, RUNTIME_CLASS(CDirTreeView), CSize(300, 0), NULL);
+
+	m_pTreeView = (CDirTreeView*)m_wndSplitterLeftRight.GetPane(0, 0);
 	
-	m_wndSplitter1.CreateView(1, 0, RUNTIME_CLASS(CResultView), CSize(0, 500), NULL);
+	// populate root and expand My Computer
+	m_pTreeView->AddRootFolderContent(NULL);
 
-	m_wndSplitter1.SetRowInfo(0, 200, 10);
-	m_wndSplitter1.RecalcLayout();
+	m_wndSplitterLeftRight.CreateView(0, 1, RUNTIME_CLASS(CFileListView), CSize(0, 0), NULL);
+	
+	m_wndSplitterTopDown.CreateView(1, 0, RUNTIME_CLASS(CResultView), CSize(0, 500), NULL);
 
-	m_wndSplitter2.SetColumnInfo(0, 200, 10);
-	m_wndSplitter2.RecalcLayout();
+	m_wndSplitterTopDown.SetRowInfo(0, 330, 10);
+	m_wndSplitterTopDown.RecalcLayout();
+
+	m_wndSplitterLeftRight.SetColumnInfo(0, 270, 10);
+	m_wndSplitterLeftRight.RecalcLayout();
 
 	return CFrameWnd::OnCreateClient(lpcs, pContext);
 }
