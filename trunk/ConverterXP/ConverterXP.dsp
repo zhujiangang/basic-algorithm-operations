@@ -66,8 +66,8 @@ LINK32=link.exe
 # PROP Output_Dir "Debug"
 # PROP Intermediate_Dir "Debug"
 # PROP Target_Dir ""
-# ADD BASE CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_AFXDLL" /Yu"stdafx.h" /FD /GZ  /c
-# ADD CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_AFXDLL" /D "_MBCS" /Yu"stdafx.h" /FD /GZ   /c
+# ADD BASE CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_AFXDLL" /Yu"stdafx.h" /FD /GZ /c
+# ADD CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_AFXDLL" /D "_MBCS" /Yu"stdafx.h" /FD /GZ /c
 # ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x804 /d "_DEBUG" /d "_AFXDLL"
@@ -118,12 +118,32 @@ SOURCE=.\ResultView.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\ShellContextMenu.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\ShellPidl.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\ShellString.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\ShellTreeCtrl.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\SizedSplitterWnd.cpp
 # End Source File
 # Begin Source File
 
 SOURCE=.\StdAfx.cpp
 # ADD CPP /Yc"stdafx.h"
+# End Source File
+# Begin Source File
+
+SOURCE=.\WaitingTreeCtrl.cpp
 # End Source File
 # End Group
 # Begin Group "Header Files"
@@ -159,11 +179,39 @@ SOURCE=.\ResultView.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\ShellContextMenu.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\ShellPidl.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\ShellString.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\ShellTreeCtrl.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\ShellWrappers.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\SizedSplitterWnd.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\SmartInterfacePtr.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\StdAfx.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\WaitingTreeCtrl.h
 # End Source File
 # End Group
 # Begin Group "Resource Files"
@@ -175,16 +223,8 @@ SOURCE=.\res\ConverterXP.ico
 # End Source File
 # Begin Source File
 
-SOURCE=.\res\ConverterXP.rc2
-# End Source File
-# Begin Source File
-
 SOURCE=.\res\Toolbar.bmp
 # End Source File
 # End Group
-# Begin Source File
-
-SOURCE=.\ReadMe.txt
-# End Source File
 # End Target
 # End Project

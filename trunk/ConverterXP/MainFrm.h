@@ -11,6 +11,7 @@
 
 #include "ChildView.h"
 #include "SizedSplitterWnd.h"
+#include "DirTreeView.h"
 
 class CMainFrame : public CFrameWnd
 {
@@ -22,8 +23,8 @@ protected:
 
 // Attributes
 public:
-	CSizedSplitterWnd m_wndSplitter1;
-	CSizedSplitterWnd m_wndSplitter2; 
+	CSizedSplitterWnd m_wndSplitterTopDown;
+	CSizedSplitterWnd m_wndSplitterLeftRight; 
 	
 	void CreateClient();
 // Operations
@@ -50,7 +51,7 @@ public:
 protected:  // control bar embedded members
 	CStatusBar  m_wndStatusBar;
 	CToolBar    m_wndToolBar;
-	CChildView    m_wndView;
+	CDirTreeView* m_pTreeView;
 
 // Generated message map functions
 protected:
