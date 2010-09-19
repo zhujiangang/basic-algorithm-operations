@@ -50,6 +50,18 @@ CWaitingTreeCtrl::CWaitingTreeCtrl()
 
 CWaitingTreeCtrl::~CWaitingTreeCtrl()
 {
+	UINT event;
+	CList<HWND, HWND>* pList;
+	POSITION ps = m_observersMap.GetStartPosition();
+	while( ps )
+	{  
+		m_observersMap.GetNextAssoc(ps, event, pList);
+		if(pList != NULL)
+		{
+			delete pList;
+		}
+	}
+	m_observersMap.RemoveAll();
 }
 
 
@@ -57,6 +69,7 @@ BEGIN_MESSAGE_MAP(CWaitingTreeCtrl, CTreeCtrl)
 	//{{AFX_MSG_MAP(CWaitingTreeCtrl)
 	ON_NOTIFY_REFLECT(TVN_ITEMEXPANDING, OnItemExpanding)
 	ON_NOTIFY_REFLECT(TVN_ITEMEXPANDED, OnItemExpanded)
+	ON_NOTIFY_REFLECT(TVN_SELCHANGED, OnSelChanged)
 	ON_WM_ERASEBKGND()
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
@@ -447,4 +460,50 @@ void CWaitingTreeCtrl::DestroySnapshot()
 	m_bmpSnapshot.DeleteObject();
 
 	m_bDrawSnapshot = FALSE;
+}
+
+void CWaitingTreeCtrl::AddObserver(UINT event, HWND hwnd)
+{
+	CList<HWND, HWND>* pList = NULL;
+	
+	if(!m_observersMap.Lookup(event, pList))
+	{
+		pList = new CList<HWND, HWND>();
+		m_observersMap.SetAt(event, pList);
+	}
+	pList->AddTail(hwnd);
+}
+
+void CWaitingTreeCtrl::RemoveObserver(UINT event, HWND hwnd)
+{
+	CList<HWND, HWND>* pList = NULL;
+	ASSERT( m_observersMap.Lookup(event, pList) );
+	POSITION ps = pList->Find(hwnd);
+	ASSERT(ps != NULL);
+	pList->RemoveAt(ps);
+}
+
+void CWaitingTreeCtrl::OnSelChanged(NMHDR* pNMHDR, LRESULT* pResult) 
+{
+	NM_TREEVIEW* pNMTreeView = (NM_TREEVIEW*)pNMHDR;
+	
+	NMSELCHANGED nm;
+	nm.hwndFrom = m_hWnd;
+	nm.idFrom = GetDlgCtrlID();
+	nm.code = TC_SELECT_CHANGED;
+	nm.oldItem = pNMTreeView->itemOld.hItem;
+	nm.newItem = pNMTreeView->itemNew.hItem;
+	
+	CList<HWND, HWND>* pList = NULL;	
+	if(m_observersMap.Lookup(TC_SELECT_CHANGED, pList))
+	{
+		POSITION ps = pList->GetHeadPosition();
+		while(ps != NULL)
+		{
+			HWND hwnd = pList->GetNext(ps);
+			::SendMessage(hwnd, WM_NOTIFY, nm.idFrom, (LPARAM)&nm);
+		}
+	}
+	
+	*pResult = 0;
 }

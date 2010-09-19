@@ -32,7 +32,7 @@ public:
 	//}}AFX_VIRTUAL
 
 // Implementation
-protected:
+public:
 	virtual ~CDirTreeView();
 #ifdef _DEBUG
 	virtual void AssertValid() const;

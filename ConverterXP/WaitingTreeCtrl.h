@@ -23,6 +23,12 @@
 
 /////////////////////////////////////////////////////////////////////////////
 // CWaitingTreeCtrl window
+enum { TC_SELECT_CHANGED = 1 };				 // notification: select changed
+
+struct NMSELCHANGED : public NMHDR {		 // notification struct
+	HTREEITEM oldItem;
+	HTREEITEM newItem;
+};
 
 class CWaitingTreeCtrl : public CTreeCtrl
 {
@@ -45,6 +51,7 @@ private:
 	int m_iItemCount;				// population progress max index
 	HTREEITEM m_hItemMsg;			// wait message item
 	HTREEITEM m_hItemToPopulate;	// item being populated
+	CMap<UINT, UINT, CList<HWND, HWND>*, CList<HWND, HWND>* > m_observersMap;
 
 	// secondary thread entry point
 	static DWORD WINAPI AnimationThreadProc(LPVOID pThis);
@@ -85,6 +92,8 @@ public:
 	{
 		m_bShowWaitMsg = TRUE;
 	};
+	void AddObserver(UINT event, HWND hwnd);
+	void RemoveObserver(UINT event, HWND hwnd);
 
 protected:
 	// animation functions (with timer)
@@ -112,6 +121,7 @@ protected:
 	afx_msg void OnItemExpanding(NMHDR* pNMHDR, LRESULT* pResult);
 	afx_msg void OnItemExpanded(NMHDR* pNMHDR, LRESULT* pResult);
 	afx_msg BOOL OnEraseBkgnd(CDC* pDC);
+	afx_msg void OnSelChanged(NMHDR* pNMHDR, LRESULT* pResult);
 	//}}AFX_MSG
 
 	DECLARE_MESSAGE_MAP()

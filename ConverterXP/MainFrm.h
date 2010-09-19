@@ -12,6 +12,7 @@
 #include "ChildView.h"
 #include "SizedSplitterWnd.h"
 #include "DirTreeView.h"
+#include "FileListView.h"
 
 class CMainFrame : public CFrameWnd
 {
@@ -38,20 +39,30 @@ public:
 	virtual BOOL OnCmdMsg(UINT nID, int nCode, void* pExtra, AFX_CMDHANDLERINFO* pHandlerInfo);
 	protected:
 	virtual BOOL OnCreateClient(LPCREATESTRUCT lpcs, CCreateContext* pContext);
+	virtual void PreSubclassWindow();
 	//}}AFX_VIRTUAL
 
 // Implementation
 public:
 	virtual ~CMainFrame();
+	CDirTreeView* GetDirTreeView() const
+	{
+		return m_pTreeView;
+	}
+	CFileListView* GetFileListView() const
+	{
+		return m_pFileListView;
+	}
 #ifdef _DEBUG
 	virtual void AssertValid() const;
 	virtual void Dump(CDumpContext& dc) const;
 #endif
 
-protected:  // control bar embedded members
+private:  // control bar embedded members
 	CStatusBar  m_wndStatusBar;
 	CToolBar    m_wndToolBar;
 	CDirTreeView* m_pTreeView;
+	CFileListView* m_pFileListView;
 
 // Generated message map functions
 protected:
