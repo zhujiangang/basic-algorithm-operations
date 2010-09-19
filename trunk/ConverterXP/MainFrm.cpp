@@ -46,6 +46,12 @@ CMainFrame::CMainFrame()
 
 CMainFrame::~CMainFrame()
 {
+	if(m_pTreeView != NULL)
+	{
+		AfxTrace("%d\n", (int)m_pTreeView);
+		delete m_pTreeView;
+		m_pTreeView = NULL;
+	}
 }
 
 int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
@@ -149,13 +155,14 @@ BOOL CMainFrame::OnCreateClient(LPCREATESTRUCT lpcs, CCreateContext* pContext)
 	m_wndSplitterLeftRight.CreateView(0, 0, RUNTIME_CLASS(CDirTreeView), CSize(300, 0), NULL);
 
 	m_pTreeView = (CDirTreeView*)m_wndSplitterLeftRight.GetPane(0, 0);
-	
-	// populate root and expand My Computer
 	m_pTreeView->AddRootFolderContent(NULL);
 
 	m_wndSplitterLeftRight.CreateView(0, 1, RUNTIME_CLASS(CFileListView), CSize(0, 0), NULL);
+	m_pFileListView = (CFileListView*)m_wndSplitterLeftRight.GetPane(0, 1);
 	
 	m_wndSplitterTopDown.CreateView(1, 0, RUNTIME_CLASS(CResultView), CSize(0, 500), NULL);
+
+	m_pTreeView->AddObserver(TC_SELECT_CHANGED, m_pFileListView->GetSafeHwnd());
 
 	m_wndSplitterTopDown.SetRowInfo(0, 330, 10);
 	m_wndSplitterTopDown.RecalcLayout();
@@ -164,4 +171,10 @@ BOOL CMainFrame::OnCreateClient(LPCREATESTRUCT lpcs, CCreateContext* pContext)
 	m_wndSplitterLeftRight.RecalcLayout();
 
 	return CFrameWnd::OnCreateClient(lpcs, pContext);
+}
+
+void CMainFrame::PreSubclassWindow() 
+{
+		
+	CFrameWnd::PreSubclassWindow();
 }

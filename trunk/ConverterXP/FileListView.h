@@ -31,7 +31,7 @@ public:
 	//}}AFX_VIRTUAL
 
 // Implementation
-protected:
+public:
 	virtual ~CFileListView();
 #ifdef _DEBUG
 	virtual void AssertValid() const;
@@ -42,7 +42,10 @@ protected:
 	//{{AFX_MSG(CFileListView)
 		// NOTE - the ClassWizard will add and remove member functions here.
 	//}}AFX_MSG
+	afx_msg void OnDirTreeViewSelChanged(NMHDR* pNMHDR, LRESULT* pResult);
 	DECLARE_MESSAGE_MAP()
+private:
+	CString m_curPath;
 };
 
 /////////////////////////////////////////////////////////////////////////////

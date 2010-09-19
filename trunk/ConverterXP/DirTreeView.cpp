@@ -22,6 +22,7 @@ CDirTreeView::CDirTreeView()
 
 CDirTreeView::~CDirTreeView()
 {
+	AfxTrace("CFileListView Destructor\n");
 }
 
 
