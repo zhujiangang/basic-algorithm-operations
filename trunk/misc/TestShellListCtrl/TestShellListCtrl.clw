@@ -12,12 +12,15 @@ Class1=CTestShellListCtrlApp
 Class2=CTestShellListCtrlDlg
 Class3=CAboutDlg
 
-ResourceCount=4
+ResourceCount=7
 Resource1=IDD_ABOUTBOX
 Resource2=IDR_MAINFRAME
 Class4=CShellListCtrl
 Resource3=IDD_TESTSHELLLISTCTRL_DIALOG
 Resource4=IDR_RCLICK_POPUP
+Resource5=IDD_ABOUTBOX (English (U.S.))
+Resource6=IDD_TESTSHELLLISTCTRL_DIALOG (English (U.S.))
+Resource7=IDR_RCLICK_POPUP (English (U.S.))
 
 [CLS:CTestShellListCtrlApp]
 Type=0
@@ -64,8 +67,39 @@ ImplementationFile=ShellListCtrl.cpp
 BaseClass=CListCtrl
 Filter=W
 VirtualFilter=FWC
+LastObject=ID_VIEW_DETAIL
 
 [MNU:IDR_RCLICK_POPUP]
+Type=1
+Class=?
+Command1=IDM_VIEW_LARGE_ICON
+Command2=IDM_VIEW_SMALL_ICON
+Command3=IDM_VIEW_LIST
+Command4=ID_VIEW_DETAIL
+Command5=IDM_ARRANGE_BY_NAME
+Command6=IDM_ARRANGE_BY_SIZE
+Command7=IDM_ARRANGE_BY_TYPE
+Command8=IDM_ARRANGE_BY_DATE
+CommandCount=8
+
+[DLG:IDD_ABOUTBOX (English (U.S.))]
+Type=1
+Class=?
+ControlCount=4
+Control1=IDC_STATIC,static,1342177283
+Control2=IDC_STATIC,static,1342308480
+Control3=IDC_STATIC,static,1342308352
+Control4=IDOK,button,1342373889
+
+[DLG:IDD_TESTSHELLLISTCTRL_DIALOG (English (U.S.))]
+Type=1
+Class=?
+ControlCount=3
+Control1=IDOK,button,1342242817
+Control2=IDCANCEL,button,1342242816
+Control3=IDC_SHELL_LIST,SysListView32,1350631424
+
+[MNU:IDR_RCLICK_POPUP (English (U.S.))]
 Type=1
 Class=?
 Command1=IDM_VIEW_LARGE_ICON

@@ -85,6 +85,14 @@ protected:
 	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
 	afx_msg void OnDestroy();
 	afx_msg void OnContextMenu(CWnd* pWnd, CPoint point);
+	afx_msg void OnViewLargeIcon();
+	afx_msg void OnViewSmallIcon();
+	afx_msg void OnViewList();
+	afx_msg void OnViewDetail();
+	afx_msg void OnUpdateViewLargeIcon(CCmdUI* pCmdUI);
+	afx_msg void OnUpdateViewSmallIcon(CCmdUI* pCmdUI);
+	afx_msg void OnUpdateViewList(CCmdUI* pCmdUI);
+	afx_msg void OnUpdateViewDetail(CCmdUI* pCmdUI);
 	//}}AFX_MSG
 
 	DECLARE_MESSAGE_MAP()
