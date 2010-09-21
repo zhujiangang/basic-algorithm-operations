@@ -121,6 +121,10 @@ SOURCE=.\MyUtil.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\Point24.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\StackQueue.cpp
 # End Source File
 # Begin Source File
@@ -166,6 +170,10 @@ SOURCE=.\LinkedListEx.h
 # Begin Source File
 
 SOURCE=.\MyUtil.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Point24.h
 # End Source File
 # Begin Source File
 

@@ -12,6 +12,7 @@
 #include "StackQueue.h"
 #include "BinTree.h"
 #include "LinkedListEx.h"
+#include "Point24.h"
 
 void testCombineMath()
 {
@@ -614,7 +615,8 @@ int main(int argc, char* argv[])
 //	testArrayOper();
 //	testStackQueue();
 //	testBinTree();
-	testLinkedListEx();
+//	testLinkedListEx();
+	testPoint24();
 	return 0;
 }
 
