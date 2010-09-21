@@ -36,6 +36,14 @@ BEGIN_MESSAGE_MAP(CShellListCtrl, CListCtrl)
 	ON_WM_CREATE()
 	ON_WM_DESTROY()
 	ON_WM_CONTEXTMENU()
+	ON_COMMAND(IDM_VIEW_LARGE_ICON, OnViewLargeIcon)
+	ON_COMMAND(IDM_VIEW_SMALL_ICON, OnViewSmallIcon)
+	ON_COMMAND(IDM_VIEW_LIST, OnViewList)
+	ON_COMMAND(ID_VIEW_DETAIL, OnViewDetail)
+	ON_UPDATE_COMMAND_UI(IDM_VIEW_LARGE_ICON, OnUpdateViewLargeIcon)
+	ON_UPDATE_COMMAND_UI(IDM_VIEW_SMALL_ICON, OnUpdateViewSmallIcon)
+	ON_UPDATE_COMMAND_UI(IDM_VIEW_LIST, OnUpdateViewList)
+	ON_UPDATE_COMMAND_UI(ID_VIEW_DETAIL, OnUpdateViewDetail)
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -821,6 +829,13 @@ void CShellListCtrl::OnContextMenu(CWnd* pWnd, CPoint point)
 			//-----------------------------------
 			// Click ouside of items, do nothing
 			//-----------------------------------
+			CMenu menu;
+			CMenu* pPopup;
+			
+			// the font popup is stored in a resource
+			menu.LoadMenu(IDR_RCLICK_POPUP);
+			pPopup = menu.GetSubMenu(0);
+			pPopup->TrackPopupMenu( TPM_LEFTALIGN, point.x, point.y, this );
 			return;
 		}
 
@@ -971,4 +986,53 @@ void CShellListCtrl::OnContextMenu(CWnd* pWnd, CPoint point)
 	}
 	
 	g_pShellManager->m_pBCGMalloc->Free (pPidls);
+}
+
+
+void CShellListCtrl::OnViewLargeIcon() 
+{
+	// TODO: Add your command handler code here
+	ModifyStyle(LVS_TYPEMASK, LVS_ICON);
+}
+
+void CShellListCtrl::OnViewSmallIcon() 
+{
+	// TODO: Add your command handler code here
+	ModifyStyle(LVS_TYPEMASK, LVS_SMALLICON);
+}
+
+void CShellListCtrl::OnViewList() 
+{
+	// TODO: Add your command handler code here
+	ModifyStyle(LVS_TYPEMASK, LVS_LIST);
+}
+
+void CShellListCtrl::OnViewDetail() 
+{
+	// TODO: Add your command handler code here
+	ModifyStyle(LVS_TYPEMASK, LVS_REPORT);
+}
+
+void CShellListCtrl::OnUpdateViewLargeIcon(CCmdUI* pCmdUI) 
+{
+	// TODO: Add your command update UI handler code here
+	pCmdUI->SetRadio ((GetStyle () & LVS_TYPEMASK) == LVS_ICON);
+}
+
+void CShellListCtrl::OnUpdateViewSmallIcon(CCmdUI* pCmdUI) 
+{
+	// TODO: Add your command update UI handler code here
+	pCmdUI->SetRadio ((GetStyle () & LVS_TYPEMASK) == LVS_SMALLICON);
+}
+
+void CShellListCtrl::OnUpdateViewList(CCmdUI* pCmdUI) 
+{
+	// TODO: Add your command update UI handler code here
+	pCmdUI->SetRadio ((GetStyle () & LVS_TYPEMASK) == LVS_LIST);
+}
+
+void CShellListCtrl::OnUpdateViewDetail(CCmdUI* pCmdUI) 
+{
+	// TODO: Add your command update UI handler code here
+	pCmdUI->SetRadio ((GetStyle () & LVS_TYPEMASK) == LVS_REPORT);
 }
