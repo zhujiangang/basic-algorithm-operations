@@ -8,12 +8,14 @@
 //
 
 #include "MyShellManager.h"
+#include "MyListCtrl.h"
 
 /////////////////////////////////////////////////////////////////////////////
 // CShellListCtrl window
 
-class CShellListCtrl : public CListCtrl
+class CShellListCtrl : public CMyListCtrl
 {
+	DECLARE_DYNAMIC(CShellListCtrl)
 // Construction
 public:
 	CShellListCtrl();
@@ -93,6 +95,10 @@ protected:
 	afx_msg void OnUpdateViewSmallIcon(CCmdUI* pCmdUI);
 	afx_msg void OnUpdateViewList(CCmdUI* pCmdUI);
 	afx_msg void OnUpdateViewDetail(CCmdUI* pCmdUI);
+	afx_msg void OnArrangeByDate();
+	afx_msg void OnArrangeByName();
+	afx_msg void OnArrangeBySize();
+	afx_msg void OnArrangeByType();
 	//}}AFX_MSG
 
 	DECLARE_MESSAGE_MAP()

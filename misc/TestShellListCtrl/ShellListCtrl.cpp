@@ -30,8 +30,8 @@ CShellListCtrl::~CShellListCtrl()
 {
 }
 
-
-BEGIN_MESSAGE_MAP(CShellListCtrl, CListCtrl)
+IMPLEMENT_DYNAMIC(CShellListCtrl, CMyListCtrl)
+BEGIN_MESSAGE_MAP(CShellListCtrl, CMyListCtrl)
 	//{{AFX_MSG_MAP(CShellListCtrl)
 	ON_WM_CREATE()
 	ON_WM_DESTROY()
@@ -44,6 +44,10 @@ BEGIN_MESSAGE_MAP(CShellListCtrl, CListCtrl)
 	ON_UPDATE_COMMAND_UI(IDM_VIEW_SMALL_ICON, OnUpdateViewSmallIcon)
 	ON_UPDATE_COMMAND_UI(IDM_VIEW_LIST, OnUpdateViewList)
 	ON_UPDATE_COMMAND_UI(ID_VIEW_DETAIL, OnUpdateViewDetail)
+	ON_COMMAND(IDM_ARRANGE_BY_DATE, OnArrangeByDate)
+	ON_COMMAND(IDM_ARRANGE_BY_NAME, OnArrangeByName)
+	ON_COMMAND(IDM_ARRANGE_BY_SIZE, OnArrangeBySize)
+	ON_COMMAND(IDM_ARRANGE_BY_TYPE, OnArrangeByType)
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -54,7 +58,7 @@ void CShellListCtrl::PreSubclassWindow()
 {
 	// TODO: Add your specialized code here and/or call the base class
 	
-	CListCtrl::PreSubclassWindow();
+	CMyListCtrl::PreSubclassWindow();
 	
 	_AFX_THREAD_STATE* pThreadState = AfxGetThreadState ();
 	if (pThreadState->m_pWndInit == NULL)
@@ -710,7 +714,7 @@ void CShellListCtrl::OnFormatFileSize (long lFileSize, CString& str)
 
 int CShellListCtrl::OnCreate(LPCREATESTRUCT lpCreateStruct) 
 {
-	if (CListCtrl::OnCreate(lpCreateStruct) == -1)
+	if (CMyListCtrl::OnCreate(lpCreateStruct) == -1)
 		return -1;
 	
 	// TODO: Add your specialized creation code here
@@ -735,7 +739,7 @@ void CShellListCtrl::OnDestroy()
 	*/
 	ReleaseCurrFolder ();
 
-	CListCtrl::OnDestroy();
+	CMyListCtrl::OnDestroy();
 	
 	// TODO: Add your message handler code here
 
@@ -745,7 +749,7 @@ LRESULT CShellListCtrl::WindowProc(UINT message, WPARAM wParam, LPARAM lParam)
 	switch (message)
 	{
 	case WM_INITMENUPOPUP:
-	case WM_DRAWITEM:
+ 	case WM_DRAWITEM:
 	case WM_MEASUREITEM:
 		if (m_pContextMenu2 != NULL)
 		{
@@ -755,7 +759,7 @@ LRESULT CShellListCtrl::WindowProc(UINT message, WPARAM wParam, LPARAM lParam)
 		break;
 	}
 	
-	return CListCtrl::WindowProc(message, wParam, lParam);
+	return CMyListCtrl::WindowProc(message, wParam, lParam);
 }
 void CShellListCtrl::OnContextMenu(CWnd* pWnd, CPoint point) 
 {
@@ -1035,4 +1039,27 @@ void CShellListCtrl::OnUpdateViewDetail(CCmdUI* pCmdUI)
 {
 	// TODO: Add your command update UI handler code here
 	pCmdUI->SetRadio ((GetStyle () & LVS_TYPEMASK) == LVS_REPORT);
+}
+
+void CShellListCtrl::OnArrangeByDate() 
+{
+	// TODO: Add your command handler code here
+	Sort(BCGPShellList_ColumnModified);
+}
+
+void CShellListCtrl::OnArrangeByName() 
+{
+	// TODO: Add your command handler code here
+	Sort(BCGPShellList_ColumnName);
+}
+
+void CShellListCtrl::OnArrangeBySize() 
+{
+	// TODO: Add your command handler code here
+	Sort(BCGPShellList_ColumnSize);
+}
+
+void CShellListCtrl::OnArrangeByType() 
+{
+	Sort(BCGPShellList_ColumnType);
 }
