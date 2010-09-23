@@ -99,7 +99,7 @@ Class=CTestShellListCtrlDlg
 ControlCount=3
 Control1=IDOK,button,1342242817
 Control2=IDCANCEL,button,1342242816
-Control3=IDC_SHELL_LIST,SysListView32,1350631425
+Control3=IDC_SHELL_LIST,SysListView32,1350633473
 
 [MNU:IDR_RCLICK_POPUP (English (U.S.))]
 Type=1

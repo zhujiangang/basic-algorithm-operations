@@ -12,7 +12,8 @@
 
 /////////////////////////////////////////////////////////////////////////////
 // CShellListCtrl window
-extern UINT MSG_SHELL_LIST_CHANGE_CURRENT_FOLDER;
+//extern UINT MSG_SHELL_LIST_CHANGE_CURRENT_FOLDER;
+#define MSG_SHELL_LIST_CHANGE_CURRENT_FOLDER (WM_USER + 100)
 
 class CShellListCtrl : public CMyListCtrl
 {
@@ -69,6 +70,7 @@ public:
 	virtual HRESULT Refresh ();
 	virtual HRESULT DisplayFolder (LPCTSTR lpszPath);
 	virtual HRESULT DisplayFolder (LPMYCBITEMINFO lpItemInfo, BOOL sendNotification = TRUE);
+	virtual HRESULT DisplayFolder (LPCITEMIDLIST lpidlFQ, BOOL sendNotification = TRUE);
 	virtual HRESULT DisplayParentFolder ();
 // Overrides
 	virtual void OnSetColumns ();
@@ -79,6 +81,7 @@ public:
 	virtual void OnFormatFileDate (const CTime& tmFile, CString& str);
 	
 	virtual int OnCompareItems (LPARAM lParam1, LPARAM lParam2, int iColumn);
+	virtual BOOL PreCreateWindow(CREATESTRUCT& cs);
 	// ClassWizard generated virtual function overrides
 	//{{AFX_VIRTUAL(CShellListCtrl)
 	protected:
@@ -96,6 +99,8 @@ protected:
 	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
 	afx_msg void OnDestroy();
 	afx_msg void OnContextMenu(CWnd* pWnd, CPoint point);
+	afx_msg void OnDblclk(NMHDR* pNMHDR, LRESULT* pResult);
+	afx_msg void OnReturn(NMHDR* pNMHDR, LRESULT* pResult);
 	afx_msg void OnViewLargeIcon();
 	afx_msg void OnViewSmallIcon();
 	afx_msg void OnViewList();

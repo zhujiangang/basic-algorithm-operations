@@ -2,7 +2,7 @@
 
 [General Info]
 Version=1
-LastClass=CSizedSplitterWnd
+LastClass=CFileListView
 LastTemplate=CView
 NewFileInclude1=#include "stdafx.h"
 NewFileInclude2=#include "ConverterXP.h"
@@ -13,10 +13,10 @@ Class1=CConverterXPApp
 Class3=CMainFrame
 Class4=CAboutDlg
 
-ResourceCount=4
+ResourceCount=5
 Resource1=IDR_MAINFRAME
-Resource2=IDD_ABOUTBOX (English (U.S.))
-Resource3=IDR_MAINFRAME (English (U.S.))
+Resource2=IDR_MAINFRAME (English (U.S.))
+Resource3=IDR_RCLICK_POPUP (English (U.S.))
 Class2=CChildView
 Class5=CDirTreeView
 Class6=CFileListView
@@ -24,6 +24,7 @@ Class7=CResultView
 Class8=zzz
 Class9=CSizedSplitterWnd
 Resource4=IDD_ABOUTBOX
+Resource5=IDD_ABOUTBOX (English (U.S.))
 
 [CLS:CConverterXPApp]
 Type=0
@@ -151,8 +152,10 @@ VirtualFilter=GWC
 Type=0
 HeaderFile=FileListView.h
 ImplementationFile=FileListView.cpp
-BaseClass=CScrollView
+BaseClass=CShellListCtrl
 Filter=C
+LastObject=CFileListView
+VirtualFilter=FWC
 
 [CLS:CResultView]
 Type=0
@@ -175,7 +178,7 @@ ImplementationFile=SizedSplitterWnd.cpp
 BaseClass=CSplitterWnd
 Filter=C
 VirtualFilter=pWC
-LastObject=CSizedSplitterWnd
+LastObject=IDM_ARRANGE_BY_NAME
 
 [TB:IDR_MAINFRAME]
 Type=1
@@ -186,4 +189,17 @@ Command3=ID_EDIT_PASTE
 Command4=ID_FILE_PRINT
 Command5=ID_APP_ABOUT
 CommandCount=5
+
+[MNU:IDR_RCLICK_POPUP (English (U.S.))]
+Type=1
+Class=?
+Command1=IDM_VIEW_LARGE_ICON
+Command2=IDM_VIEW_SMALL_ICON
+Command3=IDM_VIEW_LIST
+Command4=IDM_VIEW_DETAIL
+Command5=IDM_ARRANGE_BY_NAME
+Command6=IDM_ARRANGE_BY_SIZE
+Command7=IDM_ARRANGE_BY_TYPE
+Command8=IDM_ARRANGE_BY_DATE
+CommandCount=8
 

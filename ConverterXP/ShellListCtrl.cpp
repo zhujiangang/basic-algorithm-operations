@@ -2,16 +2,14 @@
 //
 
 #include "stdafx.h"
-#include "TestShellListCtrl.h"
 #include "ShellListCtrl.h"
+#include "Resource.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
 static char THIS_FILE[] = __FILE__;
 #endif
-
-UINT MSG_SHELL_LIST_CHANGE_CURRENT_FOLDER = ::RegisterWindowMessage (_T("MSG_SHELL_LIST_CHANGE_CURRENT_FOLDER"));
 
 IContextMenu2*	CShellListCtrl::m_pContextMenu2 = NULL;
 /////////////////////////////////////////////////////////////////////////////
@@ -39,14 +37,16 @@ BEGIN_MESSAGE_MAP(CShellListCtrl, CMyListCtrl)
 	ON_WM_CREATE()
 	ON_WM_DESTROY()
 	ON_WM_CONTEXTMENU()
+	ON_NOTIFY_REFLECT(NM_DBLCLK, OnDblclk)
+	ON_NOTIFY_REFLECT(NM_RETURN, OnReturn)
 	ON_COMMAND(IDM_VIEW_LARGE_ICON, OnViewLargeIcon)
 	ON_COMMAND(IDM_VIEW_SMALL_ICON, OnViewSmallIcon)
 	ON_COMMAND(IDM_VIEW_LIST, OnViewList)
-	ON_COMMAND(ID_VIEW_DETAIL, OnViewDetail)
+	ON_COMMAND(IDM_VIEW_DETAIL, OnViewDetail)
 	ON_UPDATE_COMMAND_UI(IDM_VIEW_LARGE_ICON, OnUpdateViewLargeIcon)
 	ON_UPDATE_COMMAND_UI(IDM_VIEW_SMALL_ICON, OnUpdateViewSmallIcon)
 	ON_UPDATE_COMMAND_UI(IDM_VIEW_LIST, OnUpdateViewList)
-	ON_UPDATE_COMMAND_UI(ID_VIEW_DETAIL, OnUpdateViewDetail)
+	ON_UPDATE_COMMAND_UI(IDM_VIEW_DETAIL, OnUpdateViewDetail)
 	ON_COMMAND(IDM_ARRANGE_BY_DATE, OnArrangeByDate)
 	ON_COMMAND(IDM_ARRANGE_BY_NAME, OnArrangeByName)
 	ON_COMMAND(IDM_ARRANGE_BY_SIZE, OnArrangeBySize)
@@ -57,6 +57,13 @@ END_MESSAGE_MAP()
 /////////////////////////////////////////////////////////////////////////////
 // CShellListCtrl message handlers
 
+BOOL CShellListCtrl::PreCreateWindow(CREATESTRUCT& cs) 
+{
+	cs.lpszName = _T("ShellListCtrl");
+	cs.style = WS_CHILD | WS_VISIBLE | LVS_AUTOARRANGE | LVS_REPORT;
+	cs.lpszClass = WC_LISTVIEW;
+	return CMyListCtrl::PreCreateWindow(cs);
+}
 void CShellListCtrl::PreSubclassWindow() 
 {
 	// TODO: Add your specialized code here and/or call the base class
@@ -171,6 +178,46 @@ void CShellListCtrl::OnSetColumns ()
 		InsertColumn (iColumn, szName [iColumn], nFormat, 100, iColumn);
 	}
 }
+
+HRESULT CShellListCtrl::DisplayFolder (LPCITEMIDLIST lpidlFQ, BOOL sendNotification)
+{
+	MYCBITEMINFO info;
+
+	if (g_pShellManager == NULL)
+	{
+		ASSERT (FALSE);
+		return E_FAIL;
+	}
+	
+	ASSERT (lpidlFQ != NULL);
+	ASSERT_VALID (g_pShellManager);
+	
+	BOOL bIsDesktop = ( (g_pShellManager->GetItemCount(lpidlFQ) <= 0) ? TRUE : FALSE );
+
+	HRESULT hr;
+	if(bIsDesktop)
+	{
+		info.pidlFQ = (LPITEMIDLIST)lpidlFQ;
+		hr = DisplayFolder (&info, sendNotification);
+	}
+	else
+	{
+		LPSHELLFOLDER pDesktopFolder;
+		hr = SHGetDesktopFolder(&pDesktopFolder);
+		
+		if (SUCCEEDED (hr))
+		{
+			info.pParentFolder = pDesktopFolder;
+			info.pidlFQ = (LPITEMIDLIST)lpidlFQ;
+			info.pidlRel = (LPITEMIDLIST)lpidlFQ;
+			
+			hr = DisplayFolder (&info, sendNotification);
+			pDesktopFolder->Release();
+		}
+	}
+	return hr;
+}
+
 HRESULT CShellListCtrl::DisplayFolder (LPMYCBITEMINFO pItemInfo, BOOL sendNotification)
 {
 	HRESULT hr = E_FAIL;
@@ -203,10 +250,15 @@ HRESULT CShellListCtrl::DisplayFolder (LPMYCBITEMINFO pItemInfo, BOOL sendNotifi
 		
 		if (GetStyle () & LVS_REPORT)
 		{
-			//@TODO
-			//Sort (BCGPShellList_ColumnName);
+			Sort(SHELL_LIST_COL_NAME, TRUE);
 		}
 		
+		if((GetStyle () & LVS_TYPEMASK) == LVS_SMALLICON)
+		{
+			OnViewLargeIcon();
+			OnViewSmallIcon();
+		}
+
 		SetRedraw (TRUE);
 		RedrawWindow ();
 	}
@@ -217,7 +269,7 @@ HRESULT CShellListCtrl::DisplayFolder (LPMYCBITEMINFO pItemInfo, BOOL sendNotifi
 		while(ps != NULL)
 		{
 			HWND hwnd = m_folderChangeObservers.GetNext(ps);
-			::PostMessage(hwnd, MSG_SHELL_LIST_CHANGE_CURRENT_FOLDER, 0, (LPARAM)m_pidlCurFQ);
+			::SendMessage(hwnd, MSG_SHELL_LIST_CHANGE_CURRENT_FOLDER, 0, (LPARAM)m_pidlCurFQ);
 		}
 	}
 	
@@ -1114,3 +1166,27 @@ void CShellListCtrl::RemoveObserver(HWND hwnd)
 		m_folderChangeObservers.RemoveAt(ps);
 	}
 }
+
+//*****************************************************************************************
+void CShellListCtrl::OnDblclk(NMHDR* /*pNMHDR*/, LRESULT* pResult) 
+{
+	int nItem = GetNextItem(-1, LVNI_FOCUSED);
+	if (nItem != -1)
+	{
+		DoDefault (nItem);
+	}
+	
+	*pResult = 0;
+}
+//****************************************************************************************
+void CShellListCtrl::OnReturn(NMHDR* /*pNMHDR*/, LRESULT* pResult) 
+{
+	int nItem = GetNextItem(-1, LVNI_FOCUSED);
+	if (nItem != -1)
+	{
+		DoDefault(nItem);
+	}
+	
+	*pResult = 0;
+}
+

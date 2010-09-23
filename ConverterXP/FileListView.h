@@ -6,11 +6,11 @@
 #endif // _MSC_VER > 1000
 // FileListView.h : header file
 //
-
+#include "ShellListCtrl.h"
 /////////////////////////////////////////////////////////////////////////////
 // CFileListView view
 
-class CFileListView : public CScrollView
+class CFileListView : public CShellListCtrl
 {
 protected:
 	CFileListView();           // protected constructor used by dynamic creation
@@ -26,8 +26,7 @@ public:
 	// ClassWizard generated virtual function overrides
 	//{{AFX_VIRTUAL(CFileListView)
 	protected:
-	virtual void OnDraw(CDC* pDC);      // overridden to draw this view
-	virtual void OnInitialUpdate();     // first time after construct
+	virtual BOOL PreCreateWindow(CREATESTRUCT& cs);
 	//}}AFX_VIRTUAL
 
 // Implementation

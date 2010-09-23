@@ -48,9 +48,13 @@ CMainFrame::~CMainFrame()
 {
 	if(m_pTreeView != NULL)
 	{
-		AfxTrace("%d\n", (int)m_pTreeView);
 		delete m_pTreeView;
 		m_pTreeView = NULL;
+	}
+	if(m_pFileListView != NULL)
+	{
+		delete m_pFileListView;
+		m_pFileListView = NULL;
 	}
 }
 
@@ -153,16 +157,17 @@ BOOL CMainFrame::OnCreateClient(LPCREATESTRUCT lpcs, CCreateContext* pContext)
 	m_wndSplitterLeftRight.CreateStatic(&m_wndSplitterTopDown, 1, 2,
 		WS_CHILD | WS_VISIBLE, m_wndSplitterTopDown.IdFromRowCol(0, 0));
 	m_wndSplitterLeftRight.CreateView(0, 0, RUNTIME_CLASS(CDirTreeView), CSize(300, 0), NULL);
+	m_wndSplitterLeftRight.CreateView(0, 1, RUNTIME_CLASS(CFileListView), CSize(0, 0), NULL);
 
 	m_pTreeView = (CDirTreeView*)m_wndSplitterLeftRight.GetPane(0, 0);
 	m_pTreeView->AddRootFolderContent(NULL);
-
-	m_wndSplitterLeftRight.CreateView(0, 1, RUNTIME_CLASS(CFileListView), CSize(0, 0), NULL);
-	m_pFileListView = (CFileListView*)m_wndSplitterLeftRight.GetPane(0, 1);
 	
-	m_wndSplitterTopDown.CreateView(1, 0, RUNTIME_CLASS(CResultView), CSize(0, 500), NULL);
+	m_pFileListView = (CFileListView*)m_wndSplitterLeftRight.GetPane(0, 1);
 
 	m_pTreeView->AddObserver(TC_SELECT_CHANGED, m_pFileListView->GetSafeHwnd());
+	m_pFileListView->AddObserver(m_pTreeView->GetSafeHwnd());
+	
+	m_wndSplitterTopDown.CreateView(1, 0, RUNTIME_CLASS(CResultView), CSize(0, 500), NULL);
 
 	m_wndSplitterTopDown.SetRowInfo(0, 330, 10);
 	m_wndSplitterTopDown.RecalcLayout();

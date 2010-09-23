@@ -110,7 +110,19 @@ SOURCE=.\FileListView.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\LCCFlatHeaderCtrl.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\MainFrm.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\MyListCtrl.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\MyShellManager.cpp
 # End Source File
 # Begin Source File
 
@@ -119,6 +131,10 @@ SOURCE=.\ResultView.cpp
 # Begin Source File
 
 SOURCE=.\ShellContextMenu.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\ShellListCtrl.cpp
 # End Source File
 # Begin Source File
 
@@ -167,7 +183,19 @@ SOURCE=.\FileListView.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\LCCFlatHeaderCtrl.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\MainFrm.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\MyListCtrl.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\MyShellManager.h
 # End Source File
 # Begin Source File
 
@@ -180,6 +208,10 @@ SOURCE=.\ResultView.h
 # Begin Source File
 
 SOURCE=.\ShellContextMenu.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\ShellListCtrl.h
 # End Source File
 # Begin Source File
 
