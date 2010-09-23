@@ -16,6 +16,7 @@
 
 #include "stdafx.h"
 #include "ShellTreeCtrl.h"
+#include "MyShellManager.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -403,4 +404,106 @@ void CShellTreeCtrl::SetCallbackMask(UINT nMask)
 UINT CShellTreeCtrl::GetCallbackMask()
 {
 	return m_nCallbackMask;
+}
+
+//***************************************************************************************
+BOOL CShellTreeCtrl::SelectPath (LPCITEMIDLIST lpidl)
+{
+	BOOL bRes = FALSE;
+
+	ASSERT_VALID (this);
+	ASSERT_VALID (g_pShellManager);
+
+	if (lpidl == NULL)
+	{
+		ASSERT (FALSE);
+		return FALSE;
+	}
+
+	HTREEITEM htreeItem = GetRootItem ();
+
+	SetRedraw (FALSE);
+
+	if (g_pShellManager->GetItemCount (lpidl) == 0)
+	{
+		// Desktop
+	}
+	else
+	{
+		LPCITEMIDLIST lpidlCurr = lpidl;
+		LPITEMIDLIST lpidlParent;
+
+		CList<LPITEMIDLIST,LPITEMIDLIST> lstItems;
+		lstItems.AddHead (g_pShellManager->CopyItem (lpidl));
+
+		while (g_pShellManager->GetParentItem (lpidlCurr, lpidlParent) > 0)
+		{
+			lstItems.AddHead (lpidlParent);
+			lpidlCurr = lpidlParent;
+		}
+
+		for (POSITION pos = lstItems.GetHeadPosition (); pos != NULL;)
+		{
+			LPITEMIDLIST lpidlCurr = lstItems.GetNext (pos);
+
+			if (htreeItem != NULL)
+			{
+				if (GetChildItem (htreeItem) == NULL)
+				{
+					Expand (htreeItem, TVE_EXPAND);
+				}
+
+				BOOL bFound = FALSE;
+
+				for (HTREEITEM hTreeChild = GetChildItem (htreeItem); 
+					!bFound && hTreeChild != NULL;
+					hTreeChild = GetNextSiblingItem (hTreeChild))
+				{
+					TVITEMDATA* pItem = (TVITEMDATA*) GetItemData (hTreeChild);
+					if (pItem == NULL)
+					{
+						continue;
+					}
+
+					SHFILEINFO sfi1;
+					SHFILEINFO sfi2;
+
+					LPCITEMIDLIST lpidlAbs = pItem->pidlAbs;
+					if (SHGetFileInfo ((LPCTSTR) lpidlAbs, 0, &sfi1, sizeof (sfi1), SHGFI_PIDL | SHGFI_DISPLAYNAME) &&
+						SHGetFileInfo ((LPCTSTR) lpidlCurr, 0, &sfi2, sizeof (sfi2), SHGFI_PIDL | SHGFI_DISPLAYNAME) &&
+						lstrcmp (sfi1.szDisplayName, sfi2.szDisplayName) == 0)
+					{
+						bFound = TRUE;
+						htreeItem = hTreeChild;
+					}
+				}
+
+				if (!bFound)
+				{
+					htreeItem = NULL;
+				}
+			}
+
+			g_pShellManager->FreeItem (lpidlCurr);
+		}
+	}
+
+	if (htreeItem != NULL)
+	{
+		m_bNoNotify = TRUE;
+		Select (htreeItem, TVGN_CARET);
+		if (GetChildItem (htreeItem) == NULL)
+		{
+			Expand (htreeItem, TVE_EXPAND);
+		}
+		
+		//EnsureVisible (htreeItem);
+		m_bNoNotify = FALSE;
+		bRes = TRUE;
+	}
+
+	SetRedraw ();
+	RedrawWindow ();
+
+	return bRes;
 }

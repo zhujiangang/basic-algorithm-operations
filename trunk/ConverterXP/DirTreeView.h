@@ -43,6 +43,7 @@ public:
 	//{{AFX_MSG(CDirTreeView)
 		// NOTE - the ClassWizard will add and remove member functions here.
 	//}}AFX_MSG
+	afx_msg LRESULT OnShellListFolderChanged(WPARAM wParam, LPARAM lParam);
 	DECLARE_MESSAGE_MAP()
 };
 

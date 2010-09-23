@@ -129,7 +129,26 @@ BEGIN
 	END
 END
 
-
+IDR_RCLICK_POPUP MENU DISCARDABLE 
+BEGIN
+    POPUP "_POPUP_"
+    BEGIN
+        POPUP "View"
+        BEGIN
+            MENUITEM "Large Icons",                 IDM_VIEW_LARGE_ICON
+            MENUITEM "Small Icons",                 IDM_VIEW_SMALL_ICON
+            MENUITEM "List",                        IDM_VIEW_LIST
+            MENUITEM "Detail",                      IDM_VIEW_DETAIL
+        END
+        POPUP "Arrange Icons"
+        BEGIN
+            MENUITEM "By Name",                     IDM_ARRANGE_BY_NAME
+            MENUITEM "By Size",                     IDM_ARRANGE_BY_SIZE
+            MENUITEM "By Type",                     IDM_ARRANGE_BY_TYPE
+            MENUITEM "By Date",                     IDM_ARRANGE_BY_DATE
+        END
+    END
+END
 
 /////////////////////////////////////////////////////////////////////////////
 //

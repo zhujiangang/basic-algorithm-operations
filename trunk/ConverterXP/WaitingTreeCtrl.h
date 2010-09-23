@@ -96,6 +96,7 @@ public:
 	void RemoveObserver(UINT event, HWND hwnd);
 
 protected:
+	BOOL m_bNoNotify;
 	// animation functions (with timer)
 	void SetAnimationDelay(UINT nMilliseconds);
 

@@ -98,6 +98,7 @@ public:
 	void AddRootFolderContent(LPCITEMIDLIST pidl, UINT nFlags = STCF_DEFAULT);
 	CShellPidl GetItemIDList(HTREEITEM hItem);
 	BOOL GetItemContextMenu(HTREEITEM hItem, CShellContextMenu &rCtxMenu);
+	BOOL SelectPath (LPCITEMIDLIST lpidl);
 
 	// Generated message map functions
 protected:

@@ -46,6 +46,7 @@ CWaitingTreeCtrl::CWaitingTreeCtrl()
 	m_hRedrawEvent = NULL;
 	m_hTimerEvent = NULL;
 	m_hThread = NULL;
+	m_bNoNotify = FALSE;
 }
 
 CWaitingTreeCtrl::~CWaitingTreeCtrl()
@@ -312,7 +313,7 @@ void CWaitingTreeCtrl::ExpandItem(HTREEITEM hItem)
 	HTREEITEM hChild = GetChildItem(hItem);
 	while (hChild != NULL && GetFirstVisibleItem() != hItem)
 	{
-		EnsureVisible(hChild);
+//		EnsureVisible(hChild);
 		hChild = GetNextSiblingItem(hChild);
 	}
 }
@@ -485,25 +486,27 @@ void CWaitingTreeCtrl::RemoveObserver(UINT event, HWND hwnd)
 
 void CWaitingTreeCtrl::OnSelChanged(NMHDR* pNMHDR, LRESULT* pResult) 
 {
-	NM_TREEVIEW* pNMTreeView = (NM_TREEVIEW*)pNMHDR;
-	
-	NMSELCHANGED nm;
-	nm.hwndFrom = m_hWnd;
-	nm.idFrom = GetDlgCtrlID();
-	nm.code = TC_SELECT_CHANGED;
-	nm.oldItem = pNMTreeView->itemOld.hItem;
-	nm.newItem = pNMTreeView->itemNew.hItem;
-	
-	CList<HWND, HWND>* pList = NULL;	
-	if(m_observersMap.Lookup(TC_SELECT_CHANGED, pList))
+	if(!m_bNoNotify)
 	{
-		POSITION ps = pList->GetHeadPosition();
-		while(ps != NULL)
+		NM_TREEVIEW* pNMTreeView = (NM_TREEVIEW*)pNMHDR;
+		
+		NMSELCHANGED nm;
+		nm.hwndFrom = m_hWnd;
+		nm.idFrom = GetDlgCtrlID();
+		nm.code = TC_SELECT_CHANGED;
+		nm.oldItem = pNMTreeView->itemOld.hItem;
+		nm.newItem = pNMTreeView->itemNew.hItem;
+		
+		CList<HWND, HWND>* pList = NULL;	
+		if(m_observersMap.Lookup(TC_SELECT_CHANGED, pList))
 		{
-			HWND hwnd = pList->GetNext(ps);
-			::SendMessage(hwnd, WM_NOTIFY, nm.idFrom, (LPARAM)&nm);
+			POSITION ps = pList->GetHeadPosition();
+			while(ps != NULL)
+			{
+				HWND hwnd = pList->GetNext(ps);
+				::SendMessage(hwnd, WM_NOTIFY, nm.idFrom, (LPARAM)&nm);
+			}
 		}
-	}
-	
+	}	
 	*pResult = 0;
 }
