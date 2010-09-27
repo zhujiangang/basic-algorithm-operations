@@ -55,6 +55,7 @@ void getMiddleNode(node* ph, node** pMid1, node** pMid2 = NULL);
 /************************************************************************/
 node* merge(node* p1, node* p2);
 node* mergeIter(node* p1, node* p2);
+node* mergeIter1(node* p1, node* p2);
 
 /************************************************************************/
 /* 5. Check if a single linked list has loop. If yes, find the loop entrance
@@ -95,4 +96,10 @@ node* expand(cascade_node* pch);
 /* 10. Simulate the add operation of big number                         */
 /************************************************************************/
 node* add(node* ph1, int len1, node* ph2, int len2);
+
+/************************************************************************/
+/* 11. Remove the duplicated element in list                            */
+/************************************************************************/
+node* remove_duplicated(node* ph);
+
 #endif
