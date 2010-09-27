@@ -95,8 +95,8 @@ void testFileOper()
 void testLinkedList()
 {
 	//(0). Set up linkedlist
-	int data1[] = {9, 9, 9, 9, 9, 9, 9};
-	int data2[] = {1};
+	int data1[] = {9, 8, 9, 8, 9, 8, 9};
+	int data2[] = {24,38,86,97,18,84,56,86,97,24};
 
 	node* p1 = createList(data1, COUNTOF(data1));
 	printList(p1);
@@ -111,8 +111,25 @@ void testLinkedList()
 	node* p3 = createList(a, n);
  	printList(p3);
 
-	node* pLastNode = get(p2, size(p2) - 1);
-	node* pInterNode = get(p2, 2); 
+	p1 = remove_duplicated(p1);
+	printList(p1);
+
+	p2 = remove_duplicated(p2);
+	printList(p2);
+
+	p3 = remove_duplicated(p3);
+	printList(p3);
+
+// 	node* pTemp = NULL;
+// 	pTemp = mergeIter(p1, p2);
+// 	printList(pTemp);
+// 
+// 	pTemp = NULL;
+// 	pTemp = mergeIter1(p1, p2);
+// 	printList(pTemp);
+
+// 	node* pLastNode = get(p2, size(p2) - 1);
+// 	node* pInterNode = get(p2, 2); 
 
 	//(0.1). 
 // 	node** ppNode = &pInterNode;
@@ -186,9 +203,9 @@ void testLinkedList()
 // 	
 // 	assertEquals(ph, ph3);
 
-	node* result = add(p1, size(p1), p2, size(p2));
-	printList(result);
-	deleteList(result);
+// 	node* result = add(p1, size(p1), p2, size(p2));
+// 	printList(result);
+// 	deleteList(result);
 	
 // 	node* rnthNode = rget(p1, 0);
 // 	showNode(rnthNode);
@@ -610,13 +627,13 @@ int main(int argc, char* argv[])
 //	testCombineMath();
 //	testArraySort();
 //	testFileOper();
-//	testLinkedList();
+	testLinkedList();
 //	testStringOper();
 //	testArrayOper();
 //	testStackQueue();
 //	testBinTree();
 //	testLinkedListEx();
-	testPoint24();
+//	testPoint24();
 	return 0;
 }
 

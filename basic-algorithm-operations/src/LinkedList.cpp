@@ -1,5 +1,12 @@
+#pragma warning(disable:4786)
+
 #include <iostream.h>
+#include <map>
+#include <utility>
 #include "LinkedList.h"
+
+using std::map;
+using std::make_pair;
 
 node* createList(int data[], int len)
 {
@@ -254,6 +261,47 @@ node* mergeIter(node* p1, node* p2)
 	}
 
 	return ph;
+}
+
+node* mergeIter1(node* p1, node* p2)
+{
+	if(p1 == NULL)
+	{
+		return p2;
+	}
+	if(p2 == NULL)
+	{
+		return p1;
+	}
+	node head;
+	node* p = &head;
+
+	while(p1 != NULL && p2 != NULL)
+	{
+		if(p1->data <= p2->data)
+		{
+			p->next = p1;
+			p = p->next;
+			p1 = p1->next;
+		}
+		else
+		{
+			p->next = p2;
+			p = p->next;
+			p2 = p2->next;
+		}
+	}
+
+	if(p1 != NULL)
+	{
+		p->next = p1;
+	}
+	else if(p2 != NULL)
+	{
+		p->next = p2;
+	}
+
+	return head.next;
 }
 
 node* reverse(node* ph)
@@ -991,3 +1039,42 @@ node* add(node* ph1, int len1, node* ph2, int len2)
 	}
 	return ph;
 }
+
+/************************************************************************/
+/* 11. Remove the duplicated element in list                            */
+/************************************************************************/
+node* remove_duplicated(node* ph)
+{
+	if(ph == NULL || ph->next == NULL)
+	{
+		return ph;
+	}
+	map<int, int> nodeMap;
+	nodeMap.insert(make_pair(ph->data, 1));
+
+	node* curr = ph->next;
+	node* prev = ph;
+	node* next = NULL;
+	while(curr != NULL)
+	{
+		next = curr->next;
+		if(nodeMap.find(curr->data) != nodeMap.end())
+		{
+			nodeMap[curr->data]++;
+			delete curr;
+		}
+		else
+		{
+			nodeMap.insert(make_pair(curr->data, 1));
+			prev->next = curr;
+			prev = curr;
+		}
+		curr = next;
+	}
+	prev->next = NULL;
+
+	nodeMap.clear();
+
+	return ph;
+}
+
