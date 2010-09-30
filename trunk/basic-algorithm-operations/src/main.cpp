@@ -294,16 +294,36 @@ void testStringOper()
 
 void testArrayOper()
 {
-	const int n = 10;
-	int a[n];
-	genseq(a, n);
-	genrand(a, n, n);
-	quickSort(a, n);
-	output(a, n);
+// 	const int n = 10;
+// 	int a[n] = {3, 4, -5, 50, -90, 7, 6, -12, 80, -4};
 
+	int a[] = {3, 4, -5, 50, -90, 7, 6, -12, 80, -4};
+	int n = sizeof(a)/sizeof(int);
+//	genseq(a, n);
+//	genrand(a, n);
+//	quickSort(a, n);
+	output(a, n);
+	
+	int i;
+	int result = 0;
 //	printSumPairsDup(a, n, n * 3);
 
-	cout<<binarySearch(a, 0, n - 1, 0.3 * n)<<endl;
+//	cout<<binarySearch(a, 0, n - 1, 0.3 * n)<<endl;
+
+	int start, end;
+	result = maxsumsub(a, n, &start, &end);
+	cout<<result<<endl;
+	for(i = start; i <= end; i++)
+	{
+		cout<<a[i]<<" ";
+	}
+	cout<<endl;
+
+	int b[] = {1 ,1 ,1, 1, 1, 1, 1};
+	n = sizeof(b)/sizeof(int);
+
+	i = binarySearch(b, 0, n - 1, 2);
+	cout<<i<<endl;
 }
 
 
@@ -626,8 +646,9 @@ int main(int argc, char* argv[])
 {
 //	testCombineMath();
 //	testArraySort();
+	testArrayOper();
 //	testFileOper();
-	testLinkedList();
+//	testLinkedList();
 //	testStringOper();
 //	testArrayOper();
 //	testStackQueue();
