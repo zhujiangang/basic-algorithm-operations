@@ -22,4 +22,10 @@ bool checkSeqIfPostOrderOfBST(int a[], int n);
 /* 3. Binary search from an array                                       */
 /************************************************************************/
 int binarySearch(int a[], int from, int to, int key);
+
+/************************************************************************/
+/* 4. max sum of continuous sub-array                                   */
+/************************************************************************/
+int maxsumsub(int array[], int n, int* pStart = NULL, int* pEnd = NULL);
+
 #endif
