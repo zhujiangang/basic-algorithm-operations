@@ -18,6 +18,8 @@ public class GenericTest
 			Class[] parameterTypes = {int.class};
 			Method method = clazz.getDeclaredMethod("method1", parameterTypes);
 			
+			Object obj = clazz.getDeclaredMethods();
+			
 			Object[] parameters = {new Integer(5)};
 			method.setAccessible(true);
 			Object ret = method.invoke(tmp, parameters);
@@ -36,13 +38,59 @@ public class GenericTest
 			{
 				System.out.println(classes[i]);
 				
-				constructor = classes[i].getConstructor(innerClassConParamTypes);
+				if(Modifier.isStatic(classes[i].getModifiers()))
+				{
+				    constructor = classes[i].getConstructor();
+				    obj = constructor.newInstance();
+				}
+				else
+				{
+				    constructor = classes[i].getConstructor(innerClassConParamTypes);
+				    obj = constructor.newInstance(tmp);
+				}				
 				
-				Object obj = constructor.newInstance(tmp);
+				Class tempClass = classes[i].getEnclosingClass();
+				Object[] signers = classes[i].getSigners();
 				
-				method = classes[i].getMethod("getData", parameterTypes);
+				method = classes[i].getDeclaredMethod("getData", parameterTypes);
+				method.setAccessible(true);
+				Object result = method.invoke(obj, parameters);
+				System.out.println(result);
 				
-				method.invoke(obj, parameters);
+                method = classes[i].getDeclaredMethod("setData", parameterTypes);
+                method.setAccessible(true);
+                result = method.invoke(obj, parameters);
+                System.out.println(result);
+                
+                if(Modifier.isStatic(classes[i].getModifiers()))
+                {
+                    Field filed = classes[i].getDeclaredField("localClass");
+                    result = filed.get(obj);
+                    System.out.println(result);
+                    
+                    tempClass = (Class)result;
+                    if(tempClass.isLocalClass())
+                    {
+                        System.out.println("IsLocalClass");
+                    }
+                    System.out.println(tempClass.getEnclosingMethod());
+                    System.out.println(tempClass.getEnclosingConstructor());
+                    System.out.println(tempClass.getEnclosingClass());
+                    
+                    filed = classes[i].getDeclaredField("anonymousInnerClass");
+                    result = filed.get(obj);
+                    System.out.println(result); 
+                    
+                    tempClass = (Class)result;
+                    if(tempClass.isAnonymousClass())
+                    {
+                        System.out.println("isAnonymousClass");
+                    }
+                    System.out.println(tempClass.getEnclosingMethod());
+                    System.out.println(tempClass.getEnclosingConstructor());
+                    System.out.println(tempClass.getEnclosingClass());
+                }
+
 			}
 		}
 		catch(Exception e)
@@ -89,6 +137,9 @@ class ReflectData
 	{
 		private int data;
 		
+		public Class localClass = null;
+		public Class anonymousInnerClass = null;
+		
 		public StaticInnerClass()
 		{
 			data = 0;
@@ -103,6 +154,39 @@ class ReflectData
 		private static int staticMethod(int y)
 		{
 			return y + 100;
+		}
+		
+		public void setData(int x)
+		{
+		    final StringBuffer strBuf = new StringBuffer();
+		    Runnable runnable = new Runnable()
+		    {
+		        public void run()
+		        {
+		            strBuf.append(System.currentTimeMillis());
+		        }
+		    };
+		    
+		    if(anonymousInnerClass == null)
+		    {
+		        anonymousInnerClass = runnable.getClass();
+		    }
+		    runnable.run();
+		    
+		    
+		    class LocalClass implements Runnable
+		    {
+		        public void run()
+                {
+                    strBuf.append(System.currentTimeMillis());
+                }
+		    }
+		    
+		    if(localClass == null)
+            {
+		        localClass = LocalClass.class;
+            }
+		    data = (int)(Long.parseLong((strBuf.toString()) + x));
 		}
 	}
 	
@@ -120,7 +204,9 @@ class ReflectData
 			data -= inc;
 			return data;
 		}
-		
+		public void setData(int x)
+		{
+		}
 		private int staticMethod(int y)
 		{
 			return y + 100;

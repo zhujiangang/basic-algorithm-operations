@@ -159,7 +159,7 @@ public class TestHash
 	public static void main(String[] args)
 	{
 		init();
-		// testHash();
+		testHash();
 		testHashAlg();
 	}
 }
