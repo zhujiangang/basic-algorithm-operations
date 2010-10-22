@@ -1,16 +1,30 @@
 package com.e2u.tree;
 
 import java.util.*;
+import com.e2u.bit.*;
 
 
 public class Huffman
 {
 	private HuffmanNode root = null;
 	private Map<Byte, String> encodeMap = new TreeMap<Byte, String>();
+	private String[] encodeTable = null;
+	
+	private int curByte = 0;
+	private int curByteBitLeft = 8;
+	
+	private List<Byte> encodeByteList = null;
 	
 	public Huffman()
 	{
 		root = null;
+		
+		curByte = 0;
+		curByteBitLeft = 8;
+		
+		encodeTable = new String[256];
+		
+		encodeByteList = new LinkedList<Byte>();
 	}
 	public void buildTree(List<HuffmanNode> initialNodeList)
 	{				
@@ -46,7 +60,7 @@ public class Huffman
 		leafNodeList.clear();
 		root = parent;
 		
-		updateEncodeMap(root);
+		updateEncodeMap();
 	}
 	
 	
@@ -87,6 +101,8 @@ public class Huffman
 		if(node.lchild == null && node.rchild == null)
 		{			
 			encodeMap.put(node.element, getPath(node));
+			
+			encodeTable[BitUtil.unsigned(node.element)] = getPath(node);
 			return;
 		}
 		updateEncodeMap(node.lchild);
@@ -107,75 +123,87 @@ public class Huffman
 		return sb.toString();
 	}
 	
-	public byte[] compress(byte[] data)
+	public void addCompressInputData(byte[] data)
 	{
-		List<Byte> byteList = new LinkedList<Byte>();
-		
 		String str = null;
-		int curByte = 0;
-		int curByteBitLeft = 8;
 		
-		int curLeftByte = 0;
+		int tempByte = 0;
 		int offset = 0;
 		for(int i = 0; i < data.length; i++)
 		{
-			str = encodeMap.get(data[i]);
+//			str = encodeMap.get(data[i]);
+			str = encodeTable[BitUtil.unsigned(data[i])];
 			
 			offset = 0;
 			while(offset < str.length())
 			{
 				if(str.length() - offset > curByteBitLeft)
 				{
-					curLeftByte = toByte(str.substring(offset, offset + curByteBitLeft));
+					tempByte = toByte(str.substring(offset, offset + curByteBitLeft));
 					offset += curByteBitLeft;
-					curByte |= curLeftByte;
+					curByte |= tempByte;
 					
-					byteList.add((byte)curByte);
+					encodeByteList.add((byte)curByte);
 					curByte = 0;				
 					curByteBitLeft = 8;					
 				}
 				else if(str.length() - offset < curByteBitLeft)
 				{
-					curLeftByte = toByte(str.substring(offset, str.length()));
+					tempByte = toByte(str.substring(offset, str.length()));
 					
 					curByteBitLeft = curByteBitLeft - (str.length() - offset);
-					curLeftByte <<= curByteBitLeft;
+					tempByte <<= curByteBitLeft;
 					
-					curByte |= curLeftByte;
+					curByte |= tempByte;
 					
 					break;
 				}
 				else
 				{
-					curLeftByte = toByte(str.substring(offset, offset + curByteBitLeft));
-					curByte |= curLeftByte;
+					tempByte = toByte(str.substring(offset, offset + curByteBitLeft));
+					curByte |= tempByte;
 					
-					byteList.add((byte)curByte);
+					encodeByteList.add((byte)curByte);
 					curByte = 0;				
 					curByteBitLeft = 8;
 					break;
 				}
 			}
 		}
-		
-		if(curByteBitLeft < 8)
-		{
-			byteList.add((byte)curByte);
-		}
-		
-		byte[] result = new byte[byteList.size() + 1];
-		int i = 1;
-		for(Iterator<Byte> iter = byteList.iterator(); iter.hasNext(); )
-		{
-			result[i++] = iter.next();
-		}
-		result[0] = (byte)curByteBitLeft;
+	}
+	public byte[] finishCompress()
+	{
+		//process last byte
 		if(curByteBitLeft == 8)
 		{
-			result[0] = 0;
+			curByteBitLeft = 0;
 		}
-		byteList.clear();
+		if(curByteBitLeft < 8 && curByteBitLeft != 0)
+		{
+			encodeByteList.add((byte)curByte);
+		}
+		
+		
+		//output
+		byte[] result = new byte[encodeByteList.size() + 1];
+		result[0] = (byte)curByteBitLeft;
+		
+		Iterator<Byte> iter = encodeByteList.iterator();
+		for(int i = 1; iter.hasNext(); i++)
+		{
+			result[i] = iter.next();
+		}
+		
+		curByte = 0;
+		curByteBitLeft = 8;
+		encodeByteList.clear();
 		return result;
+	}
+	
+	public byte[] compress(byte[] data)
+	{
+		addCompressInputData(data);
+		return finishCompress();		
 	}
 	
 	public byte[] decompress(byte[] data)
@@ -192,7 +220,7 @@ public class Huffman
 		HuffmanNode curNode = root;
 		for(int i = 1; i < data.length; i++)
 		{
-			byteStr = toBin(data[i]);
+			byteStr = BitUtil.toBin(data[i]);
 			
 			offset = 0;
 			
@@ -266,8 +294,17 @@ public class Huffman
 		while(iter.hasNext())
 		{
 			Map.Entry<Byte, String> entry = iter.next();
-			System.out.println(toHex(entry.getKey()) + "=" + entry.getValue());
+			System.out.println(BitUtil.toHex(entry.getKey()) + "=" + entry.getValue());
 		}
+		
+		System.out.println("======================");
+		System.out.println("======================");
+		for(int i = 0; i < encodeTable.length; i++)
+		{
+			System.out.println(BitUtil.toHex((byte)i) + "=" + encodeTable[i]);
+		}
+		System.out.println("======================");
+		System.out.println("======================");
 	}
 	
 	public void showPath(HuffmanNode node)
@@ -278,7 +315,7 @@ public class Huffman
 		}
 		if(node.lchild == null && node.rchild == null)
 		{			
-			System.out.println(String.format("%s=%s", toHex(node.element), getPath(node)));
+			System.out.println(String.format("%s=%s", BitUtil.toHex(node.element), getPath(node)));
 			return;
 		}
 		showPath(node.lchild);
@@ -300,83 +337,7 @@ public class Huffman
 		buildTree(leafNodeList);
 	}
 	
-	public static String toHex(byte b)
-	{
-		int value = unsigned(b);
-		
-		char[] chars = new char[2];
-		chars[0] = toHex(value >> 4);
-		chars[1] = toHex(value & 0x0F);
-		
-		return new String(chars);
-	}
 	
-	public static String toBin(byte b)
-	{
-		int value = unsigned(b);
-		
-		int mask = 0x80;
-		char[] result = new char[8];
-		for(int i = 0; i < 8; i++)
-		{
-			if( (value & mask) != 0 )
-			{
-				result[i] = '1';
-			}
-			else
-			{
-				result[i] = '0';
-			}
-			mask >>= 1;
-		}		
-		return new String(result);		
-	}
-	
-	public static char toHex(int x)
-	{
-		if(x >= 0 && x <= 9)
-		{
-			return (char)('0' + x);
-		}
-		else if(x >= 10 && x <= 15)
-		{
-			return (char)('A' + (x - 10));
-		}
-		throw new IllegalArgumentException(x + " is out of bound");
-	}
-	
-	public static int unsigned(byte b)
-	{
-		return ((int)b) & 0xFF;
-	}
-	public static void showString(String str)
-	{
-		int lineCount = 8;
-		for(int i = 0; i < str.length(); i += lineCount)
-		{
-			if(i + lineCount > str.length())
-			{
-				System.out.println(str.substring(i, str.length()));
-				break;
-			}
-			else
-			{
-				System.out.println(str.substring(i, i + lineCount));
-			}			
-		}
-	}
-	public static void showHex(byte[] bytes)
-	{
-		for(int i = 0; i < bytes.length; i++)
-		{
-			System.out.print(toHex(bytes[i]) + " ");
-			if(i % 16 == 15)
-			{
-				System.out.println();
-			}
-		}
-		System.out.println();
-	}
 	
 	private static void generateTestData(byte[] elements, int[] weights)
 	{
@@ -387,7 +348,7 @@ public class Huffman
 		}
 		for(int i = 0; i < elements.length; i++)
 		{
-			System.out.println(toHex(elements[i]) + "=" + weights[i]);
+			System.out.println(BitUtil.toHex(elements[i]) + "=" + weights[i]);
 		}
 		System.out.println();
 	}
@@ -399,7 +360,7 @@ public class Huffman
 		
 		int result = toByte("01110011");
 		System.out.println(result);
-		System.out.println(toBin((byte)result));
+		System.out.println(BitUtil.toBin((byte)result));
 		
 		int len = 256;
 		byte[] elements = new byte[len];
@@ -421,80 +382,33 @@ public class Huffman
 			inputData[i] = elements[index];
 		}
 		
-		showHex(inputData);
+		BitUtil.showHex(inputData);
 		System.out.println();
 		System.out.println();
 		
 		byte[] encoded = huffman.compress(inputData);
-		showHex(encoded);
+		BitUtil.showHex(encoded);
+		System.out.println();
+		System.out.println();
+		
+		Deflater df = new Deflater(huffman.encodeTable);
+		byte[] encoded2 = huffman.compress(inputData);
+		BitUtil.showHex(encoded2);
 		System.out.println();
 		System.out.println();
 		
 //		showString(huffman.compressInternal(inputData));
 		
 		byte[] decoded = huffman.decompress(encoded);
-		showHex(decoded);
+		BitUtil.showHex(decoded);
 		System.out.println();
 		System.out.println();
-	}
-	
-	public static class HuffmanNode implements Comparable<HuffmanNode>
-	{
-		public byte element;
-		public int weight;
-		public HuffmanNode parent;
-		public HuffmanNode lchild;
-		public HuffmanNode rchild;
 		
-		public HuffmanNode(byte element, int weight)
-		{
-			this.element = element;
-			this.weight = weight;
-			this.parent = null;
-			this.lchild = null;
-			this.rchild = null;
-		}
-		public HuffmanNode(int weight)
-		{
-			this((byte)0, weight);
-		}
-		
-		public boolean isLeaf()
-		{
-			return this.lchild == null && this.rchild == null;
-		}
-		
-		public boolean equals(Object obj)
-		{
-			if(!(obj instanceof HuffmanNode))
-			{
-				return false;
-			}
-			HuffmanNode other = (HuffmanNode)obj;
-			return this.element == other.element;
-		}
-		
-		public int hashCode()
-		{
-			return (int)element;
-		}
-		
-		public int compareTo(HuffmanNode o)
-		{			
-			int result = o.weight - weight;
-			if(result == 0)
-			{
-				return 0;
-			}
-			else if(result > 0)
-			{
-				return 1;
-			}
-			else
-			{
-				return -1;
-			}
-		}
+		Inflater inf = new Inflater(huffman.root);
+		byte[] decoded2 = inf.decompress(encoded);
+		BitUtil.showHex(decoded2);
+		System.out.println();
+		System.out.println();
 	}
 }
 
