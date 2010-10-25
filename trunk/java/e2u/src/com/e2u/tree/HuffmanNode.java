@@ -44,7 +44,7 @@ public class HuffmanNode implements Comparable<HuffmanNode>
 
 	public int compareTo(HuffmanNode o)
 	{
-		int result = o.weight - weight;
+		int result = weight - o.weight;
 		if(result == 0)
 		{
 			return 0;

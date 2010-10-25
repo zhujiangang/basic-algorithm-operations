@@ -1,9 +1,6 @@
 package com.e2u.tree;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
+import java.io.*;
 
 public class FileInflater
 {
@@ -13,7 +10,7 @@ public class FileInflater
 	private Inflater inflater = null;
 	private CGFileHeader header = null;
 	
-	public FileInflater(String inFile)
+	public FileInflater(String inFile, String outDir, String outFile)
 	{
 		this.inputFileName = inFile;
 	
@@ -43,6 +40,14 @@ public class FileInflater
 			{
 				outputFileName = new String(header.originalFileName, 0, CGFileHeader.FILE_NAME_SIZE_BY_BYTE);
 			}
+			if(outFile != null)
+			{
+				outputFileName = outFile;
+			}
+			if(outDir != null)
+			{
+				outputFileName = outDir + File.separator + outputFileName;
+			}
 			
 			HuffmanTree hfTree = new HuffmanTree(header.weightTable);
 			inflater = new Inflater(hfTree.getRoot());
@@ -53,6 +58,11 @@ public class FileInflater
 		{
 			e.printStackTrace();
 		}
+	}
+	
+	public FileInflater(String inFile)
+	{
+		this(inFile, null, null);
 	}
 	
 	public void decompress()
@@ -92,5 +102,27 @@ public class FileInflater
 		{
 			e.printStackTrace();
 		}
+	}
+	
+	public static void main(String[] args)
+	{
+		String input = "input.cg";
+		String outDir = null;
+		String outFile = null;
+		
+		if(args != null && args.length >= 1)
+		{
+			input = args[0];		
+		}
+		if(args != null && args.length >= 2)
+		{
+			outDir = args[1];		
+		}
+		if(args != null && args.length >= 3)
+		{
+			outFile = args[2];		
+		}
+		FileInflater fif = new FileInflater(input, outDir, outFile);
+		fif.decompress();
 	}
 }
