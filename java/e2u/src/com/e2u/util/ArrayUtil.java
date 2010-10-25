@@ -73,5 +73,12 @@ public class ArrayUtil {
         int tmp = data[i];  
         data[i] = data[j];  
         data[j] = tmp;  
-    }  
+    }
+    
+    public static void swap(Object[] data, int i, int j)
+    {
+    	Object tmp = data[i];
+    	data[i] = data[j];
+    	data[j] = tmp;
+    }
 }  

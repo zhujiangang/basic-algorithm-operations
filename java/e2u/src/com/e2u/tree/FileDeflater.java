@@ -37,13 +37,6 @@ public class FileDeflater
 		File file = new File(inputFileName);
 		header.originalLength = (int)file.length();
 		
-		//The whole file weights
-//		int[] weights = new int[CGFileHeader.WEIGHT_TABLE_SIZE_BY_INT];
-//		for(int i = 0; i < CGFileHeader.WEIGHT_TABLE_SIZE_BY_INT; i++)
-//		{
-//			weights[i] = 0;
-//		}
-		
 		try
 		{
 			BufferedInputStream bis = new BufferedInputStream(new FileInputStream(inputFileName));
@@ -57,7 +50,6 @@ public class FileDeflater
 			{
 				for(int i = 0; i < bytesNumRead; i++)
 				{
-//					weights[BitUtil.unsigned(buffer[i])]++;
 					header.weightTable[BitUtil.unsigned(buffer[i])]++;
 				}
 			}			
@@ -111,5 +103,18 @@ public class FileDeflater
 			e.printStackTrace();
 		}
 		
+	}
+	
+	public static void main(String[] args)
+	{
+		String input = "input.txt";
+		String output = "output.cg";
+		if(args != null && args.length >= 2)
+		{
+			input = args[0];
+			output = args[1];
+		}
+		FileDeflater fdf = new FileDeflater(input, output);
+		fdf.compress();
 	}
 }

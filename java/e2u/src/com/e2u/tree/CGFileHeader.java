@@ -21,7 +21,7 @@ public class CGFileHeader
 	
 	public CGFileHeader()
 	{
-		headerName = 0x474C4354; //GLCT
+		headerName = 0x54434C47; //GLCT
 		headerVer = 0x01000000; //1.0.0.0
 		
 		contentOffset = HEADER_SIZE; //Default

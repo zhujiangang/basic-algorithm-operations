@@ -1,16 +1,22 @@
 package com.e2u.tree;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import com.e2u.bit.BitUtil;
+import com.e2u.util.Heap;
 
 public class HuffmanTree
 {
+	//The huffman tree root node
 	private HuffmanNode root = null;
+	
+	//The byte encode table, which contains the codes of byte 0-255 
 	private String[] encodeTable = null;
 	
+	/**
+	 * Default
+	 */
 	public HuffmanTree()
 	{
 		encodeTable = new String[256];
@@ -37,49 +43,43 @@ public class HuffmanTree
 		
 		buildTree(elements, weights);
 	}
-	
-	public HuffmanNode getRoot()
+	public void buildTree(byte[] elements, int weights[])
 	{
-		return root;
+		if(elements == null || weights == null)
+		{
+			throw new NullPointerException("elements or weights can't be null");
+		}
+		
+		List<HuffmanNode> leafNodeList = new ArrayList<HuffmanNode>(elements.length);
+		for(int i = 0; i < elements.length; i++)
+		{
+			leafNodeList.add(new HuffmanNode(elements[i], weights[i]));
+		}
+		
+		buildTree(leafNodeList);
 	}
-	public String[] getEncodeTable()
-	{
-		return encodeTable;
-	}
-	
 	public void buildTree(List<HuffmanNode> initialNodeList)
-	{				
-		List<HuffmanNode> leafNodeList = new ArrayList<HuffmanNode>(initialNodeList.size());
-		leafNodeList.addAll(initialNodeList);
+	{
+		Heap<HuffmanNode> hp = new Heap<HuffmanNode>(initialNodeList);
 		
 		HuffmanNode lc = null, rc = null, parent = null;
 		
-		int lastOneIndex = -1, lastTwoIndex = -1;
-		while(leafNodeList.size() > 1)
+		while(hp.size() > 1)
 		{
-			Collections.sort(leafNodeList);
-			
-			lastOneIndex = leafNodeList.size() - 1;
-			lastTwoIndex = leafNodeList.size() - 2;
-			
-			lc = leafNodeList.get(lastOneIndex);
-			rc = leafNodeList.get(lastTwoIndex);
-			
-			leafNodeList.remove(lastOneIndex);
-			leafNodeList.remove(lastTwoIndex);
+			lc = hp.remove();
+			rc = hp.remove();
 			
 			parent = new HuffmanNode(lc.weight + rc.weight);
-			lc.parent = parent;
-			rc.parent = parent;
-			
 			parent.lchild = lc;
 			parent.rchild = rc;
 			
-			leafNodeList.add(parent);
+			lc.parent = parent;
+			rc.parent = parent;
+			
+			hp.insert(parent);
 		}
 		
-		leafNodeList.clear();
-		root = parent;
+		root = hp.remove();
 		
 		updateEncodeMap();
 	}
@@ -108,6 +108,15 @@ public class HuffmanTree
 		return sb.reverse().toString();
 	}
 	
+	public HuffmanNode getRoot()
+	{
+		return root;
+	}
+	public String[] getEncodeTable()
+	{
+		return encodeTable;
+	}
+
 	private void updateEncodeMap()
 	{
 		updateEncodeMap(root);
@@ -125,21 +134,5 @@ public class HuffmanTree
 		}
 		updateEncodeMap(node.lchild);
 		updateEncodeMap(node.rchild);
-	}
-	
-	public void buildTree(byte[] elements, int weights[])
-	{
-		if(elements == null || weights == null)
-		{
-			throw new NullPointerException("elements or weights can't be null");
-		}
-		
-		List<HuffmanNode> leafNodeList = new ArrayList<HuffmanNode>(elements.length);
-		for(int i = 0; i < elements.length; i++)
-		{
-			leafNodeList.add(new HuffmanNode(elements[i], weights[i]));
-		}
-		
-		buildTree(leafNodeList);
 	}
 }

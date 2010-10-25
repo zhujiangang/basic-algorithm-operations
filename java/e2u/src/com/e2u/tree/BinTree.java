@@ -1,6 +1,5 @@
 package com.e2u.tree;
 
-import java.util.Arrays;  
 import java.util.Stack;  
 import com.e2u.util.ArrayUtil;  
 import com.e2u.util.OutputUtil;  
