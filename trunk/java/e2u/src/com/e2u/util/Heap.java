@@ -1,79 +1,94 @@
 package com.e2u.util;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
-
+/**
+ * A heap is usually used as Priority-Queue. Etheir max-heap or min-heap
+ * @param <E>
+ */
 public class Heap<E extends Comparable<E>>
 {
-	private E[] heapData = null;
-	private int size = 0;
+	private ArrayList<E> heapData = null;
 	private boolean isMinHeap;
 	
-	public Heap(List<? extends E> initData, int capacity, boolean minHeap)
+	public Heap(List<? extends E> initData, boolean minHeap)
 	{
-		@SuppressWarnings("unchecked")
-		E[] es = (E[])new Comparable[capacity];
-		heapData = es;
-		
-		size = 0;
-		
+		heapData = new ArrayList<E>(initData.size());		
 		isMinHeap = minHeap;
 		
-		for(int i = 0, count = initData.size(); i < count; i++)
-		{
-			heapData[i] = initData.get(i);
-		}
-		size = initData.size();
-		
+		heapData.addAll(initData);		
 		initHeap();
 	}
 	
 	public Heap(List<? extends E> initData)
 	{
-		this(initData, initData.size(), true);
+		this(initData, true);
 	}
 	
 	private void initHeap()
 	{
-		for(int i = size / 2 - 1; i >= 0; i--)
+		for(int i = size() / 2 - 1; i >= 0; i--)
 		{
 			shiftDown(i);
 		}
 	}
+	public int size()
+	{
+		return heapData.size();
+	}
+	public boolean isLeaf(int pos)
+	{
+		return pos > (size() / 2 - 1);
+	}
+	public int leftChild(int pos)
+	{
+		return pos * 2 + 1;
+	}
+	public int rightChild(int pos)
+	{
+		return pos * 2 + 2;
+	}
 	
 	public void shiftUp(int pos)
 	{
+		if(pos <= 0)
+		{
+			return;
+		}
 		int parent = (pos + 1) / 2 - 1;
 		
 		//has parent
 		while(parent >= 0)
 		{
 			//parent is bigger than child, do nothing
-			if(compare(heapData[parent], heapData[pos]) >= 0)
+			if(compare(heapData.get(parent), heapData.get(pos)) >= 0)
 			{
 				break;
 			}
-			ArrayUtil.swap(heapData, parent, pos);
+			Collections.swap(heapData, parent, pos);
 			pos = parent;
 			parent = (pos + 1) / 2 - 1;
 		}
 	}
+	
 	public void shiftDown(int pos)
 	{
 		int c = pos * 2 + 1;
 
-		while(c < size)
+		while(c < size())
 		{
-			if(c < size - 1 && compare(heapData[c], heapData[c + 1]) < 0)
+			if(c < size() - 1 && compare(heapData.get(c), heapData.get(c + 1)) < 0)
 			{
 				c++;
 			}
 
-			if(compare(heapData[pos], heapData[c]) >= 0)
+			if(compare(heapData.get(pos), heapData.get(c)) >= 0)
 			{
 				break;
 			}
-			ArrayUtil.swap(heapData, pos, c);
+			Collections.swap(heapData, pos, c);
 			pos = c;
 			c = pos * 2 + 1;
 		}
@@ -88,43 +103,57 @@ public class Heap<E extends Comparable<E>>
 		}
 		return result;
 	}
-	public int size()
+	/**
+	 * Peek the heap-top element.
+	 * @return
+	 */
+	public E peek()
 	{
-		return size;
-	}
-	public E remove()
-	{
-		if(size <= 0)
+		if(size() <= 0)
 		{
 			return null;
 		}
-		if(size == 1)
+		return heapData.get(0);
+	}
+	/**
+	 * Get the heap-top element and remove it.
+	 * @return
+	 */
+	public E remove()
+	{
+		if(size() <= 0)
 		{
-			size--;
-			return heapData[0];
+			return null;
+		}
+		if(size() == 1)
+		{
+			return heapData.remove(0);
 		}
 		
-		E result = heapData[0];
+		E result = heapData.get(0);
 		
-		heapData[0] = heapData[size - 1];
-		
-		heapData[size - 1] = null;
-		size--;
+		Collections.swap(heapData, 0, size() - 1);
+		heapData.remove(size() - 1);
 		
 		shiftDown(0);	
 		
 		return result;
 	}
+	/**
+	 * Insert an new element to the heap
+	 * @param e
+	 */
 	public void insert(E e)
 	{
-		int pos = size;
+		heapData.add(e);
 		
-		heapData[pos] = e;
-		size++;
-		
-		shiftUp(pos);
+		shiftUp(size() - 1);
 	}
 	
+	/**
+	 * Unit Test
+	 * @param args
+	 */
 	public static void main(String[] args)
 	{
 		List<Integer> list = new java.util.ArrayList<Integer>();
@@ -135,22 +164,30 @@ public class Heap<E extends Comparable<E>>
 			list.add(data[i]);
 		}
 		
-		Heap<Integer> hp = new Heap<Integer>(list, list.size(), false);
+		Heap<Integer> hp = new Heap<Integer>(list, true);
 		
 		int x, y, z;
 		while(hp.size() > 1)
 		{
 			x = hp.remove();
 			y = hp.remove();
-			System.out.println("Remove :" + x + ", " + y);
+			System.out.println("Remove: " + x + ", " + y);
 			
 			z = x + y;
 			hp.insert(z);
-			System.out.println("Insert :" + z);
+			System.out.println("Insert: " + z);
 		}
 		if(hp.size() == 1)
 		{
-			System.out.println("Last : " + hp.remove());
+			System.out.println("Last: " + hp.remove());
+		}
+		
+		//Re-init with max-heap
+		hp = new Heap<Integer>(list, false);
+		while(hp.size() > 0)
+		{
+			x = hp.remove();
+			System.out.println("Remove: " + x);
 		}
 	}
 }
