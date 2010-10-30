@@ -97,6 +97,10 @@ SOURCE=.\BinTree.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\BitOper.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\CombineMath.cpp
 # End Source File
 # Begin Source File
@@ -146,6 +150,10 @@ SOURCE=.\ArraySort.h
 # Begin Source File
 
 SOURCE=.\BinTree.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\BitOper.h
 # End Source File
 # Begin Source File
 
