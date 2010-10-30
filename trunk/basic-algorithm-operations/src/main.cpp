@@ -13,6 +13,7 @@
 #include "BinTree.h"
 #include "LinkedListEx.h"
 #include "Point24.h"
+#include "BitOper.h"
 
 void testCombineMath()
 {
@@ -642,11 +643,36 @@ void testLinkedListEx()
 	ListNode<Point>::free();
 	cout<<"end"<<endl;
 }
+
+
+void testBitOper()
+{
+	int len = 10;
+	char p[1024];
+	char sc = (char)(0xC3 & 0xFF);
+	for(int i = 0; i < len; i++)
+	{
+		p[i] = sc + i;
+	}
+
+	int x = 0x898b8d8f;
+
+	int byteIndex = 0, bitIndex = 0;
+
+	if(find((unsigned char*)p, len, x, &byteIndex, &bitIndex))
+	{
+		printf("x = %d, y = %d\n", byteIndex, bitIndex);
+	}
+	else
+	{
+		printf("Failed to find\n");
+	}
+}
 int main(int argc, char* argv[])
 {
 //	testCombineMath();
 //	testArraySort();
-	testArrayOper();
+//	testArrayOper();
 //	testFileOper();
 //	testLinkedList();
 //	testStringOper();
@@ -655,6 +681,7 @@ int main(int argc, char* argv[])
 //	testBinTree();
 //	testLinkedListEx();
 //	testPoint24();
+	testBitOper();
 	return 0;
 }
 
