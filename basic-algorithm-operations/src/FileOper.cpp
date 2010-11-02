@@ -244,10 +244,13 @@ int readIntFromFile(const char* filename, int* value, int offset)
 	return 0;
 }
 
-
-void simpleIterator(char* pData, unsigned int len, bool begin, bool end)
+void empty(char* pData, __int64 len, unsigned int posMask)
 {
-	unsigned int i;
+}
+
+void simpleIterator(char* pData, __int64 len, unsigned int posMask)
+{
+	__int64 i;
 	char c;
 	for(i = 0; i < len; i++)
 	{
@@ -255,23 +258,23 @@ void simpleIterator(char* pData, unsigned int len, bool begin, bool end)
 	}
 }
 
-void printHeadTailIter(char* pData, unsigned int len, bool begin, bool end)
+void printHeadTailIter(char* pData, __int64 len, unsigned int posMask)
 {
-	unsigned int i;
+	__int64 i;
 	char c;
 	for(i = 0; i < len; i++)
 	{
 		c = *(pData + i);
 	}
 	int x;
-	if(begin && (len >= 2))
+	if((len >= 2) && (posMask & BUFFER_BEG_INCLUDED) != 0)
 	{
 		x = (int)(*(pData + 1)) & 0xFF;
 		printf("%2X ", x);
 	}
 
 
-	if(end && (len >= 2))
+	if((len >= 2) && (posMask & BUFFER_END_INCLUDED) != 0)
 	{
 		x = (int)(*(pData + len - 2)) & 0xFF;
 		printf("%2X ", x);
@@ -279,16 +282,17 @@ void printHeadTailIter(char* pData, unsigned int len, bool begin, bool end)
 	}	
 }
 
-int readFileByMap(const char* lpFileName, unsigned int offset, unsigned int len, processFileData operCallBack)
+int readFileByMap(const char* lpFileName, __int64 offset, __int64 len, FileDataProcessor operCallBack)
 {
 	// Open the file
 	HANDLE hFile = CreateFile(lpFileName, GENERIC_READ | GENERIC_WRITE, 0, NULL, 
 		OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 	
-	if (hFile == INVALID_HANDLE_VALUE) {
+	if (hFile == INVALID_HANDLE_VALUE) 
+	{
 		printf("hFile is NULL\n");
 		printf("Target file is %s\n", lpFileName);
-		return 4;
+		return -1;
 	}
 	
 	SYSTEM_INFO SysInfo;          // system information; used to get the granularity
@@ -297,41 +301,49 @@ int readFileByMap(const char* lpFileName, unsigned int offset, unsigned int len,
 	GetSystemInfo(&SysInfo);
 	dwSysGran = SysInfo.dwAllocationGranularity;
 	
-	DWORD dwFileSize;             // temporary storage for file sizes
-	// Let the user know that the resulting file is more than large enough
-	// for the experiment.
-	dwFileSize = GetFileSize(hFile,  NULL);
+	LARGE_INTEGER liFileSize; // temporary storage for file sizes
+	DWORD dwFileSizeLow;
+	DWORD dwFileSizeHigh;
+	dwFileSizeLow = GetFileSize(hFile,  &dwFileSizeHigh);
+
+	DWORD dwError;
+	// If we failed ... 
+	if (dwFileSizeLow == INVALID_FILE_SIZE  && (dwError = GetLastError()) != NO_ERROR )
+	{ 
+		printf("hFile is NULL\n");
+		printf("Failed to get the size of file %s, error code = %d\n", lpFileName, dwError);
+		
+		CloseHandle(hFile);
+		return -2;
+	}
 	
-	if(offset >= dwFileSize)
+	liFileSize.LowPart = dwFileSizeLow;
+	liFileSize.HighPart = dwFileSizeHigh;
+	if(offset >= liFileSize.QuadPart)
 	{
 		offset = 0;
 	}
-	if(len <= 0)
+	if(len == 0 || (offset + len) > liFileSize.QuadPart)
 	{
-		len = dwFileSize;
+		len = liFileSize.QuadPart - offset;
 	}
 	
 	// Now calculate a few variables. Calculate the file offsets as
-	// 64-bit values, and then get the low-order 32 bits for the
-	// function calls.
-	DWORD dwFileMapSize;          // size of the file mapping
-	DWORD dwMapViewSize;          // the size of the view
-	DWORD dwFileMapStart;         // where in the file to start the file map view
+	// 64-bit values.
+	__int64 qwFileMapSize;          // size of the file mapping
+	__int64 qwFileMapStart;         // where in the file to start the file map view
 	// To calculate where to start the file mapping, round down the
 	// offset of the data into the file to the nearest multiple of the
 	// system allocation granularity. 
-	dwFileMapStart = (offset / dwSysGran) * dwSysGran;
-	
-	// Calculate the size of the file mapping view.
-	dwMapViewSize = (offset % dwSysGran) + len;
+	qwFileMapStart = (offset / dwSysGran) * dwSysGran;
 	
 	// How large will the file-mapping object be?
-	dwFileMapSize = offset + len;
+	qwFileMapSize = offset + len;
 	
 	int iViewDelta;               // the offset into the view where the data shows up
 	// The data of interest isn't at the beginning of the
 	// view, so determine how far into the view to set the pointer.
-	iViewDelta = offset - dwFileMapStart;
+	iViewDelta = (int)(offset - qwFileMapStart);
 	
 	
 	HANDLE hMapFile;              // handle for the test file's memory-mapped region
@@ -339,37 +351,95 @@ int readFileByMap(const char* lpFileName, unsigned int offset, unsigned int len,
 	hMapFile = CreateFileMapping( hFile, // current file handle
 		NULL, // default security
 		PAGE_READWRITE, // read/write permission
-		0,  // size of mapping object, high
-		dwFileMapSize, // size of mapping object, low
+		(DWORD)(qwFileMapSize >> 32), // size of mapping object, high
+		(DWORD)(qwFileMapSize & 0xFFFFFFFF), // size of mapping object, low
 		NULL); // name of mapping object
 	
-	if (hMapFile == NULL) {
+	if (hMapFile == NULL) 
+	{
 		printf("hMapFile is NULL: last error: %d\n", GetLastError() );
-		return 5;
+		return -3;
 	}
+
+	//Usually dwSysGran is 64k, here we map 16M ( = 2^24) data at one time ( once view )
+	DWORD dwNumberOfBytesToMap = dwSysGran << 8;
 	
 	LPVOID lpMapAddress;          // pointer to the base address of the memory-mapped region
-	// Map the view and test the results.	
-	lpMapAddress = MapViewOfFile(hMapFile, // handle to mapping object
-		FILE_MAP_ALL_ACCESS, // read/write permission 
-		0, // high-order 32 bits of file offset
-		dwFileMapStart, // low-order 32 bits of file offset
-		dwMapViewSize); // number of bytes to map
-	if (lpMapAddress == NULL) {
-		printf("lpMapAddress is NULL: last error: %d\n", GetLastError());
-		return 6;
+	__int64 qwNumberOfBytesRead = 0;
+	BOOL bFlag = FALSE;                   // a result holder
+	for(__int64 qwFileOffset = qwFileMapStart; qwFileOffset < qwFileMapSize; qwFileOffset += dwNumberOfBytesToMap)
+	{
+		if(qwFileMapSize - qwFileOffset < dwNumberOfBytesToMap)
+		{
+			dwNumberOfBytesToMap = (DWORD)(qwFileMapSize - qwFileOffset);
+		}
+		// Map the view
+		lpMapAddress = MapViewOfFile(hMapFile, // handle to mapping object
+			FILE_MAP_ALL_ACCESS, // read/write permission 
+			(DWORD)(qwFileOffset >> 32), // high-order 32 bits of file offset
+			(DWORD)(qwFileOffset & 0xFFFFFFFF), // low-order 32 bits of file offset
+			dwNumberOfBytesToMap); // number of bytes to map
+		if (lpMapAddress == NULL) 
+		{
+			printf("lpMapAddress is NULL: last error: %d, at address H:%d -- L:%d\n", GetLastError(), (DWORD)(qwFileOffset >> 32), (DWORD)(qwFileOffset & 0xFFFFFFFF));
+			
+			CloseHandle(hMapFile); // close the file-mapping object
+			CloseHandle(hFile); 
+			return -4;
+		}
+
+		//Begins here
+		if(qwFileOffset <= offset)
+		{
+			//This buffer includes all the expected data.
+			if(len <= dwNumberOfBytesToMap - iViewDelta)
+			{
+				operCallBack((char*)lpMapAddress + iViewDelta, len, BUFFER_BEG_INCLUDED | BUFFER_END_INCLUDED);
+				bFlag = TRUE;
+				break;
+			}
+			//continue
+			else
+			{
+				operCallBack((char*)lpMapAddress + iViewDelta, dwNumberOfBytesToMap - iViewDelta, BUFFER_BEG_INCLUDED);
+				qwNumberOfBytesRead += dwNumberOfBytesToMap - iViewDelta;
+			}
+		}
+		//second or later data buffer
+		else
+		{
+			//Found end
+			if(qwNumberOfBytesRead + dwNumberOfBytesToMap >= len)
+			{
+				operCallBack((char*)lpMapAddress, len - qwNumberOfBytesRead, BUFFER_END_INCLUDED);
+				bFlag = TRUE;
+				break;
+			}
+			//Not the end
+			else
+			{
+				operCallBack((char*)lpMapAddress, dwNumberOfBytesToMap, 0);
+				qwNumberOfBytesRead += dwNumberOfBytesToMap;
+			}
+		}
+		
+		// Close the file-mapping object and the open file.
+		if (!UnmapViewOfFile(lpMapAddress)) 
+		{
+			printf("Could not unmap view of file. last error: %d, at address H:%d -- L:%d\n", GetLastError(), (DWORD)(qwFileOffset >> 32), (DWORD)(qwFileOffset & 0xFFFFFFFF));
+		} 
 	}
 	
-	char* pData = (char *) lpMapAddress + iViewDelta;
-	operCallBack(pData, len, true, true);
-	
-	// Close the file-mapping object and the open file.
-	if (!UnmapViewOfFile(lpMapAddress)) 
-	{ 
-		printf("Could not unmap view of file. last error: %d\n", GetLastError());
-	} 
-	
-	BOOL bFlag;                   // a result holder
+	//Need to unmap view
+	if(bFlag)
+	{
+		// Close the file-mapping object and the open file.
+		if (!UnmapViewOfFile(lpMapAddress)) 
+		{
+			printf("Could not unmap view of file. last error: %d, at address H:%d -- L:%d\n", GetLastError(), (DWORD)(qwFileOffset >> 32), (DWORD)(qwFileOffset & 0xFFFFFFFF));
+		} 
+	}
+
 	bFlag = CloseHandle(hMapFile); // close the file-mapping object
 	
 	if(!bFlag) 
@@ -387,7 +457,7 @@ int readFileByMap(const char* lpFileName, unsigned int offset, unsigned int len,
 	return 0;
 }
 
-int readFileByIO(const char* lpFileName, unsigned int offset, unsigned int len, processFileData operCallBack)
+int readFileByIO(const char* lpFileName, __int64 offset, __int64 len, FileDataProcessor operCallBack)
 {
 	FILE* pf = fopen(lpFileName, "rb");
 	
@@ -403,63 +473,187 @@ int readFileByIO(const char* lpFileName, unsigned int offset, unsigned int len, 
 	file_length = ftell(pf);
 	rewind(pf);
 
+	if((long)offset >= file_length)
+	{
+		offset = 0;
+	}
 	if(len == 0)
 	{
 		len = (size_t)file_length;
-	}
-	if(offset > len)
+	}	
+	if((long)(offset + len) > file_length)
 	{
-		offset = 0;
+		len = (size_t)file_length;
 	}
 
 #define BUFFER_SIZE 4096
 	char buffer[BUFFER_SIZE];
 	
-	size_t bytesRead = 0;  //actual bytes number by fread function returns
-	size_t bytesOffset = 0;  //current file offset
-	size_t bytesProcessed = 0; //how many bytes processed already
-	while( (bytesRead = fread(buffer, sizeof(char), BUFFER_SIZE, pf)) > 0 )
+	size_t num_read = 0;  //actual bytes number by fread function returns
+	size_t file_pos = 0;  //current file offset
+	size_t num_processed = 0; //how many bytes processed already
+	while( (num_read = fread(buffer, sizeof(char), BUFFER_SIZE, pf)) > 0 )
 	{
-		//
-		if( (bytesOffset + bytesRead) < offset )
+		//Has not entered into the target area
+		if( (file_pos + num_read) <= offset )
 		{
-			bytesOffset += bytesRead;
+			file_pos += num_read;
 			continue;
 		}
-		//Not start yet
-		else if(bytesOffset <= offset)
+		//This buffer includes some of the target area
+		else if(file_pos <= offset)
 		{
-			size_t index = offset - bytesOffset;
+			size_t index = offset - file_pos;
 
-			if(bytesOffset + bytesRead - offset >= len)
+			if(file_pos + num_read - offset >= len)
 			{
-				operCallBack(buffer + index, len, true, true);
+				operCallBack(buffer + index, len, BUFFER_BEG_INCLUDED | BUFFER_END_INCLUDED);
 				break;
 			}
 			else
 			{
-				operCallBack(buffer + index, bytesOffset + bytesRead - offset, true, false);				
-				bytesProcessed += bytesOffset + bytesRead - offset;
-				bytesOffset += bytesRead;
+				operCallBack(buffer + index, file_pos + num_read - offset, BUFFER_BEG_INCLUDED);				
+				num_processed += file_pos + num_read - offset;
+				file_pos += num_read;
 			}
 		}
 		//Started
 		else
 		{
-			if(len - bytesProcessed <= bytesRead)
+			if(len - num_processed <= num_read)
 			{
-				operCallBack(buffer, len - bytesProcessed, false, true);
+				operCallBack(buffer, len - num_processed, BUFFER_END_INCLUDED);
 				break;
 			}
 			else
 			{
-				operCallBack(buffer, bytesRead, false, false);
-				bytesProcessed += bytesRead;
-				bytesOffset += bytesRead;
+				operCallBack(buffer, num_read, 0);
+				num_processed += num_read;
+				file_pos += num_read;
 			}
 		}
 	}
 	
 	fclose(pf);
+	return 0;
+}
+
+
+int readEntireFile(const char* lpFileName, __int64 offset, __int64 len, FileDataProcessor operCallBack)
+{
+	// Open the file
+	HANDLE hFile = CreateFile(lpFileName, GENERIC_READ | GENERIC_WRITE, 0, NULL, 
+		OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+	
+	if (hFile == INVALID_HANDLE_VALUE) 
+	{
+		printf("hFile is NULL\n");
+		printf("Target file is %s\n", lpFileName);
+		return -1;
+	}
+	
+	SYSTEM_INFO SysInfo;          // system information; used to get the granularity
+	DWORD dwSysGran;              // system allocation granularity
+	// Get the system allocation granularity.
+	GetSystemInfo(&SysInfo);
+	dwSysGran = SysInfo.dwAllocationGranularity;
+	
+	DWORD dwFileSizeLow, dwFileSizeHigh;             // temporary storage for file sizes
+	// Let the user know that the resulting file is more than large enough
+	// for the experiment.
+	dwFileSizeLow = GetFileSize(hFile,  &dwFileSizeHigh);
+
+
+	DWORD dwError;
+	// If we failed ... 
+	if (dwFileSizeLow == INVALID_FILE_SIZE  && (dwError = GetLastError()) != NO_ERROR )
+	{ 
+		printf("hFile is NULL\n");
+		printf("Failed to get the size of file %s, error code = %d\n", lpFileName, dwError);
+
+		CloseHandle(hFile);
+		return -2;
+	}
+	LARGE_INTEGER liFileSize;
+	liFileSize.LowPart = dwFileSizeLow;
+	liFileSize.HighPart = dwFileSizeHigh;
+	
+	HANDLE hMapFile;              // handle for the test file's memory-mapped region
+	// Create a file-mapping object for the file.
+	hMapFile = CreateFileMapping( hFile, // current file handle
+		NULL, // default security
+		PAGE_READWRITE, // read/write permission
+		dwFileSizeHigh,  // size of mapping object, high
+		dwFileSizeLow, // size of mapping object, low
+		NULL); // name of mapping object
+	
+	if (hMapFile == NULL) 
+	{
+		printf("hMapFile is NULL: last error: %d\n", GetLastError() );
+
+		CloseHandle(hFile); 
+		return -3;
+	}
+	
+	LPVOID lpMapAddress;          // pointer to the base address of the memory-mapped region
+	LARGE_INTEGER liFileOffset;
+	liFileOffset.QuadPart = 0;
+	SIZE_T dwNumberOfBytesToMap = 0x1000000; //16M = 2^24
+
+	int posMask = 0;
+	while(liFileOffset.QuadPart < liFileSize.QuadPart)
+	{
+		// Map the view and test the results.	
+		lpMapAddress = MapViewOfFile(hMapFile, // handle to mapping object
+			FILE_MAP_ALL_ACCESS, // read/write permission 
+			liFileOffset.HighPart, // high-order 32 bits of file offset
+			liFileOffset.LowPart, // low-order 32 bits of file offset
+			dwNumberOfBytesToMap); // number of bytes to map
+
+		if (lpMapAddress == NULL) 
+		{
+			printf("lpMapAddress is NULL: last error: %d, at address H:%d -- L:%d\n", GetLastError(), liFileOffset.HighPart, liFileOffset.LowPart);
+			
+			CloseHandle(hMapFile); // close the file-mapping object
+			CloseHandle(hFile); 
+			return -4;
+		}
+	
+		//Begin included
+		if(liFileOffset.QuadPart == 0)
+		{
+			posMask |= BUFFER_BEG_INCLUDED;
+		}
+		//End included
+		if((liFileOffset.QuadPart + dwNumberOfBytesToMap) >= liFileSize.QuadPart)
+		{
+			posMask |= BUFFER_END_INCLUDED;
+		}
+		operCallBack((char*)lpMapAddress, dwNumberOfBytesToMap, posMask);
+
+		// Close the file-mapping object and the open file.
+		if (!UnmapViewOfFile(lpMapAddress)) 
+		{
+			printf("Could not unmap view of file. last error: %d, at address H:%d -- L:%d\n", GetLastError(), liFileOffset.HighPart, liFileOffset.LowPart);
+		} 
+
+		liFileOffset.QuadPart += dwNumberOfBytesToMap;
+	}
+	
+	BOOL bFlag;                   // a result holder
+	bFlag = CloseHandle(hMapFile); // close the file-mapping object
+	
+	if(!bFlag) 
+	{
+		printf("\nOops! Error # %ld occurred closing the mapping object!", GetLastError());
+	}
+	
+	bFlag = CloseHandle(hFile);   // close the file itself
+	
+	if(!bFlag) 
+	{
+		printf("\nOops! Error # %ld occurred closing the file!", GetLastError());
+	}
+	
 	return 0;
 }
