@@ -88,6 +88,7 @@ void testFileOper()
 	unsigned int len = 0;
 	int result = 0;
 
+
 // 	writeIntToFile(filename, 0x12345678);
 // 	
 // 	int x;
@@ -95,7 +96,7 @@ void testFileOper()
 // 	cout<<hex<<x<<endl;
 
 
- 	readFile functions[] = {readFileByMap, readFileByIO};
+ 	ReadFileData functions[] = {readEntireFile, readFileByMap, readFileByIO};
 	int count = sizeof(functions)/sizeof(functions[0]);
 
 	clock_t start, finish;
@@ -105,7 +106,7 @@ void testFileOper()
 	for(i = 0; i < count; i++)
 	{
 		start = clock();
-		result = functions[i](filename, 0, 0, printHeadTailIter);
+		result = functions[i](filename, 7, 50, printHeadTailIter);
 		finish = clock();
 
 		//SUCCESSFULLY
