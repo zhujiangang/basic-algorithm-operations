@@ -267,16 +267,17 @@ void printHeadTailIter(char* pData, __int64 len, unsigned int posMask)
 		c = *(pData + i);
 	}
 	int x;
-	if((len >= 2) && (posMask & BUFFER_BEG_INCLUDED) != 0)
+	int offset = 0;
+	if((len >= (offset + 1)) && (posMask & BUFFER_BEG_INCLUDED) != 0)
 	{
-		x = (int)(*(pData + 1)) & 0xFF;
+		x = (int)(*(pData + offset)) & 0xFF;
 		printf("%2X ", x);
 	}
 
 
-	if((len >= 2) && (posMask & BUFFER_END_INCLUDED) != 0)
+	if((len >= (offset + 1)) && (posMask & BUFFER_END_INCLUDED) != 0)
 	{
-		x = (int)(*(pData + len - 2)) & 0xFF;
+		x = (int)(*(pData + len - offset - 1)) & 0xFF;
 		printf("%2X ", x);
 		printf("\n");
 	}	
@@ -603,6 +604,10 @@ int readEntireFile(const char* lpFileName, __int64 offset, __int64 len, FileData
 	int posMask = 0;
 	while(liFileOffset.QuadPart < liFileSize.QuadPart)
 	{
+		if(liFileSize.QuadPart - liFileOffset.QuadPart < dwNumberOfBytesToMap)
+		{
+			dwNumberOfBytesToMap = (SIZE_T)(liFileSize.QuadPart - liFileOffset.QuadPart);
+		}
 		// Map the view and test the results.	
 		lpMapAddress = MapViewOfFile(hMapFile, // handle to mapping object
 			FILE_MAP_ALL_ACCESS, // read/write permission 
@@ -618,7 +623,7 @@ int readEntireFile(const char* lpFileName, __int64 offset, __int64 len, FileData
 			CloseHandle(hFile); 
 			return -4;
 		}
-	
+		posMask = 0;
 		//Begin included
 		if(liFileOffset.QuadPart == 0)
 		{

@@ -84,7 +84,7 @@ void testFileOper()
 {
 //	FindFile("C:\\Temp");
 
- 	const char* filename = "C:\\Temp\\cg\\test.dat";
+ 	const char* filename = "E:\\games\\war3\\war3.mpq";
 	unsigned int len = 0;
 	int result = 0;
 
@@ -95,7 +95,7 @@ void testFileOper()
 // 	readIntFromFile(filename, &x);
 // 	cout<<hex<<x<<endl;
 
-
+	
  	ReadFileData functions[] = {readEntireFile, readFileByMap, readFileByIO};
 	int count = sizeof(functions)/sizeof(functions[0]);
 
@@ -106,7 +106,7 @@ void testFileOper()
 	for(i = 0; i < count; i++)
 	{
 		start = clock();
-		result = functions[i](filename, 7, 50, printHeadTailIter);
+		result = functions[i](filename, 0xA, 0x3000008, printHeadTailIter);
 		finish = clock();
 
 		//SUCCESSFULLY

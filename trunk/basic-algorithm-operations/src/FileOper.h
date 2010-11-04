@@ -6,8 +6,8 @@
 extern "C" {
 #endif
 
-#define BUFFER_END_INCLUDED 0x00000001
-#define BUFFER_BEG_INCLUDED 0x00000010
+#define BUFFER_END_INCLUDED 0x00000002
+#define BUFFER_BEG_INCLUDED 0x00000001
 
 typedef void (*FileDataProcessor)(char* pData, __int64 len, unsigned int posMask);
 typedef int (*ReadFileData)(const char* lpFileName, __int64 offset, __int64 len, FileDataProcessor operCallBack);
