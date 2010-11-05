@@ -84,10 +84,9 @@ void testFileOper()
 {
 //	FindFile("C:\\Temp");
 
- 	const char* filename = "E:\\games\\war3\\war3.mpq";
-	unsigned int len = 0;
-	int result = 0;
+ 	const char* filename = "C:\\Temp\\cg\\test.dat";
 
+	int result = 0;
 
 // 	writeIntToFile(filename, 0x12345678);
 // 	
@@ -96,30 +95,39 @@ void testFileOper()
 // 	cout<<hex<<x<<endl;
 
 	
- 	ReadFileData functions[] = {readEntireFile, readFileByMap, readFileByIO};
+ 	ReadFileData functions[] = {readFileByMap, readFileByIO, validationReadFile /*readEntireFile*/};
 	int count = sizeof(functions)/sizeof(functions[0]);
 
 	clock_t start, finish;
 
+	__int64 offset = 0, readLen = 0;
+
 	
 	int i;
-	for(i = 0; i < count; i++)
+
+	for(offset = 0; offset <= 0xF00000; offset += 0x100000)
 	{
-		start = clock();
-		result = functions[i](filename, 0xA, 0x3000008, printHeadTailIter);
-		finish = clock();
-
-		//SUCCESSFULLY
-		if(result == 0)
+		for(readLen = 0; readLen <= 0xF00003; readLen += 0x100007)
 		{
-			printf("OK on %dth function, time consumed: %ld ticks (%ld seconds)\n", i, finish - start, (finish - start) / CLOCKS_PER_SEC);
+			printf("offset = %d, len = %d\n", (int)offset, (int)readLen);
+			for(i = 0; i < count; i++)
+			{
+				start = clock();
+				result = functions[i](filename, offset, readLen, printHeadTailIter);
+				finish = clock();
+				
+				//SUCCESSFULLY
+				if(result == 0)
+				{
+					printf("OK on %dth function, time consumed: %ld ticks (%ld seconds)\n", i, finish - start, (finish - start) / CLOCKS_PER_SEC);
+				}
+				//Failed
+				else
+				{
+					printf("Failed result %d in %dth function\n", result, i);
+				}
+			}
 		}
-		//Failed
-		else
-		{
-			printf("Failed result %d in %dth function\n", result, i);
-		}
-
 	}
 }
 

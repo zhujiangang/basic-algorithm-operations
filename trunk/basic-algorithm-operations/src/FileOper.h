@@ -17,6 +17,8 @@ void FindFile(char * pFilePath);
 int writeIntToFile(const char* filename, int value);
 int readIntFromFile(const char* filename, int* value, int offset = 0);
 
+__int64 getFileSize(const char* lpFileName);
+
 void empty(char* pData, __int64 len, unsigned int posMask = BUFFER_BEG_INCLUDED | BUFFER_END_INCLUDED);
 void simpleIterator(char* pData, __int64 len, unsigned int posMask = BUFFER_BEG_INCLUDED | BUFFER_END_INCLUDED);
 void printHeadTailIter(char* pData, __int64 len, unsigned int posMask = BUFFER_BEG_INCLUDED | BUFFER_END_INCLUDED);
@@ -24,6 +26,7 @@ void printHeadTailIter(char* pData, __int64 len, unsigned int posMask = BUFFER_B
 int readFileByMap(const char* lpFileName, __int64 offset, __int64 len, FileDataProcessor operCallBack);
 int readFileByIO(const char* lpFileName, __int64 offset, __int64 len, FileDataProcessor operCallBack);
 int readEntireFile(const char* lpFileName, __int64 offset = 0, __int64 len = 0, FileDataProcessor operCallBack = empty);
+int validationReadFile(const char* lpFileName, __int64 offset, __int64 len, FileDataProcessor operCallBack);
 
 // end extern C
 #ifdef __cplusplus
