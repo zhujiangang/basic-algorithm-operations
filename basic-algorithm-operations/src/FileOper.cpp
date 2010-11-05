@@ -7,7 +7,7 @@ void FindFile1(char * pFilePath)
 {
     WIN32_FIND_DATA FindFileData;
     HANDLE hFind = INVALID_HANDLE_VALUE;
-    char DirSpec[MAX_PATH + 1];// 指定路径
+    char DirSpec[MAX_PATH + 1];// ????
     DWORD dwError;
 	
     strncpy (DirSpec, pFilePath, strlen(pFilePath) + 1);
@@ -24,12 +24,12 @@ void FindFile1(char * pFilePath)
     {
         if (FindFileData.dwFileAttributes != FILE_ATTRIBUTE_DIRECTORY )
         {
-            printf ("%s\\%s\n", pFilePath, FindFileData.cFileName);   //找到文件
+            printf ("%s\\%s\n", pFilePath, FindFileData.cFileName);   //????
         }
         else if(FindFileData.dwFileAttributes == FILE_ATTRIBUTE_DIRECTORY
             && strcmp(FindFileData.cFileName, ".") != 0
             && strcmp(FindFileData.cFileName, "..") != 0)
-        {   //找到目录
+        {   //????
             char Dir[MAX_PATH + 1];
             strcpy(Dir, pFilePath);
             strncat(Dir, "\\", 2);
@@ -41,13 +41,13 @@ void FindFile1(char * pFilePath)
         while (FindNextFile(hFind, &FindFileData) != 0)
         {
             if (FindFileData.dwFileAttributes != FILE_ATTRIBUTE_DIRECTORY)
-            {   //找到文件
+            {   //????
                 printf ("%s\\%s\n", pFilePath, FindFileData.cFileName);   //
             }
             else if(FindFileData.dwFileAttributes == FILE_ATTRIBUTE_DIRECTORY
                 && strcmp(FindFileData.cFileName, ".") != 0
                 && strcmp(FindFileData.cFileName, "..") != 0)
-            { //找到目录
+            { //????
                 char Dir[MAX_PATH + 1];
                 strcpy(Dir, pFilePath);
                 strncat(Dir, "\\", 2);
@@ -70,7 +70,7 @@ void FindFile1(char * pFilePath)
 
 void FindFile2(char * pFilePath)
 {
-    char DirSpec[MAX_PATH + 1];// 指定
+    char DirSpec[MAX_PATH + 1];// ??
 	strncpy (DirSpec, pFilePath, strlen(pFilePath) + 1);
     strncat (DirSpec, "\\*", 3);
 
@@ -91,13 +91,13 @@ void FindFile2(char * pFilePath)
 		//1. File
 		if (FindFileData.dwFileAttributes != FILE_ATTRIBUTE_DIRECTORY )
         {
-            printf ("%s\\%s\n", pFilePath, FindFileData.cFileName);   //找到文件
+            printf ("%s\\%s\n", pFilePath, FindFileData.cFileName);   //????
         }
 		else if(FindFileData.dwFileAttributes == FILE_ATTRIBUTE_DIRECTORY
             && strcmp(FindFileData.cFileName, ".") != 0
             && strcmp(FindFileData.cFileName, "..") != 0)
 		{
-			//找到目录
+			//????
             char Dir[MAX_PATH + 1];
 			sprintf(Dir, "%s\\%s", pFilePath, FindFileData.cFileName);
 			
@@ -138,7 +138,7 @@ void FindFile(char * pFilePath)
 		//1. File
 		if (FindFileData.dwFileAttributes != FILE_ATTRIBUTE_DIRECTORY )
         {
-            printf ("%s\\%s\n", pFilePath, FindFileData.cFileName);   //找到文件
+            printf ("%s\\%s\n", pFilePath, FindFileData.cFileName);   //????
         }
 	}
 	dwError = GetLastError();
@@ -165,7 +165,7 @@ void FindFile(char * pFilePath)
             && strcmp(FindFileData.cFileName, ".") != 0
             && strcmp(FindFileData.cFileName, "..") != 0)
 		{
-			//找到目录
+			//????
             char Dir[MAX_PATH + 1];
 			sprintf(Dir, "%s\\%s", pFilePath, FindFileData.cFileName);
 			
@@ -281,6 +281,33 @@ void printHeadTailIter(char* pData, __int64 len, unsigned int posMask)
 		printf("%2X ", x);
 		printf("\n");
 	}	
+}
+
+__int64 getFileSize(const char* lpFileName)
+{
+	// Open the file
+	HANDLE hFile = CreateFile(lpFileName, GENERIC_READ | GENERIC_WRITE, 0, NULL, 
+		OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+
+	DWORD dwFileSizeHigh;
+	__int64 qwFileSize = GetFileSize(hFile, &dwFileSizeHigh);
+
+	DWORD dwError;
+	// If we failed ... 
+	if (qwFileSize == INVALID_FILE_SIZE  && (dwError = GetLastError()) != NO_ERROR )
+	{ 
+		printf("hFile is NULL\n");
+		printf("Failed to get the size of file %s, error code = %d\n", lpFileName, dwError);
+		
+		CloseHandle(hFile);
+		return -2;
+	}
+
+	qwFileSize |= (((__int64)dwFileSizeHigh) << 32);
+
+	CloseHandle(hFile);
+
+	return qwFileSize;
 }
 
 int readFileByMap(const char* lpFileName, __int64 offset, __int64 len, FileDataProcessor operCallBack)
@@ -460,6 +487,17 @@ int readFileByMap(const char* lpFileName, __int64 offset, __int64 len, FileDataP
 
 int readFileByIO(const char* lpFileName, __int64 offset, __int64 len, FileDataProcessor operCallBack)
 {
+	__int64 file_length = getFileSize(lpFileName);
+	
+	if(offset >= file_length)
+	{
+		offset = 0;
+	}
+	if(len == 0 || (offset + len) > file_length)
+	{
+		len = file_length - offset;
+	}
+
 	FILE* pf = fopen(lpFileName, "rb");
 	
 	if(pf == NULL)
@@ -467,32 +505,25 @@ int readFileByIO(const char* lpFileName, __int64 offset, __int64 len, FileDataPr
 		printf("open file %s failed.\n", lpFileName);
 		return -1;
 	}
+	
 
-	long file_length = 0;
+#define BUFFER_SIZE (0x10000)
 
-	fseek(pf, 0, SEEK_END);
-	file_length = ftell(pf);
-	rewind(pf);
+	__int64 startPos = (offset / BUFFER_SIZE) * BUFFER_SIZE;
 
-	if((long)offset >= file_length)
+	if(startPos > 0x70000000)
 	{
-		offset = 0;
-	}
-	if(len == 0)
-	{
-		len = (size_t)file_length;
-	}	
-	if((long)(offset + len) > file_length)
-	{
-		len = (size_t)file_length;
+		startPos = 0x70000000;
 	}
 
-#define BUFFER_SIZE 4096
+	//For quicker iterate
+	fseek(pf, (long)startPos, SEEK_SET);
+
 	char buffer[BUFFER_SIZE];
 	
-	size_t num_read = 0;  //actual bytes number by fread function returns
-	size_t file_pos = 0;  //current file offset
-	size_t num_processed = 0; //how many bytes processed already
+	__int64 num_read = 0;  //actual bytes number by fread function returns
+	__int64 file_pos = ftell(pf);  //current file offset
+	__int64 num_processed = 0; //how many bytes processed already
 	while( (num_read = fread(buffer, sizeof(char), BUFFER_SIZE, pf)) > 0 )
 	{
 		//Has not entered into the target area
@@ -504,7 +535,7 @@ int readFileByIO(const char* lpFileName, __int64 offset, __int64 len, FileDataPr
 		//This buffer includes some of the target area
 		else if(file_pos <= offset)
 		{
-			size_t index = offset - file_pos;
+			__int64 index = offset - file_pos;
 
 			if(file_pos + num_read - offset >= len)
 			{
@@ -660,5 +691,66 @@ int readEntireFile(const char* lpFileName, __int64 offset, __int64 len, FileData
 		printf("\nOops! Error # %ld occurred closing the file!", GetLastError());
 	}
 	
+	return 0;
+}
+
+
+
+int validationReadFile(const char* lpFileName, __int64 offset, __int64 len, FileDataProcessor operCallBack)
+{
+	if( (offset + len) > 0x70000000)
+	{
+		printf("Too far from the start of the file. offset + len shoud be less than 0x70000000\n");
+		return -10;
+	}
+	__int64 file_length = getFileSize(lpFileName);
+	
+	if(offset >= file_length)
+	{
+		offset = 0;
+	}
+	if(len == 0 || (offset + len) > file_length)
+	{
+		len = file_length - offset;
+	}
+
+	FILE* pf = fopen(lpFileName, "rb");
+	
+	if(pf == NULL)
+	{
+		printf("open file %s failed.\n", lpFileName);
+
+		fclose(pf);
+		return -1;
+	}
+
+	fseek(pf, (long)offset, SEEK_SET);
+	
+	long curpos = ftell(pf);
+	if(curpos != offset)
+	{
+		printf("Error happened, the file pos is not equals to the offset curpos = %d, offset = %d\n", (int)curpos, (int)offset);
+		fclose(pf);
+		return -11;
+	}
+	char buf[1];
+
+	fread(buf, 1, 1, pf);
+	operCallBack(buf, 1, BUFFER_BEG_INCLUDED);
+
+
+	long seekpos = (long)(offset + len - 1);
+	fseek(pf, seekpos, SEEK_SET);
+	curpos = ftell(pf);
+	if(curpos != seekpos)
+	{
+		printf("Error happened, the file pos is not equals to the offset + len. curpos = %d, offset = %d\n", (int)curpos, (int)(seekpos));
+		fclose(pf);
+		return -12;
+	}
+	fread(buf, 1, 1, pf);
+	operCallBack(buf, 1, BUFFER_END_INCLUDED);
+
+	fclose(pf);
 	return 0;
 }
