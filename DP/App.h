@@ -3,7 +3,6 @@
 
 #include <iostream.h>
 #include <vector>
-//#include <iterator>
 
 using std::vector;
 
@@ -16,6 +15,10 @@ class MapSite
 {
 public:
 	virtual void Enter() = 0;
+	virtual const char* ToString() const
+	{
+		return "MapSite";
+	}
 };
 
 class Room : public MapSite
@@ -40,9 +43,31 @@ public:
 	{
 		cout<<"Enter room"<<_roomNumber<<endl;
 	}
+	const char* ToString() const
+	{
+		return "Room";
+	}
 private:
 	MapSite* _sides[4];
 	int _roomNumber;
+};
+
+class CastSpell
+{
+};
+
+class EnchantedRoom : public Room
+{
+public:
+	EnchantedRoom(int roomNo, CastSpell* pCastSpell) : Room(roomNo), m_pCastSpell(pCastSpell)
+	{
+	}
+	const char* ToString() const
+	{
+		return "EnchantedRoom";
+	}
+private:
+	CastSpell* m_pCastSpell;
 };
 
 class Wall : public MapSite
@@ -53,6 +78,10 @@ public:
 	}
 	virtual void Enter()
 	{
+	}
+	const char* ToString() const
+	{
+		return "Wall";
 	}
 };
 
@@ -83,10 +112,26 @@ public:
 		cout<<"Error paramter: r = "<<r<<endl;
 		return 0;
 	}
+	const char* ToString() const
+	{
+		return "Door";
+	}
 private:
 	Room* _room1;
 	Room* _room2;
 	bool _isOpen;
+};
+
+class DoorNeedingSpell : public Door
+{
+public:
+	DoorNeedingSpell(Room* r1 = 0, Room* r2 = 0, bool isOpen = false) : Door(r1, r2, isOpen)
+	{
+	}
+	const char* ToString() const
+	{
+		return "DoorNeedingSpell";
+	}
 };
 
 class Maze
@@ -111,6 +156,27 @@ public:
 		}
 		return 0;
 	}
+	size_t RoomSize() const
+	{
+		return _rooms.size();
+	}
+	Room* GetRoom(size_t index)
+	{
+		return _rooms[index];
+	}
+	void show()
+	{
+		for(size_t i = 0, len = RoomSize(); i < len; i++)
+		{
+			Room* r = GetRoom(i);
+			cout<<r->ToString()<<"("<<r->GetRoomNo()<<") ";
+			for(int d = North; d <= West; d++)
+			{
+				cout<<"["<<d<<"]="<<r->GetSide((Direction)d)->ToString()<<" ";
+			}
+			cout<<endl;
+		}
+	}
 private:
 	vector<Room*> _rooms;
 };
@@ -121,7 +187,7 @@ public:
 	MazeGame()
 	{
 	}
-	Maze* CreateMaze()
+	virtual Maze* CreateMaze()
 	{
 		Maze* aMaze = new Maze;
 
@@ -145,5 +211,34 @@ public:
 		return aMaze;
 	}
 };
+
+class MazeGameRawExt : public MazeGame
+{
+public:
+	Maze* CreateMaze()
+	{
+		Maze* aMaze = new Maze;
+		
+		Room* r1 = new EnchantedRoom(1, new CastSpell());
+		Room* r2 = new EnchantedRoom(2, new CastSpell());
+		Door* theDoor = new DoorNeedingSpell(r1, r2);
+		
+		aMaze->AddRoom(r1);
+		aMaze->AddRoom(r2);
+		
+		r1->SetSide(North, new Wall());
+		r1->SetSide(East, theDoor);
+		r1->SetSide(South, new Wall());
+		r1->SetSide(West, new Wall());
+		
+		r2->SetSide(North, new Wall());
+		r2->SetSide(East, new Wall());
+		r2->SetSide(South, new Wall());
+		r2->SetSide(West, theDoor);
+		
+		return aMaze;
+	}
+};
+
 
 #endif
