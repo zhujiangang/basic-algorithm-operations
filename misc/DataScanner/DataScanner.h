@@ -5,15 +5,20 @@
 class Symbol
 {
 public:
+	static const int TYPE_INVALID;
+	static const int TYPE_DIGITAL;
+	static const int TYPE_OPERATOR;
+public:
 	Symbol(const char* str = 0, int len = 0);
 	Symbol(const Symbol& other);
 	Symbol& operator=(const Symbol& other);
 	virtual ~Symbol();
-	virtual void Init(const char* str, int len);
-	virtual void Init(const char* str, int startIndex, int endIndex);
+	virtual void Init(const char* str, int startIndex, int endIndex, int type);
 	virtual const char* GetString();
+	virtual int GetType() const;
 private:
-	char* data;	
+	char* data;
+	int type;
 };
 
 class DataScanner
@@ -26,9 +31,13 @@ public:
 	virtual void Next();
 	virtual bool IsDone();
 	virtual void CurrentItem(Symbol& symbol);
-
-private:
+	const char* GetData() const
+	{
+		return data;
+	}
+protected:	
 	char* data;
+	Symbol m_symbol;
 
 private:
 
@@ -49,6 +58,7 @@ private:
 	// action executed on state changed
 	Fct** Action;
 
+	bool Retrieve(int type);
 	bool RetrieveOperator();
 	bool RetrieveOperand();
 
@@ -57,7 +67,6 @@ private:
 	// token stack cursor
 	int tokOffset;
 	int tokCurs;
-	Symbol m_symbol;
 
 	char* token;
 	char state;

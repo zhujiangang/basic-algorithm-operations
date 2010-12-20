@@ -2,9 +2,13 @@
 #include <string.h>
 #include "DataScanner.h"
 
-Symbol::Symbol(const char* str, int len) : data(0)
+const int Symbol::TYPE_INVALID = -1;
+const int Symbol::TYPE_DIGITAL = 0;
+const int Symbol::TYPE_OPERATOR = 1;
+
+Symbol::Symbol(const char* str, int len) : data(0), type(TYPE_INVALID)
 {
-	Init(str, len);
+	Init(str, 0, len - 1, TYPE_INVALID);
 }
 
 Symbol::~Symbol()
@@ -15,22 +19,17 @@ Symbol::~Symbol()
 	}
 }
 
-Symbol::Symbol(const Symbol& other)
+Symbol::Symbol(const Symbol& other) : data(0), type(TYPE_INVALID)
 {
-	Init(other.data, strlen(other.data));
+	Init(other.data, 0, strlen(other.data) - 1, other.type);
 }
 Symbol& Symbol::operator=(const Symbol& other)
 {
-	Init(other.data, strlen(other.data));
+	Init(other.data, 0, strlen(other.data) - 1, other.type);
 	return *this;
 }
 
-void Symbol::Init(const char* str, int len)
-{
-	Init(str, 0, len - 1);
-}
-
-void Symbol::Init(const char* str, int startIndex, int endIndex)
+void Symbol::Init(const char* str, int startIndex, int endIndex, int type)
 {
 	if(data != 0)
 	{
@@ -46,14 +45,18 @@ void Symbol::Init(const char* str, int startIndex, int endIndex)
 	memcpy(data, str + startIndex, len);
 	
 	data[len] = 0;
+
+	this->type = type;
 }
 
 const char* Symbol::GetString()
 {
 	return data;
 }
-
-
+int Symbol::GetType() const
+{
+	return type;
+}
 
 DataScanner::DataScanner(const char* str) : data(0), Action(0), tokCurs(0), m_symbol(0, 0)
 {
@@ -117,7 +120,7 @@ void DataScanner::Next()
 {
 	if(tokCurs > 0)
 	{
-		m_symbol.Init(tokStack, tokOffset, tokCurs - 1);
+		m_symbol.Init(tokStack, tokOffset, tokCurs - 1, Symbol::TYPE_OPERATOR);
 
 		tokOffset = 0;
 		tokCurs = 0;
@@ -155,22 +158,21 @@ void DataScanner::Next()
 		}
 	}
 
-	if(!foundSymbol && tokCurs > 0 && state == STATE_OPERAND)
+	if(*token == 0 && tokCurs > 0)
 	{
-		RetrieveOperator();
+		Retrieve(Symbol::TYPE_DIGITAL);
 		state = STATE_INVALID;
 	}	
 }
 bool DataScanner::IsDone()
 {
-	return state == STATE_INVALID || *token == 0;
+	return *token == 0 && tokCurs == 0;
 }
 void DataScanner::CurrentItem(Symbol& symbol)
 {
 	symbol = m_symbol;
 }
-
-bool DataScanner::RetrieveOperator()
+bool DataScanner::Retrieve(int type)
 {
 	if(tokStack[tokCurs - 1] == ' ')
 	{
@@ -180,12 +182,16 @@ bool DataScanner::RetrieveOperator()
 	{
 		return false;
 	}
-	m_symbol.Init(tokStack, tokOffset, tokCurs - 1);
-
+	m_symbol.Init(tokStack, tokOffset, tokCurs - 1, type);
+	
 	tokOffset = 0;
 	tokCurs = 0;
-
+	
 	return true;
+}
+bool DataScanner::RetrieveOperator()
+{
+	return Retrieve(Symbol::TYPE_OPERATOR);
 }
 bool DataScanner::RetrieveOperand()
 {
@@ -196,7 +202,7 @@ bool DataScanner::RetrieveOperand()
 		return false;
 	}
 
-	m_symbol.Init(tokStack, tokOffset, tokCurs - 2);
+	m_symbol.Init(tokStack, tokOffset, tokCurs - 2, Symbol::TYPE_DIGITAL);
 
 
 	tokOffset = tokCurs - 1;
