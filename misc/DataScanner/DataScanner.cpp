@@ -115,9 +115,19 @@ void DataScanner::First()
 	tokOffset = 0;
 	tokCurs = 0;
 	state = STATE_OPERATOR;
+
+	if(*token != 0)
+	{
+		Next();
+	}
 }
 void DataScanner::Next()
 {
+	if(tokCurs == 0 && *token == 0)
+	{
+		m_symbol.SetType(Symbol::TYPE_INVALID);
+		return;
+	}
 	if(tokCurs > 0)
 	{
 		m_symbol.Init(tokStack, tokOffset, tokCurs - 1, Symbol::TYPE_OPERATOR);
@@ -158,7 +168,7 @@ void DataScanner::Next()
 		}
 	}
 
-	if(*token == 0 && tokCurs > 0)
+	if(*token == 0 && tokOffset == 0 && tokCurs > 0)
 	{
 		Retrieve(Symbol::TYPE_DIGITAL);
 		state = STATE_INVALID;
@@ -166,7 +176,8 @@ void DataScanner::Next()
 }
 bool DataScanner::IsDone()
 {
-	return *token == 0 && tokCurs == 0;
+//	return *token == 0 && tokCurs == 0;
+	return m_symbol.GetType() == Symbol::TYPE_INVALID;
 }
 void DataScanner::CurrentItem(Symbol& symbol)
 {

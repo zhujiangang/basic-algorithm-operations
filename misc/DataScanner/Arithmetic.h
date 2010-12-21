@@ -4,7 +4,7 @@
 class DataScanner;
 class Symbol;
 
-class DataScannerDecorator : public DataScanner
+class DataScannerDecorator : public virtual DataScanner
 {
 public:
 	DataScannerDecorator(DataScanner* pDataScanner);
@@ -22,8 +22,8 @@ class Arithmetic
 public:
 	Arithmetic();
 	virtual ~Arithmetic();
-	double calc(DataScanner& scanner);
-private:
+	virtual double calc(DataScanner& scanner);
+protected:
 	enum OP_RESULT
 	{
 		INVALID = -1,
@@ -36,5 +36,11 @@ private:
 	static OP_RESULT precede(char c1, char c2);
 	static double operate(double a, char theta, double b);
 	static char GetFirstChar(Symbol& symbol);
+};
+
+class ToPostOrder : public Arithmetic 
+{
+public:
+	double calc(DataScanner& scanner);
 };
 #endif
