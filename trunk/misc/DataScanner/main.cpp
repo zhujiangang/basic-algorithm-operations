@@ -17,20 +17,34 @@ int main(int argc, char* argv[])
 	for (arg = 1; arg < argc-1; arg++)
 		argv[arg][strlen(argv[arg])] = ' ';
 
+	char buf[2048];
+	sprintf(buf, "%s#", argv[1]);
+
 	Symbol symbol;
-	DataScanner scanner(argv[1]);
-	for(scanner.First(); !scanner.IsDone(); )
-	{
-		scanner.Next();
+	DataScanner scanner(buf);	
+	for(scanner.First(); !scanner.IsDone(); scanner.Next())
+	{		
 		scanner.CurrentItem(symbol);
 		printf("%s\n", symbol.GetString());
 	}
 
-	DataScannerDecorator scannerDecorator(&scanner);
-	Arithmetic arith;
-	double result = arith.calc(scannerDecorator);
+// 	DataScannerDecorator scannerDecorator(&scanner);
+// 	for(scannerDecorator.First(); !scannerDecorator.IsDone(); scannerDecorator.Next())
+// 	{		
+// 		scannerDecorator.CurrentItem(symbol);
+// 		printf("%s\n", symbol.GetString());
+// 	}
+	ToPostOrder arith;
+	double result = arith.calc(scanner);
 
-	printf("%f\n", result);
+	if( (result - (int)result) > -0.000001F && (result - (int)result) < 0.000001F)
+	{
+		printf("%d\n", (int)result);
+	}
+	else
+	{
+		printf("%f\n", result);
+	}
 
 	return 0;
 }

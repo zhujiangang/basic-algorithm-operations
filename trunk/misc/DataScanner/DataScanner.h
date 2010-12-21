@@ -16,6 +16,10 @@ public:
 	virtual void Init(const char* str, int startIndex, int endIndex, int type);
 	virtual const char* GetString();
 	virtual int GetType() const;
+	virtual void SetType(int type)
+	{
+		this->type = type;
+	}
 private:
 	char* data;
 	int type;
