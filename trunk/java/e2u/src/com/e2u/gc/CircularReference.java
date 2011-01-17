@@ -4,6 +4,8 @@ public class CircularReference
 {
     private static boolean isTestThreadAlive = true;
     private static int counter = 0;
+    
+    private static Object dummyRef = new Object();
     public static void test1()
     {
         ClassB cb = null;
@@ -25,6 +27,10 @@ public class CircularReference
         {
             Node a = new Node("a", null), b = new Node("b", a), c = new Node("c", b);
             a.next = c;
+            
+            c.extension = dummyRef;
+            b.extension = dummyRef;
+            a.extension = dummyRef;
         }
         monitorGC();
         
@@ -33,7 +39,7 @@ public class CircularReference
     public static void test3()
     {
         {
-            Node a = new Node("a", null), b = new Node("b", a), c = new Node("c", b);
+            Node a = new Node("A", null), b = new Node("B", a), c = new Node("C", b);
             a.next = c;
 
             a = null;
@@ -90,22 +96,11 @@ public class CircularReference
 
 class Finalizable
 {
-    private static int counter = 0;
-    private static int availableCount = 0;
-    private int index = 0;
-    public Finalizable()
-    {
-        index = ++counter;
-        availableCount++;
-    }
     public void finalize()
     {
-        availableCount--;
-
         String className = getClass().getSimpleName();
         String currentThreadName = Thread.currentThread().getName();
-        System.out.println(className + " finalized, index = " + index + ", AC = " + availableCount +
-            ", Current Thread = " + currentThreadName);
+        System.out.println(className + " " + this + " finalized, Current Thread = " + currentThreadName);
         try
         {
             super.finalize();
@@ -144,9 +139,14 @@ class Node extends Finalizable
 {
     public Object value;
     public Node next;
+    public Object extension = null;
     public Node(Object o, Node n)
     {
         value = o;
         next = n;
+    }
+    public String toString()
+    {
+    	return "Node " + value;
     }
 }

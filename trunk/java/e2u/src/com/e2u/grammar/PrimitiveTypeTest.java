@@ -24,6 +24,17 @@ public class PrimitiveTypeTest
 		//short range: (-2^15 -- 2^15-1) (-32768 -- 32767)
 		System.out.println((int)(short)b);
 		printSeparator();
+		
+		byte b2 = (byte)0xFE;
+		System.out.println(b2);
+		int i = (int)b2;
+		i &= 0xFF;
+		System.out.println(i);
+		
+		i = 0x7E;
+		System.out.println((byte)i);
+		
+		printSeparator();
 	}
 	
 	public static void testMisc()

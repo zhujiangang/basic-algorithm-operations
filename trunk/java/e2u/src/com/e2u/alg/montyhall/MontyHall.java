@@ -12,8 +12,6 @@ public class MontyHall {
             result = gen.nextInt(3);
         while (result == door1 || result == door2);
         return result;
-    	
-//    	return 3 - (door1 + door2);
     }
  
     public static void main(String[] args) {
@@ -32,5 +30,5 @@ public class MontyHall {
         }
  
         System.out.println(wins + " wins by switching");
-    }
+    }    
 }
