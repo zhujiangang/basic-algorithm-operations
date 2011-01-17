@@ -80,21 +80,21 @@ public class FSM
 	private OnAction appendResultAction = new AppendResult();
 	private OnAction appendVarNameAction = new AppendVarName();
 	private OnAction parVarNameAction = new ParseVarName();
-	private int[][] successor = 
+	private static int[][] successor = 
 	{
 		{STAT_ESC, STAT_VAR, STAT_NONE},
 		{STAT_NONE},
 		{STAT_ESC_VAR, STAT_NONE, STAT_VAR},
 		{STAT_VAR}
 	};
-	private String[][] grammar = 
+	private static String[][] grammar = 
 	{
 		{"\\", "%", ""},
 		{""},
 		{"\\", "%", ""},
 		{""}
 	};
-	OnAction[][] actions = 
+	private OnAction[][] actions = 
 	{
 		{null, null, appendResultAction},
 		{appendResultAction},

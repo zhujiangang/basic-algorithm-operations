@@ -41,9 +41,32 @@ public class TryMaxMemory
 	//vmargs: -Xms64M -Xmx512M
 	public static void main(String[] args)
 	{
+		int i = 0;
+		while(i < 30)
+		{
+			try
+			{
+				Thread.sleep(1000);
+				i++;
+			}
+			catch(Exception e)
+			{
+			}
+		}
 		showMemory();
-		malloc(1024 * 1024* 63);
+		malloc(1024 * 1024 * 32);
 		showMemory();
+		while(true)
+		{
+			try
+			{
+				Thread.sleep(3000);
+			}
+			catch(Exception e)
+			{
+				break;
+			}
+		}		
 		malloc(1024 * 1024* 63);
 		showMemory();
 		malloc(1024 * 1024* 63);
