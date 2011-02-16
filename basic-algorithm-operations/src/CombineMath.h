@@ -29,4 +29,6 @@ void combine1(int in[], int n, int m, int out[], int outLen, int depth);
 /*************************************************************************/
 void combine2(int in[], int n, int m, int out[], int outLen);
 
+
+void testCombineMath();
 #endif

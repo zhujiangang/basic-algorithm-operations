@@ -102,4 +102,5 @@ node* add(node* ph1, int len1, node* ph2, int len2);
 /************************************************************************/
 node* remove_duplicated(node* ph);
 
+void testLinkedList();
 #endif

@@ -1,7 +1,10 @@
 #include <iostream.h>
+#include <stdio.h>
+#include <string.h>
 #include "MyUtil.h"
 #include "CombineMath.h"
-#include <stdio.h>
+#include "config.h"
+
 
 /************************************************************************/
 /* P(n,n)                                                               */
@@ -145,4 +148,37 @@ void combine2(int in[], int n, int m, int out[], int outputLen)
 			cout<<endl;
 		}
 	}
+}
+
+void testCombineMath()
+{
+#ifdef COMBINE_MATH_TEST
+	const int n = 2;
+	const int m = 1;
+	int a[n];
+	int b[n];
+	
+	genseq(a, n);
+	//	genrand(a, n, 100);
+	output(a, n);
+	cout<<endl;
+	
+	perm(a, 0, n - 1);
+	cout<<endl;
+	
+	// 	combine(a, n, 0, b, 0);
+	//	cout<<endl;
+	
+	combine1(a, n, m, b, m, 0);
+	cout<<endl;
+	
+	// 	combine2(a, n, m, b, m);
+	//	cout<<endl;
+	
+	int used[n];
+	memset(used, 0, n * sizeof(int));
+	perm(a, n, m, b, 0, used);
+	cout<<endl;
+	printSep(__FILE__);
+#endif
 }

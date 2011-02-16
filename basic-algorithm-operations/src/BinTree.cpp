@@ -5,6 +5,8 @@
 #include "Common.h"
 #include "MyUtil.h"
 #include "BinTree.h"
+#include "config.h"
+#include "ArrayOper.h"
 
 using std::stack;
 using std::queue;
@@ -1440,4 +1442,188 @@ void BinTree::insert(int val)
 	{
 		parent->rc = new BinNode(val, NULL, NULL, parent);
 	}
+}
+
+void showTree(BinTree& ptree, char type = 0)
+{
+	static int count = 0;
+	count++;
+	cout<<endl;
+	
+	//Recursive
+	if(type == 0)
+	{
+		cout<<"=====================Start ("<<count<<") Recursive====================="<<endl;
+		ptree.preOrder();
+		ptree.inOrder();
+		ptree.postOrder();
+		
+	}
+	//Stack
+	else if(type == 1)
+	{
+		cout<<"=====================Start ("<<count<<") Stack========================="<<endl;
+		ptree.preOrderStack();
+		ptree.inOrderStack();
+		ptree.postOrderStack();
+	}
+	ptree.levelOrder();	
+	cout<<"=============================End============================="<<endl;
+}
+
+void showTree(BinNode* t, char type = 0)
+{
+	BinTree ptree(t);
+	showTree(ptree, type);
+}
+
+void showCompareResult(BinNode* t1, BinNode* t2)
+{
+	if(compare(t1, t2))
+	{
+		cout<<"Equals"<<endl;
+	}
+	else
+	{
+		cout<<"Differs"<<endl;
+	}
+}
+
+void testBinTree()
+{
+#ifdef BIN_TREE_TEST
+	const int n = 10;
+	int a[n];
+	genseq(a, n);
+	output(a, n);
+
+	BinTree binTree(a, n);
+
+	showTree(binTree);
+	showTree(binTree, 1);
+
+	int pre[]   = {5, 2, 1, 3, 4, 8, 6, 7, 9, 10};
+	int in[]    = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+	int post[]  = {1, 4, 3, 2, 7, 6, 10, 9, 8, 5};
+	int level[] = {5, 2, 8, 1, 3, 6, 9, 4, 7, 10};	
+	
+	showCompareResult(binTree.getRoot(), createTreeByInLevel(in, level, n));
+	showCompareResult(binTree.getRoot(), createTreeByInLevel2(in, level, n));
+	showCompareResult(binTree.getRoot(), createTreeByInPre(in, 0, COUNTOF(in) - 1, pre, 0, COUNTOF(in) - 1));
+	showCompareResult(binTree.getRoot(), createTreeByInPreWithStack(in, 0, COUNTOF(in) - 1, pre, 0, COUNTOF(pre) - 1));
+	showCompareResult(binTree.getRoot(), createTreeByInPost(in, 0, COUNTOF(in) - 1, post, 0, COUNTOF(post) - 1));
+	showCompareResult(binTree.getRoot(), createTreeByInPostWithStack(in, 0, COUNTOF(in) - 1, post, 0, COUNTOF(post) - 1));
+	showTree(createTreeByInLevel(in, level, n));
+	showTree(createTreeByInLevel2(in, level, n));
+	showTree(createTreeByInPre(in, 0, COUNTOF(in) - 1, pre, 0, COUNTOF(in) - 1));
+	showTree(createTreeByInPreWithStack(in, 0, COUNTOF(in) - 1, pre, 0, COUNTOF(pre) - 1));
+	showTree(createTreeByInPost(in, 0, COUNTOF(in) - 1, post, 0, COUNTOF(post) - 1));
+	showTree(createTreeByInPostWithStack(in, 0, COUNTOF(in) - 1, post, 0, COUNTOF(post) - 1));
+	
+	int pos = 1;
+	BinNode* binNode = binTree.getNodeByID(binTree.getRoot(), 6);
+	if(binNode != NULL)
+	{
+		if(binTree.getPosOfNode(binTree.getRoot(), binNode, &pos))
+		{
+			cout<<"Node="<<binNode->value<<", pos="<<pos<<endl;
+		}
+	}
+
+	BinNode* binNode2 = binTree.getNodeByID(binTree.getRoot(), 10);
+	BinNode* parentNode = binTree.findLatestParent(binNode, binNode2);
+	if(parentNode != NULL)
+	{
+		cout<<"Parent("<<binNode->value<<","<<binNode2->value<<")="<<parentNode->value<<endl;
+	}
+	else
+	{
+		cout<<"Can't find parent"<<endl;
+	}
+
+	parentNode = NULL;
+	parentNode = binTree.findLatestParentStack(binNode, binNode2);
+	if(parentNode != NULL)
+	{
+		cout<<"Parent("<<binNode->value<<","<<binNode2->value<<")="<<parentNode->value<<endl;
+	}
+	else
+	{
+		cout<<"Can't find parent"<<endl;
+	}
+
+	parentNode = NULL;
+	parentNode = binTree.findLatestParentPtr(binNode, binNode2);
+	if(parentNode != NULL)
+	{
+		cout<<"Parent("<<binNode->value<<","<<binNode2->value<<")="<<parentNode->value<<endl;
+	}
+	else
+	{
+		cout<<"Can't find parent"<<endl;
+	}
+
+	stack<BinNode*> stPath;
+	binTree.findPath(binTree.getRoot(), 3, stPath, false);
+
+	int b[n] = {1,4,3/*,2,7,6,10,9,8,8*/};
+	cout<<checkSeqIfPostOrderOfBST(b, n)<<endl;
+
+	BinNode* closest = NULL;
+	
+	for(int i = 0; i < n + 2; i++)
+	{
+		closest = binTree.findClosestToMid(i);
+		if(closest != NULL)
+		{
+			cout<<i<<","<<closest->value<<endl;
+		}
+	}
+
+//	binTree.swap(binTree.getRoot());
+
+	DoubleLinkNode *tail = /*new DoubleLinkNode(-1)*/ NULL;
+	binTree.transformToDoubleLink2(binTree.getRoot(), tail);
+
+ 	DoubleLinkNode *pdnode = NULL;
+// 	while(pdnode != NULL)
+// 	{
+// 		cout<<pdnode->value<<" ";
+// 		pdnode = pdnode->next;
+// 
+// 	}
+// 	cout<<endl;
+
+	pdnode = tail;
+	while(pdnode != NULL)
+	{
+		cout<<pdnode->value<<" ";
+		pdnode = pdnode->next;
+	}
+	cout<<endl;
+
+	BinNode* bhead = NULL;
+//	binTree.transformToDoubleLink3(binTree.getRoot(), bhead);
+// 	bhead = binTree.transformToDoubleLink4(binTree.getRoot(), bhead);
+// 
+// 	BinNode* pnode = bhead, *pnode_last = bhead;
+// 	while(pnode != NULL)
+// 	{
+// 		pnode_last = pnode;
+// 		cout<<pnode->value<<" ";
+// 		pnode = pnode->rc;
+// 	}
+// 	cout<<endl;
+// 
+// 	cout<<pnode_last->value<<endl;
+// 
+// 	pnode = pnode_last;
+// 	while(pnode != NULL)
+// 	{
+// 		cout<<pnode->value<<" ";
+// 		pnode = pnode->lc;
+// 	}
+// 	cout<<endl;
+	printSep(__FILE__);
+#endif
 }

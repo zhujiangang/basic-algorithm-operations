@@ -4,6 +4,9 @@
 #include <map>
 #include <utility>
 #include "LinkedList.h"
+#include "LinkedListEx.h"
+#include "MyUtil.h"
+#include "config.h"
 
 using std::map;
 using std::make_pair;
@@ -1076,5 +1079,215 @@ node* remove_duplicated(node* ph)
 	nodeMap.clear();
 
 	return ph;
+}
+
+class Point
+{
+public:
+	int x, y;
+	virtual ~Point()
+	{
+		cout<<"Destructor: x = "<<x<<", y="<<y<<endl;
+	}
+};
+
+
+
+void testLinkedListEx()
+{
+#ifdef LINKED_LIST_EX_TEST
+	Point point;
+	point.x = 0;
+	point.y = 10;
+	
+	ListNode<Point>* head = new ListNode<Point>(point);
+	
+	ListNode<Point>* p = head;
+	for(int i = 0; i < 3; i++)
+	{
+		p->next = new ListNode<Point>();
+		p = p->next;
+	}
+	
+	p = head;
+	ListNode<Point>* temp;
+	while(p != NULL)
+	{
+		temp = p;
+		p = p->next;
+		delete temp;
+	}
+	ListNode<Point>::free();
+	cout<<"end"<<endl;
+	printSep(__FILE__);
+#endif
+}
+
+void testLinkedList()
+{
+#ifdef LINKED_LIST_TEST
+	//(0). Set up linkedlist
+	int data1[] = {9, 8, 9, 8, 9, 8, 9};
+	int data2[] = {24,38,86,97,18,84,56,86,97,24};
+
+	node* p1 = createList(data1, COUNTOF(data1));
+	printList(p1);
+
+	node* p2 = createList(data2, COUNTOF(data2));
+	printList(p2);
+
+	const int n = 10;
+	int a[n];
+	genrand(a, n, 100);
+	
+	node* p3 = createList(a, n);
+ 	printList(p3);
+
+	p1 = remove_duplicated(p1);
+	printList(p1);
+
+	p2 = remove_duplicated(p2);
+	printList(p2);
+
+	p3 = remove_duplicated(p3);
+	printList(p3);
+
+// 	node* pTemp = NULL;
+// 	pTemp = mergeIter(p1, p2);
+// 	printList(pTemp);
+// 
+// 	pTemp = NULL;
+// 	pTemp = mergeIter1(p1, p2);
+// 	printList(pTemp);
+
+// 	node* pLastNode = get(p2, size(p2) - 1);
+// 	node* pInterNode = get(p2, 2); 
+
+	//(0.1). 
+// 	node** ppNode = &pInterNode;
+// 	showNode(*ppNode);
+// 	*ppNode = (*ppNode)->next;
+// 	printList(p2);
+// 
+// 	ppNode = &(p2->next->next);
+// 	showNode(*ppNode);
+// 	*ppNode = (*ppNode)->next;
+// 	printList(p2);
+
+	//(1). Test for loop
+// 	pLastNode->next = pInterNode;
+// 
+// 	printList(p2, 20);
+// 
+// 	node* pMeetNode = NULL;
+// 	pMeetNode = checkListLoop(p1);
+// 	showNode(pMeetNode);
+// 
+// 	pMeetNode = checkListLoop(p2);
+// 	showNode(pMeetNode);
+// 
+// 	node* pLoopEntrance = NULL;
+// 	pLoopEntrance = getListLoopEntrance(p2);
+// 	showNode(pLoopEntrance);
+// 
+// 	pLastNode->next = p2;
+// 	printList(p2, 20);
+// 
+// 
+// 	pLoopEntrance = getListLoopEntrance(p2);
+// 	showNode(pLoopEntrance);
+// 	pLastNode->next = NULL;
+
+	//(2). Test for merge and reverse
+// 	node* p = mergeIter(p1, p2);
+// 	printList(p);
+// 	
+// 	assertEquals(p1, p2);
+// 
+// 	node* pr = reverse(p2);
+// 	printList(pr);
+
+	//(3). Test for qsort
+
+// 	node* ph = createList(a, n);
+// 	printList(ph);
+// 	ph = qsort1(ph);
+// 	printList(ph);
+// 
+// 	node* ph1 = createList(a, n);
+// 	printList(ph1);
+// 	ph1 = bubble_sort(ph1);
+// 	printList(ph1);
+// 
+// 	assertEquals(ph, ph1);
+// 
+// 	node* ph2 = createList(a, n);
+// 	printList(ph2);
+// 	ph2 = insert_sort(ph2);
+// 	printList(ph2);
+// 
+// 	assertEquals(ph, ph2);
+// 	
+// 	node* ph3 = createList(a, n);
+// 	printList(ph3);
+// 	ph3 = select_sort(ph3);
+// 	printList(ph2);
+// 	
+// 	assertEquals(ph, ph3);
+
+// 	node* result = add(p1, size(p1), p2, size(p2));
+// 	printList(result);
+// 	deleteList(result);
+	
+// 	node* rnthNode = rget(p1, 0);
+// 	showNode(rnthNode);
+// 
+// 	rnthNode = rget(p1, 4);
+// 	showNode(rnthNode);
+// 
+// 	rnthNode = rget(p1, 6);
+// 	showNode(rnthNode);
+// 
+// 	node* pMid1 = NULL, *pMid2 = NULL;
+// 	getMiddleNode(p1, &pMid1, &pMid2);
+// 
+// 	showNode(pMid1);
+// 	showNode(pMid2);
+
+// 	node* pOverLapped = NULL;
+// 	pOverLapped = getFirstOverlappedNode(p1, p2);
+// 	showNode(pOverLapped);
+// 
+// 	node* p1InterNode = get(p1, 4);
+// 	showNode(p1InterNode);
+// 	node* p2InterNode = get(p2, 9);
+// 	showNode(p2InterNode);
+// 
+// 	node* p1Next = p1InterNode->next;
+// 	p1InterNode->next = p2InterNode;
+// 
+// 	pOverLapped = getFirstOverlappedNode(p1, p2);
+// 	showNode(pOverLapped);
+// 
+// 	//restore
+// 	p1InterNode->next = p1Next;
+// 
+// 	p2 = swap(p2, get(p2, 4), get(p2, 5));
+// 	printList(p2);
+
+	
+// 	cascade_node* pcn = NULL;
+// 	pcn = new cascade_node(p1);
+// 	pcn = new cascade_node(p2, pcn);
+// 	pcn = new cascade_node(NULL, pcn);
+// 	pcn = new cascade_node(p3, pcn);
+// 
+// 	node* pe = expand(pcn);
+// 	printList(pe);
+
+// 	deleteList(p1);	
+// 	deleteList(p2);
+	printSep(__FILE__);
+#endif
 }
 

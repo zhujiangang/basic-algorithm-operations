@@ -1,7 +1,9 @@
 #include <iostream.h>
 #include <stdlib.h>
+#include <string.h>
 #include "MyUtil.h"
 
+static const char* LINE_SEPARATOR = "===========================================================";
 
 void output(int a[], int begin, int end)
 {
@@ -15,6 +17,49 @@ void output(int a[], int begin, int end)
 void output(int a[], int n)
 {
 	output(a, 0, n - 1);
+}
+
+void printSep()
+{
+	cout<<LINE_SEPARATOR<<endl;
+}
+
+void printSep(const char* str)
+{
+	if(str == NULL)
+	{
+		printSep();
+		return;
+	}
+	char* filename = getFileName(str);
+	int len = strlen(filename);
+	int sep_len = strlen(LINE_SEPARATOR);
+	
+	int startPos = (sep_len - len) / 2;
+	int i;
+	for(i = 0; i < startPos; i++)
+	{
+		cout<<'=';
+	}
+	cout<<filename;
+	for(i = startPos + len; i < sep_len; i++)
+	{
+		cout<<'=';
+	}
+	cout<<endl;
+}
+
+char* getFileName(const char* fullFileName)
+{
+	char* ret = strrchr(fullFileName, '\\');
+	if(ret == NULL)
+	{
+		return (char*)fullFileName;
+	}
+	else
+	{
+		return ret + 1;
+	}
 }
 
 void swap(int& x, int& y)

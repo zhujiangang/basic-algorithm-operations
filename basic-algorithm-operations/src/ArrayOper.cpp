@@ -1,6 +1,8 @@
 #include <stdio.h>
+#include <iostream.h>
 #include "ArrayOper.h"
-
+#include "config.h"
+#include "MyUtil.h"
 
 void printSumPairs(int a[], int n, int sum)
 {
@@ -165,4 +167,42 @@ int maxsumsub(int array[], int n, int* pStart, int* pEnd)
 	}
 	
 	return maxsum;
+}
+
+
+void testArrayOper()
+{
+#ifdef ARRAY_OPER_TEST
+	// 	const int n = 10;
+	// 	int a[n] = {3, 4, -5, 50, -90, 7, 6, -12, 80, -4};
+	
+	int a[] = {3, 4, -5, 50, -90, 7, 6, -12, 80, -4};
+	int n = sizeof(a)/sizeof(int);
+	//	genseq(a, n);
+	//	genrand(a, n);
+	//	quickSort(a, n);
+	output(a, n);
+	
+	int i;
+	int result = 0;
+	//	printSumPairsDup(a, n, n * 3);
+	
+	//	cout<<binarySearch(a, 0, n - 1, 0.3 * n)<<endl;
+	
+	int start, end;
+	result = maxsumsub(a, n, &start, &end);
+	cout<<result<<endl;
+	for(i = start; i <= end; i++)
+	{
+		cout<<a[i]<<" ";
+	}
+	cout<<endl;
+	
+	int b[] = {1 ,1 ,1, 1, 1, 1, 1};
+	n = sizeof(b)/sizeof(int);
+	
+	i = binarySearch(b, 0, n - 1, 2);
+	cout<<i<<endl;
+	printSep(__FILE__);
+#endif
 }

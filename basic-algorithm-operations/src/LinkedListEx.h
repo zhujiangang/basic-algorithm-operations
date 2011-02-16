@@ -62,4 +62,6 @@ public:
 template <class T>
 ListNode<T>* ListNode<T>::freelist = NULL;
 
+
+void testLinkedListEx();
 #endif
