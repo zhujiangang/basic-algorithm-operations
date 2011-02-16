@@ -201,4 +201,6 @@ private:
 
 bool compare(BinNode* t1, BinNode* t2);
 bool compare(BinTree& t1, BinTree& t2);
+
+void testBinTree();
 #endif

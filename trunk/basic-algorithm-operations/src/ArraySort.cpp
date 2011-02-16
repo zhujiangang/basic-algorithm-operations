@@ -1,5 +1,7 @@
+#include <iostream.h>
 #include "ArraySort.h"
 #include "MyUtil.h"
+#include "config.h"
 
 void insertSort(int a[], int n)
 {
@@ -146,4 +148,41 @@ void heapSort(int a[], int n)
 		swap(a[0], a[n - i - 1]);
 		shiftDown(a, n - i - 1, 0);
 	}
+}
+
+void testArraySort()
+{
+#ifdef ARRAY_SORT_TEST
+	const int n = 2000;
+	int datasource[n], copya[n];
+	genrand(datasource, n, n);
+	//	output(datasource, n);
+	
+	arryCopy(datasource, 0, copya, 0, n);
+	//	output(copya, n);
+	
+	sorter sorters[] = {bubbleSort, insertSort, mergeSort, quickSort, heapSort};
+	
+	int ret;
+	clock_t start, finish;
+	for(int i = 0; i < COUNTOF(sorters); i++)
+	{
+		start = clock();
+		sorters[i](copya, n);
+		finish = clock();
+		
+		if( (ret = validateInOrder(copya, n)) != -1)
+		{
+			cout<<"Failed ("<<i<<": "<<ret<<endl;
+			//output(copya, n);
+			break;
+		}
+		else
+		{
+			cout<<"Success ("<<i<<") time = "<<(finish - start)<<"("<<(double)(finish - start)/CLOCKS_PER_SEC<<"s)"<<endl;
+		}
+		arryCopy(datasource, 0, copya, 0, n);
+	}
+	printSep(__FILE__);
+#endif
 }

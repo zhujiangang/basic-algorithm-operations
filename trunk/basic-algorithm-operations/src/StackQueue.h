@@ -93,4 +93,6 @@ private:
 	int top3r;
 	bool lor;
 };
+
+void testStackQueue();
 #endif

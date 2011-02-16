@@ -2,6 +2,8 @@
 #include <string.h>
 #include <stdio.h>
 #include "FileOper.h"
+#include "config.h"
+#include "MyUtil.h"
 
 void FindFile1(char * pFilePath)
 {
@@ -29,7 +31,7 @@ void FindFile1(char * pFilePath)
         else if(FindFileData.dwFileAttributes == FILE_ATTRIBUTE_DIRECTORY
             && strcmp(FindFileData.cFileName, ".") != 0
             && strcmp(FindFileData.cFileName, "..") != 0)
-        {   //????
+        {   
             char Dir[MAX_PATH + 1];
             strcpy(Dir, pFilePath);
             strncat(Dir, "\\", 2);
@@ -41,13 +43,13 @@ void FindFile1(char * pFilePath)
         while (FindNextFile(hFind, &FindFileData) != 0)
         {
             if (FindFileData.dwFileAttributes != FILE_ATTRIBUTE_DIRECTORY)
-            {   //????
+            {   
                 printf ("%s\\%s\n", pFilePath, FindFileData.cFileName);   //
             }
             else if(FindFileData.dwFileAttributes == FILE_ATTRIBUTE_DIRECTORY
                 && strcmp(FindFileData.cFileName, ".") != 0
                 && strcmp(FindFileData.cFileName, "..") != 0)
-            { //????
+            { 
                 char Dir[MAX_PATH + 1];
                 strcpy(Dir, pFilePath);
                 strncat(Dir, "\\", 2);
@@ -97,7 +99,7 @@ void FindFile2(char * pFilePath)
             && strcmp(FindFileData.cFileName, ".") != 0
             && strcmp(FindFileData.cFileName, "..") != 0)
 		{
-			//????
+			
             char Dir[MAX_PATH + 1];
 			sprintf(Dir, "%s\\%s", pFilePath, FindFileData.cFileName);
 			
@@ -753,4 +755,59 @@ int validationReadFile(const char* lpFileName, __int64 offset, __int64 len, File
 
 	fclose(pf);
 	return 0;
+}
+
+
+void testFileOper()
+{
+#ifdef FILE_OPER_TEST
+//	FindFile("C:\\Temp");
+
+ 	const char* filename = "C:\\Temp\\cg\\test.dat";
+
+	int result = 0;
+
+// 	writeIntToFile(filename, 0x12345678);
+// 	
+// 	int x;
+// 	readIntFromFile(filename, &x);
+// 	cout<<hex<<x<<endl;
+
+	
+ 	ReadFileData functions[] = {readFileByMap, readFileByIO, validationReadFile /*readEntireFile*/};
+	int count = sizeof(functions)/sizeof(functions[0]);
+
+	clock_t start, finish;
+
+	__int64 offset = 0, readLen = 0;
+
+	
+	int i;
+
+	for(offset = 0; offset <= 0xF00000; offset += 0x100000)
+	{
+		for(readLen = 0; readLen <= 0xF00003; readLen += 0x100007)
+		{
+			printf("offset = %d, len = %d\n", (int)offset, (int)readLen);
+			for(i = 0; i < count; i++)
+			{
+				start = clock();
+				result = functions[i](filename, offset, readLen, printHeadTailIter);
+				finish = clock();
+				
+				//SUCCESSFULLY
+				if(result == 0)
+				{
+					printf("OK on %dth function, time consumed: %ld ticks (%ld seconds)\n", i, finish - start, (finish - start) / CLOCKS_PER_SEC);
+				}
+				//Failed
+				else
+				{
+					printf("Failed result %d in %dth function\n", result, i);
+				}
+			}
+		}
+	}
+	printSep(__FILE__);
+#endif
 }

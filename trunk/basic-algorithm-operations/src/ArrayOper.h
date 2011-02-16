@@ -28,4 +28,5 @@ int binarySearch(int a[], int from, int to, int key);
 /************************************************************************/
 int maxsumsub(int array[], int n, int* pStart = NULL, int* pEnd = NULL);
 
+void testArrayOper();
 #endif

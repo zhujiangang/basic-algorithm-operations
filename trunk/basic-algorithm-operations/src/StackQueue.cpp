@@ -1,6 +1,8 @@
 #include <iostream.h>
 #include "Common.h"
+#include "config.h"
 #include "StackQueue.h"
+#include "MyUtil.h"
 
 void output(stack<int>& st)
 {
@@ -424,4 +426,103 @@ int StackWith1Array::top(int index)
 		}
 		return ret;
 	}
+}
+
+void testStackQueue()
+{
+#ifdef STACK_QUEUE_TEST
+	const int n = 10;
+	int a[n];
+	genrand(a, n, 100);
+	output(a, n);
+
+	int x = n/2;
+
+	int i;
+// 	StackWithMin st;
+// 	for(i = 0; i < n; i++)
+// 	{
+// 		st.push(a[i]);
+// 		cout<<st.min()<<" ";
+// 	}
+// 	cout<<endl;
+// 	for(i = 0; i < n; i++)
+// 	{
+// 		cout<<st.pop()<<" ";
+// 	}
+// 	cout<<endl;
+// 	
+// 	QueueWith2Stack que;
+// 	for(i = 0; i < n; i++)
+// 	{
+// 		que.enqueue(a[i]);
+// 	}
+// 	for(i = 0; i < n; i++)
+// 	{
+// 		cout<<que.dequeue()<<" ";
+// 	}
+// 	cout<<endl;
+// 
+// 
+// 	StackWith2Queue st2;
+// 	for(i = 0; i < n; i++)
+// 	{
+// 		st2.push(a[i]);
+// 	}
+// 	for(i = 0; i < n; i++)
+// 	{
+// 		cout<<st2.pop()<<" ";
+// 	}
+// 	cout<<endl;
+
+// 	const int len = 5;
+// 	int pushSeq[n] = {1, 2, 3, 4, 5};
+// 	int popSeq[n] = {2, 4, 1, 5, 3};
+// 	cout<<isPopSequence(pushSeq, popSeq, len)<<endl;
+// 
+// 	int len2 = 3;
+	stack<int> st;
+// 	for(i = 0; i < len2; i++)
+// 	{
+// 		st.push(i+1);
+// 	}
+// 	reverse(st);
+// 	output(st);
+
+
+	const int len = 10;
+// 	int b[len] = {10, 2, 3, 1, 9, 8, 5, 4, 6, 7};
+// 	empty(st);
+// 	for(i = 0; i < len; i++)
+// 	{
+// 		st.push(b[i]);
+// 	}
+// 	sort(st);
+// 	output(st);
+
+
+	StackWith1Array sw1a(100);
+	for(i = 0; i < 3; i++)
+	{
+		sw1a.push(1, i+1);
+	}
+	for(i = 0; i < 3; i++)
+	{
+		sw1a.push(2, (i+1) * 10);
+	}
+	for(i = 0; i < 6; i++)
+	{
+		sw1a.push(3, (i+1) * 100);
+	}
+
+	for(i = 1; i <= 3; i++)
+	{
+		while(sw1a.top(i) >= 0)
+		{
+			cout<<sw1a.pop(i)<<" ";
+		}
+		cout<<endl;
+	}
+	printSep(__FILE__);
+#endif
 }

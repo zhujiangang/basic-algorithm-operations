@@ -2,6 +2,8 @@
 #include <string> 
 #include <cmath>
 #include "Point24.h"
+#include "config.h"
+#include "MyUtil.h"
 
 using namespace std; 
 
@@ -75,6 +77,7 @@ bool Search(int n)
 
 void testPoint24() 
 { 
+#ifdef POINT24_TEST
     for (int i = 0; i < COUNT_OF_NUMBER; i++) { 
         char buffer[20]; 
         int  x; 
@@ -88,5 +91,7 @@ void testPoint24()
         cout << "Success." << endl; 
     } else { 
         cout << "Fail." << endl; 
-    }        
+    }
+	printSep(__FILE__);
+#endif
 } 

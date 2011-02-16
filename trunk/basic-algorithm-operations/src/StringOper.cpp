@@ -1,4 +1,8 @@
+#include <stdio.h>
+#include <string.h>
 #include "StringOper.h"
+#include "MyUtil.h"
+#include "config.h"
 
 unsigned int gstrlen(const char* str)
 {
@@ -115,4 +119,40 @@ void* gmemset(void* dst, int val, unsigned int count)
 		dst = (char*)dst + 1;
 	}
 	return ret;
+}
+
+void testStringOper()
+{
+#ifdef STRING_OPER_TEST
+	char string1[60] = "The quick brown dog jumps over the lazy fox";
+	char string2[60] = "The quick brown fox jumps over the lazy dog";
+	/*                           1         2         3         4         5
+	*                   12345678901234567890123456789012345678901234567890
+	*/
+
+	printf( "Function:\tmemcpy without overlap\n" );
+	printf( "Source:\t\t%s\n", string1 + 40 );
+	printf( "Destination:\t%s\n", string1 + 16 );
+	gmemcpy( string1 + 16, string1 + 40, 3 );
+	printf( "Result:\t\t%s\n", string1 );
+	printf( "Length:\t\t%d characters\n\n", strlen( string1 ) );
+	
+	/* Restore string1 to original contents */
+	gmemcpy( string1 + 16, string2 + 40, 3 );
+	
+	printf( "Function:\tmemmove with overlap\n" );
+	printf( "Source:\t\t%s\n", string2 + 4 );
+	printf( "Destination:\t%s\n", string2 + 10 );
+	gmemmove( string2 + 10, string2 + 4, 40 );
+	printf( "Result:\t\t%s\n", string2 );
+	printf( "Length:\t\t%d characters\n\n", strlen( string2 ) );
+	
+	printf( "Function:\tmemcpy with overlap\n" );
+	printf( "Source:\t\t%s\n", string1 + 4 );
+	printf( "Destination:\t%s\n", string1 + 10 );
+	gmemcpy( string1 + 10, string1 + 4, 40 );
+	printf( "Result:\t\t%s\n", string1 );
+	printf( "Length:\t\t%d characters\n\n", strlen( string1 ) );
+	printSep(__FILE__);
+#endif
 }

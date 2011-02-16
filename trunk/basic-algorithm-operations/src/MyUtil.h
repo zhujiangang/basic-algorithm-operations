@@ -7,6 +7,10 @@
 
 void output(int a[], int begin, int end);
 void output(int a[], int n);
+void printSep();
+void printSep(const char* str);
+char* getFileName(const char* fullFileName);
+
 
 void swap(int& x, int& y);
 

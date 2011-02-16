@@ -28,6 +28,8 @@ int readFileByIO(const char* lpFileName, __int64 offset, __int64 len, FileDataPr
 int readEntireFile(const char* lpFileName, __int64 offset = 0, __int64 len = 0, FileDataProcessor operCallBack = empty);
 int validationReadFile(const char* lpFileName, __int64 offset, __int64 len, FileDataProcessor operCallBack);
 
+void testFileOper();
+
 // end extern C
 #ifdef __cplusplus
 }

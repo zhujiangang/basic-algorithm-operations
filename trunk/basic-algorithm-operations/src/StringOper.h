@@ -13,5 +13,5 @@ void* gmemcpy(void* dst, const void* src, unsigned int count);
 void* gmemmove(void* dst, const void* src, unsigned int count);
 int gmemcmp(const void* buf1, const void* buf2, unsigned int count);
 void* gmemset(void* dst, int val, unsigned int count);
-
+void testStringOper();
 #endif
