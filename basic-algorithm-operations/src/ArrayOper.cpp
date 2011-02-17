@@ -172,7 +172,7 @@ int maxsumsub(int array[], int n, int* pStart, int* pEnd)
 
 void testArrayOper()
 {
-#ifdef ARRAY_OPER_TEST
+#if ((ARRAY_OPER_TEST) == 1)
 	// 	const int n = 10;
 	// 	int a[n] = {3, 4, -5, 50, -90, 7, 6, -12, 80, -4};
 	
