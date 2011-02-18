@@ -38,8 +38,17 @@ public class BitTwiddling
 		// 当x为负数时 ==> x = ~|x| + 1 ==> |x| = ~(x - 1)
 		int temp = (a >> 31);
 		// a >= 0: a >> 31 = 0 --> (a + temp) ^ temp = a ^ 0 = a;
-		// a < 0: a >> 31 = -1(0xFFFFFFFF) -->
+		// a < 0: a >> 31 = -1(0xFFFFFFFF) --> (a + temp) ^ temp = (a - 1) ^ (-1) = ~(a - 1)
 		return (a + temp) ^ temp;
+	}
+	/**
+	 * another imp of follow the pattern of cmp imp
+	 * @param a
+	 * @return
+	 */
+	public static int absOR(int a)
+	{
+		return ((a >> 31) & (-a)) | (((-a) >> 31) & a);
 	}
 	/**
 	 * 
@@ -107,6 +116,11 @@ public class BitTwiddling
 		for(int i = 0; i < arrays.length; i++)
 		{
 			System.out.printf("abs(%d) = %d\n", arrays[i][0], abs(arrays[i][0]));
+		}
+		//abs
+		for(int i = 0; i < arrays.length; i++)
+		{
+			System.out.printf("absOR(%d) = %d\n", arrays[i][0], absOR(arrays[i][0]));
 		}
 		
 		System.out.printf("abs(%d) = %d\n", Integer.MIN_VALUE, abs(Integer.MIN_VALUE));
