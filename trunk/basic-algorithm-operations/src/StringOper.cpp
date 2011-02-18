@@ -123,7 +123,7 @@ void* gmemset(void* dst, int val, unsigned int count)
 
 void testStringOper()
 {
-#ifdef STRING_OPER_TEST
+#if ((STRING_OPER_TEST) == 1)
 	char string1[60] = "The quick brown dog jumps over the lazy fox";
 	char string2[60] = "The quick brown fox jumps over the lazy dog";
 	/*                           1         2         3         4         5

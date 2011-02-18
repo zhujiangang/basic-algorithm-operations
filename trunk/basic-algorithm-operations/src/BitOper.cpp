@@ -135,7 +135,7 @@ int abs(int a)
 
 void testBitOper()
 {
-#ifdef BIT_OPER_TEST
+#if ((BIT_OPER_TEST) == 1)
 	int i;
 	//Test 1.
 	int len = 10;

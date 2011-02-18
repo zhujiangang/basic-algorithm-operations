@@ -430,7 +430,7 @@ int StackWith1Array::top(int index)
 
 void testStackQueue()
 {
-#ifdef STACK_QUEUE_TEST
+#if ((STACK_QUEUE_TEST) == 1)
 	const int n = 10;
 	int a[n];
 	genrand(a, n, 100);

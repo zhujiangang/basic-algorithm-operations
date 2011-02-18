@@ -152,7 +152,7 @@ void heapSort(int a[], int n)
 
 void testArraySort()
 {
-#ifdef ARRAY_SORT_TEST
+#if ((ARRAY_SORT_TEST) == 1)
 	const int n = 2000;
 	int datasource[n], copya[n];
 	genrand(datasource, n, n);

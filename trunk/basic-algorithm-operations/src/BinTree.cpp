@@ -1491,7 +1491,7 @@ void showCompareResult(BinNode* t1, BinNode* t2)
 
 void testBinTree()
 {
-#ifdef BIN_TREE_TEST
+#if ((BIN_TREE_TEST) == 1)
 	const int n = 10;
 	int a[n];
 	genseq(a, n);

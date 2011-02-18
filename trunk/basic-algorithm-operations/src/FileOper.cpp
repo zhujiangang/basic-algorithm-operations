@@ -760,7 +760,7 @@ int validationReadFile(const char* lpFileName, __int64 offset, __int64 len, File
 
 void testFileOper()
 {
-#ifdef FILE_OPER_TEST
+#if ((FILE_OPER_TEST) == 1)
 //	FindFile("C:\\Temp");
 
  	const char* filename = "C:\\Temp\\cg\\test.dat";
