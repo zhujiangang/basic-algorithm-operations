@@ -1095,7 +1095,7 @@ public:
 
 void testLinkedListEx()
 {
-#ifdef LINKED_LIST_EX_TEST
+#if ((LINKED_LIST_EX_TEST) == 1)
 	Point point;
 	point.x = 0;
 	point.y = 10;
@@ -1125,7 +1125,7 @@ void testLinkedListEx()
 
 void testLinkedList()
 {
-#ifdef LINKED_LIST_TEST
+#if ((LINKED_LIST_TEST) == 1)
 	//(0). Set up linkedlist
 	int data1[] = {9, 8, 9, 8, 9, 8, 9};
 	int data2[] = {24,38,86,97,18,84,56,86,97,24};

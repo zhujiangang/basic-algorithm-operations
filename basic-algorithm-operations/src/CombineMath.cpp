@@ -152,9 +152,9 @@ void combine2(int in[], int n, int m, int out[], int outputLen)
 
 void testCombineMath()
 {
-#ifdef COMBINE_MATH_TEST
-	const int n = 2;
-	const int m = 1;
+#if ((COMBINE_MATH_TEST) == 1)
+	const int n = 5;
+	const int m = 3;
 	int a[n];
 	int b[n];
 	

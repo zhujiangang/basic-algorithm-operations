@@ -77,7 +77,7 @@ bool Search(int n)
 
 void testPoint24() 
 { 
-#ifdef POINT24_TEST
+#if ((POINT24_TEST) == 1)
     for (int i = 0; i < COUNT_OF_NUMBER; i++) { 
         char buffer[20]; 
         int  x; 
