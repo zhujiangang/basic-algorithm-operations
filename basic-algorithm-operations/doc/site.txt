@@ -7,3 +7,7 @@ http://www.cnblogs.com/Jax/category/57279.html
 
 3. 数据结构、算法与应用  --C++语言描述
 http://download.csdn.net/source/148316
+
+
+4.mplayer -wid (windows handle) Having mplayer play in a autoit window 
+http://www.autoitscript.com/forum/topic/87016-mplayer-wid-windows-handle/
