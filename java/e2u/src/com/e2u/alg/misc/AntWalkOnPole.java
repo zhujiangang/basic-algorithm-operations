@@ -6,6 +6,7 @@ import java.util.List;
 
 
 //http://www.kuqin.com/job/20080510/8301.html
+//http://zhidao.baidu.com/question/38281904.html
 /*
 An army of ants walk on a horizontal pole of length l cm, 
 each with a constant speed of 1 cm/s. When a walking ant reaches an end of the pole, 
