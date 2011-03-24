@@ -7,7 +7,7 @@ if '%1'=='' (
 REM delete the character "
 set PARAM=%PARAM:"=%
 
-echo %PARAM%
+REM echo %PARAM%
 
 set DRIVE=
 set PATH_NO_DRIVE=
@@ -38,6 +38,6 @@ REM replace the "\" with "/"
 set PATH_NO_DRIVE=%PATH_NO_DRIVE:\=/%
 
 :FINISH
-echo "%DRIVE%%PATH_NO_DRIVE%"
+echo %DRIVE%%PATH_NO_DRIVE%
 
-pause
+REM pause
