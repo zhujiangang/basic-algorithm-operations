@@ -31,8 +31,8 @@ CShellListCtrl::~CShellListCtrl()
 	m_folderChangeObservers.RemoveAll();
 }
 
-IMPLEMENT_DYNAMIC(CShellListCtrl, CMyListCtrl)
-BEGIN_MESSAGE_MAP(CShellListCtrl, CMyListCtrl)
+IMPLEMENT_DYNAMIC(CShellListCtrl, SHELL_LIST_CTRL_BASE_CLASS)
+BEGIN_MESSAGE_MAP(CShellListCtrl, SHELL_LIST_CTRL_BASE_CLASS)
 	//{{AFX_MSG_MAP(CShellListCtrl)
 	ON_WM_CREATE()
 	ON_WM_DESTROY()
@@ -62,13 +62,13 @@ BOOL CShellListCtrl::PreCreateWindow(CREATESTRUCT& cs)
 	cs.lpszName = _T("ShellListCtrl");
 	cs.style = WS_CHILD | WS_VISIBLE | LVS_AUTOARRANGE | LVS_REPORT;
 	cs.lpszClass = WC_LISTVIEW;
-	return CMyListCtrl::PreCreateWindow(cs);
+	return SHELL_LIST_CTRL_BASE_CLASS::PreCreateWindow(cs);
 }
 void CShellListCtrl::PreSubclassWindow() 
 {
 	// TODO: Add your specialized code here and/or call the base class
 	
-	CMyListCtrl::PreSubclassWindow();
+	SHELL_LIST_CTRL_BASE_CLASS::PreSubclassWindow();
 	
 	_AFX_THREAD_STATE* pThreadState = AfxGetThreadState ();
 	if (pThreadState->m_pWndInit == NULL)
@@ -804,7 +804,7 @@ void CShellListCtrl::OnFormatFileSize (long lFileSize, CString& str)
 
 int CShellListCtrl::OnCreate(LPCREATESTRUCT lpCreateStruct) 
 {
-	if (CMyListCtrl::OnCreate(lpCreateStruct) == -1)
+	if (SHELL_LIST_CTRL_BASE_CLASS::OnCreate(lpCreateStruct) == -1)
 		return -1;
 	
 	// TODO: Add your specialized creation code here
@@ -829,7 +829,7 @@ void CShellListCtrl::OnDestroy()
 	*/
 	ReleaseCurrFolder ();
 
-	CMyListCtrl::OnDestroy();
+	SHELL_LIST_CTRL_BASE_CLASS::OnDestroy();
 	
 	// TODO: Add your message handler code here
 
@@ -849,7 +849,7 @@ LRESULT CShellListCtrl::WindowProc(UINT message, WPARAM wParam, LPARAM lParam)
 		break;
 	}
 	
-	return CMyListCtrl::WindowProc(message, wParam, lParam);
+	return SHELL_LIST_CTRL_BASE_CLASS::WindowProc(message, wParam, lParam);
 }
 void CShellListCtrl::OnContextMenu(CWnd* pWnd, CPoint point) 
 {
