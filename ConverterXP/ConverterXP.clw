@@ -13,8 +13,8 @@ Class1=CConverterXPApp
 Class3=CMainFrame
 Class4=CAboutDlg
 
-ResourceCount=5
-Resource1=IDR_MAINFRAME
+ResourceCount=6
+Resource1=IDR_RCLICK_POPUP
 Resource2=IDR_MAINFRAME (English (U.S.))
 Resource3=IDR_RCLICK_POPUP (English (U.S.))
 Class2=CChildView
@@ -23,8 +23,9 @@ Class6=CFileListView
 Class7=CResultView
 Class8=zzz
 Class9=CSizedSplitterWnd
-Resource4=IDD_ABOUTBOX
+Resource4=IDR_MAINFRAME
 Resource5=IDD_ABOUTBOX (English (U.S.))
+Resource6=IDD_ABOUTBOX
 
 [CLS:CConverterXPApp]
 Type=0
@@ -191,6 +192,19 @@ Command5=ID_APP_ABOUT
 CommandCount=5
 
 [MNU:IDR_RCLICK_POPUP (English (U.S.))]
+Type=1
+Class=?
+Command1=IDM_VIEW_LARGE_ICON
+Command2=IDM_VIEW_SMALL_ICON
+Command3=IDM_VIEW_LIST
+Command4=IDM_VIEW_DETAIL
+Command5=IDM_ARRANGE_BY_NAME
+Command6=IDM_ARRANGE_BY_SIZE
+Command7=IDM_ARRANGE_BY_TYPE
+Command8=IDM_ARRANGE_BY_DATE
+CommandCount=8
+
+[MNU:IDR_RCLICK_POPUP]
 Type=1
 Class=?
 Command1=IDM_VIEW_LARGE_ICON

@@ -9,13 +9,21 @@
 
 #include "MyShellManager.h"
 #include "MyListCtrl.h"
+#include "Sorter.h"
 
 /////////////////////////////////////////////////////////////////////////////
 // CShellListCtrl window
 //extern UINT MSG_SHELL_LIST_CHANGE_CURRENT_FOLDER;
 #define MSG_SHELL_LIST_CHANGE_CURRENT_FOLDER (WM_USER + 100)
 
-class CShellListCtrl : public CMyListCtrl
+#ifdef _USE_MY_LIST_CTRL_
+#define SHELL_LIST_CTRL_BASE_CLASS CMyListCtrl
+#else
+#define SHELL_LIST_CTRL_BASE_CLASS CListCtrl
+#define SHELL_LIST_CTRL_BASE_SORTER_CLASS CSorter
+#endif
+
+class CShellListCtrl : public SHELL_LIST_CTRL_BASE_CLASS, CSorter
 {
 	DECLARE_DYNAMIC(CShellListCtrl)
 // Construction
