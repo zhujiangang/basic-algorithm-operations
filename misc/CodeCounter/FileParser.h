@@ -30,6 +30,21 @@ public:
 	UINT m_nMixedLines;
 };
 
+class CTotalInfo
+{
+public:
+	CTotalInfo();
+	void Reset();
+	UINT GetTotalMixedLines() const;
+public:
+	UINT m_nTotalCount;
+	UINT m_nTotalLines;
+	UINT m_nTotalCodeLines;
+	UINT m_nTotalCommentLines;
+	UINT m_nTotalBlankLines;
+	UINT m_nTotalMixedLines;
+};
+
 class IFileParser
 {
 public:

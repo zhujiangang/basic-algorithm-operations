@@ -31,7 +31,6 @@ UINT CFileInfo::GetMixedLines() const
 	ASSERT(nResult == m_nMixedLines);
 	return nResult;
 }
-
 void CFileInfo::Increase(DWORD dwFlags)
 {
 	if(dwFlags == MASK_TOTAL_LINE)
@@ -55,4 +54,24 @@ void CFileInfo::Increase(DWORD dwFlags)
 	{
 		m_nMixedLines++;
 	}
+}
+
+CTotalInfo::CTotalInfo()
+{
+	Reset();
+}
+void CTotalInfo::Reset()
+{
+	m_nTotalCount = 0;
+	m_nTotalLines = 0;
+	m_nTotalCodeLines = 0;
+	m_nTotalCommentLines = 0;
+	m_nTotalBlankLines = 0;
+	m_nTotalMixedLines = 0;
+}
+UINT CTotalInfo::GetTotalMixedLines() const
+{
+	UINT nResult = (m_nTotalCodeLines + m_nTotalCommentLines) - (m_nTotalLines - m_nTotalBlankLines);
+	ASSERT(nResult == m_nTotalMixedLines);
+	return nResult;
 }
