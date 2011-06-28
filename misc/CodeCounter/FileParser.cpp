@@ -75,3 +75,22 @@ UINT CTotalInfo::GetTotalMixedLines() const
 	ASSERT(nResult == m_nTotalMixedLines);
 	return nResult;
 }
+
+
+CPair::CPair()
+{
+}
+CPair::CPair(LPCTSTR lpszStart, LPCTSTR lpszEnd) : m_szStart(lpszStart), m_szEnd(lpszEnd)
+{
+}
+
+CLangGrammar::CLangGrammar()
+{
+}
+CLangGrammar::~CLangGrammar()
+{
+	m_singleCommentArray.RemoveAll();
+	m_escapeCharArray.RemoveAll();
+	m_multiCommentArray.RemoveAll();
+	m_strMarkArray.RemoveAll();
+}

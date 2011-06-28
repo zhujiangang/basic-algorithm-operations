@@ -104,8 +104,6 @@ void CCFileParser::ParseFile()
 		return;
 	}
 	
-	int nResult = 0;
-	
 	CString sLine;
 	int nLineLength;
 	while(file.ReadString(sLine))
