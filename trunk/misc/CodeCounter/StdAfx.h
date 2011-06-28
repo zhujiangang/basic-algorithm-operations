@@ -14,6 +14,7 @@
 
 #include <afx.h>
 #include <afxwin.h>
+#include <afxtempl.h>
 
 // TODO: reference additional headers your program requires here
 

@@ -45,6 +45,28 @@ public:
 	UINT m_nTotalMixedLines;
 };
 
+class CPair
+{
+public:
+	CPair();
+	CPair(LPCTSTR lpszStart, LPCTSTR lpszEnd);
+public:
+	CString m_szStart;
+	CString m_szEnd;
+};
+
+class CLangGrammar
+{
+public:
+	CLangGrammar();
+	~CLangGrammar();
+public:
+	CStringArray m_singleCommentArray;
+	CStringArray m_escapeCharArray;
+	CArray<CPair, CPair&> m_multiCommentArray;
+	CArray<CPair, CPair&> m_strMarkArray;
+};
+
 class IFileParser
 {
 public:
