@@ -82,9 +82,7 @@ protected:
 	int m_nCommentSegCount;
 	//In the non-comment segment, is it all blank?
 	//In the comment segment, is the previous code segment all blank?
-	BOOL m_bAllBlank; 
-
-	CFileInfo* m_pFileInfo;
+	BOOL m_bAllBlank;
 	
 #ifdef _DEBUG
 public:

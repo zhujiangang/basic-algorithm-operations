@@ -5,6 +5,31 @@ CFileInfo::CFileInfo() : m_nTotalLines(0), m_nCodeLines(0), m_nCommentLines(0), 
 {
 }
 
+bool CFileInfo::operator==(const CFileInfo& other) const
+{
+	if(m_nTotalLines != other.m_nTotalLines)
+	{
+		return false;
+	}
+	if(m_nCodeLines != other.m_nCodeLines)
+	{
+		return false;
+	}
+	if(m_nCommentLines != other.m_nCommentLines)
+	{
+		return false;
+	}
+	if(m_nBlankLines != other.m_nBlankLines)
+	{
+		return false;
+	}
+	if(m_nMixedLines != other.m_nMixedLines)
+	{
+		return false;
+	}
+	return true;
+}
+
 void CFileInfo::SetFileName(LPCTSTR lpszFullFileName)
 {
     TCHAR drive[MAX_PATH];
@@ -76,6 +101,14 @@ UINT CTotalInfo::GetTotalMixedLines() const
 	return nResult;
 }
 
+CSingleLineComment::CSingleLineComment(LPCTSTR lpszCommentStr, int nColumn)
+{
+	if(lpszCommentStr != NULL)
+	{
+		m_szTag = lpszCommentStr;
+	}
+	m_nStartCol = nColumn;
+}
 
 CPair::CPair()
 {
@@ -90,7 +123,106 @@ CLangGrammar::CLangGrammar()
 CLangGrammar::~CLangGrammar()
 {
 	m_singleCommentArray.RemoveAll();
-	m_escapeCharArray.RemoveAll();
 	m_multiCommentArray.RemoveAll();
 	m_strMarkArray.RemoveAll();
+	m_escapeStrArray.RemoveAll();	
+}
+
+BOOL CLangGrammar::IsStartsWith(const CString& sSrc, const CString& sPrefix, int nBeginIndex)
+{
+	if( sSrc.GetLength() >= (nBeginIndex + sPrefix.GetLength()) 
+		&& sSrc.Mid(nBeginIndex, sPrefix.GetLength()) == sPrefix )
+	{
+		return TRUE;
+	}
+	return FALSE;
+}
+
+BOOL CLangGrammar::IsSingleLineComment(const CString& sLine, int nBeginIndex)
+{
+	int i, nCount = m_singleCommentArray.GetSize();
+
+	CSingleLineComment singleComment;
+	for(i = 0; i < nCount; i++)
+	{
+		singleComment = m_singleCommentArray.GetAt(i);
+
+		//TODO: concern about the case "singleComment.m_nStartCol > 0"
+		if (sLine.GetLength() >= (nBeginIndex + singleComment.m_szTag.GetLength())  &&
+			sLine.Mid(nBeginIndex, singleComment.m_szTag.GetLength()) == singleComment.m_szTag)
+		{
+			return TRUE;
+        }
+	}
+	return FALSE;
+}
+
+int  CLangGrammar::GetMultiLineCommentStartIndex(const CString& sLine, int nBeginIndex)
+{
+	int i, nCount = m_multiCommentArray.GetSize();
+	
+	CMultiLineComment multiComment;
+	for(i = 0; i < nCount; i++)
+	{
+		multiComment = m_multiCommentArray.GetAt(i);
+		
+		if (sLine.GetLength() >= (nBeginIndex + multiComment.m_szStart.GetLength())  &&
+			sLine.Mid(nBeginIndex, multiComment.m_szStart.GetLength()) == multiComment.m_szStart)
+		{
+			return i;
+        }
+	}
+	return -1;
+}
+
+BOOL CLangGrammar::IsMultiLineCommentEnd(int iIndexOfMultiComment, const CString& sLine, int nBeginIndex)
+{
+	ASSERT(iIndexOfMultiComment >= 0 && iIndexOfMultiComment < m_multiCommentArray.GetSize());
+
+	CMultiLineComment multiComment = m_multiCommentArray.GetAt(iIndexOfMultiComment);
+
+	return IsStartsWith(sLine, multiComment.m_szEnd, nBeginIndex);
+}
+
+int  CLangGrammar::IndexOfEscStr(const CString& sLine, int nBeginIndex)
+{
+	int i, nCount = m_escapeStrArray.GetSize();
+	
+	CString szEsc;
+	for(i = 0; i < nCount; i++)
+	{
+		szEsc = m_escapeStrArray.GetAt(i);
+		
+		if(IsStartsWith(sLine, szEsc, nBeginIndex))
+		{
+			return i;
+		}
+	}
+	return -1;
+}
+
+int  CLangGrammar::GetStringStartIndex(const CString& sLine, int nBeginIndex)
+{
+	int i, nCount = m_strMarkArray.GetSize();
+	
+	CPair szPair;
+	for(i = 0; i < nCount; i++)
+	{
+		szPair = m_strMarkArray.GetAt(i);
+		
+		if(IsStartsWith(sLine, szPair.m_szStart, nBeginIndex))
+		{
+			return i;
+		}
+	}
+	return -1;
+}
+
+BOOL CLangGrammar::IsStringEnd(int iStrIndex, const CString& sLine, int nBeginIndex)
+{
+	ASSERT(iStrIndex >= 0 && iStrIndex < m_strMarkArray.GetSize());
+	
+	CPair strPair = m_strMarkArray.GetAt(iStrIndex);
+	
+	return IsStartsWith(sLine, strPair.m_szEnd, nBeginIndex);
 }

@@ -4,22 +4,24 @@
 #pragma once
 
 #include "FileParser.h"
-
+class CBaseLogger;
 class CGenericFileParser : public IFileParser
 {
 public:
 	CGenericFileParser(CFileInfo* pFileInfo, CLangGrammar* pLangGrammar);
 	virtual ~CGenericFileParser();
-	virtual void ParseFile();
-
+	virtual void ParseFile();	
+	void Increase(DWORD dwFlags);
+	void SetLogger(LPCTSTR lpLogFileName);
+	void ParseLine(const CString *pLine, bool& bMultiLineComment, bool& bHasCode, bool& bHasComments, int& iMultiLineComment);
 protected:
 	BOOL IsSpace(int ch);
 	void CountBlankLineInCommentBlock();
 	void CountCodeCommentInOneLine();
 
 protected:
-	CFileInfo* m_pFileInfo;
 	CLangGrammar* m_pLangGrammar;
+	CBaseLogger* m_pLogger;
 };
 
 #endif
