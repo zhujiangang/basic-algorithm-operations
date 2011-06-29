@@ -52,7 +52,7 @@ int CCFileParser::nextLineState[] =
 	STAT_FIRST_SQM           //  STAT_ESC_AFTER_FIRST_SQM
 };
 
-CCFileParser::CCFileParser(CFileInfo* pFileInfo) : IFileParser(), m_pFileInfo(pFileInfo)
+CCFileParser::CCFileParser(CFileInfo* pFileInfo) : IFileParser(pFileInfo)
 {
 	m_eModeCountBlankLine = COUNT_BLANK_LINE_AS_BLANK_IN_COMMENT_BLOCK;
 	FileParserActionProc temp[MAX_STAT][MAX_TRANS] = 
@@ -369,7 +369,7 @@ void CCFileParser::Increase(DWORD dwFlags)
 	{
 		sLineInfo += _T("MIXED");
 	}
-	fprintf(m_pLogFile, "Current Line=%d, Type=%s, dwFlags=%x\n",  m_pFileInfo->m_nTotalLines, sLineInfo, dwFlags);
+	fprintf(m_pLogFile, "(%d), Type=%s, dwFlags=%x\n",  m_pFileInfo->m_nTotalLines, sLineInfo, dwFlags);
 #endif
 }
 

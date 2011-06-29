@@ -21,6 +21,7 @@
 #endif // _AFX_NO_AFXCMN_SUPPORT
 
 #include <iostream>
+#include <afxtempl.h>
 
 // TODO: reference additional headers your program requires here
 

@@ -16,6 +16,7 @@ public:
 	void SetFileName(LPCTSTR lpszFullFileName);
 	UINT GetMixedLines() const;
 	void Increase(DWORD dwFlags);
+	bool operator==(const CFileInfo& other) const;
 public:
 	CString m_sFullFileName;
 	
@@ -45,6 +46,19 @@ public:
 	UINT m_nTotalMixedLines;
 };
 
+#define START_COLUMN_ANY	(-1)
+//SOL -- Start of Line
+#define START_COLUMN_SOL	(0)
+
+class CSingleLineComment
+{
+public:
+	CSingleLineComment(LPCTSTR lpszCommentStr = NULL, int nColumn = START_COLUMN_ANY);
+public:
+	CString m_szTag;
+	int m_nStartCol;
+};
+
 class CPair
 {
 public:
@@ -55,25 +69,36 @@ public:
 	CString m_szEnd;
 };
 
+typedef CPair CMultiLineComment;
+
 class CLangGrammar
 {
 public:
 	CLangGrammar();
 	~CLangGrammar();
+	BOOL IsSingleLineComment(const CString& sLine, int nBeginIndex = 0);
+	int  GetMultiLineCommentStartIndex(const CString& sLine, int nBeginIndex = 0);
+	BOOL IsMultiLineCommentEnd(int iIndexOfMultiComment, const CString& sLine, int nBeginIndex = 0);
+	int  IndexOfEscStr(const CString& sLine, int nBeginIndex = 0);
+	int  GetStringStartIndex(const CString& sLine, int nBeginIndex = 0);
+	BOOL IsStringEnd(int iStrIndex, const CString& sLine, int nBeginIndex = 0);
+	static BOOL IsStartsWith(const CString& sSrc, const CString& sPrefix, int nBeginIndex = 0);
 public:
-	CStringArray m_singleCommentArray;
-	CStringArray m_escapeCharArray;
-	CArray<CPair, CPair&> m_multiCommentArray;
+	CArray<CSingleLineComment, CSingleLineComment&> m_singleCommentArray;
+	CArray<CMultiLineComment, CMultiLineComment&> m_multiCommentArray;
 	CArray<CPair, CPair&> m_strMarkArray;
+	CStringArray m_escapeStrArray;	
 };
 
 class IFileParser
 {
 public:
-    IFileParser() {};
+	IFileParser(CFileInfo* pFileInfo = NULL) : m_pFileInfo(pFileInfo) {};
     virtual ~IFileParser() {};
 	
     virtual void ParseFile() = 0;
+protected:
+	CFileInfo* m_pFileInfo;
 };
 
 #endif
