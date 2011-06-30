@@ -122,55 +122,67 @@ CLangGrammar::CLangGrammar()
 }
 CLangGrammar::~CLangGrammar()
 {
-	m_singleCommentArray.RemoveAll();
-	m_multiCommentArray.RemoveAll();
-	m_strMarkArray.RemoveAll();
-	m_escapeStrArray.RemoveAll();	
+	m_singleCommentArray.Clear();
+	m_multiCommentArray.Clear();
+	m_stringMarkArray.Clear();
+	m_charMarkArray.Clear();
+	m_escapeStrArray.Clear();
 }
 
 BOOL CLangGrammar::IsStartsWith(const CString& sSrc, const CString& sPrefix, int nBeginIndex)
 {
-	if( sSrc.GetLength() >= (nBeginIndex + sPrefix.GetLength()) 
-		&& sSrc.Mid(nBeginIndex, sPrefix.GetLength()) == sPrefix )
+	int nPrefixLen = sPrefix.GetLength();
+	if(nBeginIndex + nPrefixLen > sSrc.GetLength())
 	{
-		return TRUE;
+		return FALSE;
 	}
-	return FALSE;
+	for(int i = 0; i < nPrefixLen; i++)
+	{
+		if(sPrefix.GetAt(i) != sSrc.GetAt(nBeginIndex + i))
+		{
+			return FALSE;
+		}
+	}
+	return TRUE;
 }
 
 BOOL CLangGrammar::IsSingleLineComment(const CString& sLine, int nBeginIndex)
 {
-	int i, nCount = m_singleCommentArray.GetSize();
-
-	CSingleLineComment singleComment;
-	for(i = 0; i < nCount; i++)
+	int nCount = m_singleCommentArray.GetSize();
+	if(nCount <= 0)
 	{
-		singleComment = m_singleCommentArray.GetAt(i);
+		return FALSE;
+	}
+
+	for(int i = 0; i < nCount; i++)
+	{
+		CSingleLineComment& singleComment = m_singleCommentArray.GetAt(i);
 
 		//TODO: concern about the case "singleComment.m_nStartCol > 0"
-		if (sLine.GetLength() >= (nBeginIndex + singleComment.m_szTag.GetLength())  &&
-			sLine.Mid(nBeginIndex, singleComment.m_szTag.GetLength()) == singleComment.m_szTag)
+		if(IsStartsWith(sLine, singleComment.m_szTag, nBeginIndex))
 		{
 			return TRUE;
-        }
+		}
 	}
 	return FALSE;
 }
 
 int  CLangGrammar::GetMultiLineCommentStartIndex(const CString& sLine, int nBeginIndex)
 {
-	int i, nCount = m_multiCommentArray.GetSize();
-	
-	CMultiLineComment multiComment;
-	for(i = 0; i < nCount; i++)
+	int nCount = m_multiCommentArray.GetSize();
+	if(nCount <= 0)
 	{
-		multiComment = m_multiCommentArray.GetAt(i);
+		return -1;
+	}
+	
+	for(int i = 0; i < nCount; i++)
+	{
+		CMultiLineComment& multiComment = m_multiCommentArray.GetAt(i);
 		
-		if (sLine.GetLength() >= (nBeginIndex + multiComment.m_szStart.GetLength())  &&
-			sLine.Mid(nBeginIndex, multiComment.m_szStart.GetLength()) == multiComment.m_szStart)
+		if(IsStartsWith(sLine, multiComment.m_szStart, nBeginIndex))
 		{
 			return i;
-        }
+		}
 	}
 	return -1;
 }
@@ -179,19 +191,22 @@ BOOL CLangGrammar::IsMultiLineCommentEnd(int iIndexOfMultiComment, const CString
 {
 	ASSERT(iIndexOfMultiComment >= 0 && iIndexOfMultiComment < m_multiCommentArray.GetSize());
 
-	CMultiLineComment multiComment = m_multiCommentArray.GetAt(iIndexOfMultiComment);
+	CMultiLineComment& multiComment = m_multiCommentArray.GetAt(iIndexOfMultiComment);
 
 	return IsStartsWith(sLine, multiComment.m_szEnd, nBeginIndex);
 }
 
 int  CLangGrammar::IndexOfEscStr(const CString& sLine, int nBeginIndex)
 {
-	int i, nCount = m_escapeStrArray.GetSize();
-	
-	CString szEsc;
-	for(i = 0; i < nCount; i++)
+	int nCount = m_escapeStrArray.GetSize();
+	if(nCount <= 0)
 	{
-		szEsc = m_escapeStrArray.GetAt(i);
+		return -1;
+	}
+	
+	for(int i = 0; i < nCount; i++)
+	{
+		CString& szEsc = m_escapeStrArray.GetAt(i);
 		
 		if(IsStartsWith(sLine, szEsc, nBeginIndex))
 		{
@@ -203,12 +218,15 @@ int  CLangGrammar::IndexOfEscStr(const CString& sLine, int nBeginIndex)
 
 int  CLangGrammar::GetStringStartIndex(const CString& sLine, int nBeginIndex)
 {
-	int i, nCount = m_strMarkArray.GetSize();
-	
-	CPair szPair;
-	for(i = 0; i < nCount; i++)
+	int nCount = m_stringMarkArray.GetSize();
+	if(nCount <= 0)
 	{
-		szPair = m_strMarkArray.GetAt(i);
+		return -1;
+	}
+	
+	for(int i = 0; i < nCount; i++)
+	{
+		CPair& szPair = m_stringMarkArray.GetAt(i);
 		
 		if(IsStartsWith(sLine, szPair.m_szStart, nBeginIndex))
 		{
@@ -220,9 +238,37 @@ int  CLangGrammar::GetStringStartIndex(const CString& sLine, int nBeginIndex)
 
 BOOL CLangGrammar::IsStringEnd(int iStrIndex, const CString& sLine, int nBeginIndex)
 {
-	ASSERT(iStrIndex >= 0 && iStrIndex < m_strMarkArray.GetSize());
+	ASSERT(iStrIndex >= 0 && iStrIndex < m_stringMarkArray.GetSize());
 	
-	CPair strPair = m_strMarkArray.GetAt(iStrIndex);
+	CPair& strPair = m_stringMarkArray.GetAt(iStrIndex);
+	
+	return IsStartsWith(sLine, strPair.m_szEnd, nBeginIndex);
+}
+
+int  CLangGrammar::GetCharStartIndex(const CString& sLine, int nBeginIndex)
+{
+	int nCount = m_charMarkArray.GetSize();
+	if(nCount <= 0)
+	{
+		return -1;
+	}
+	
+	for(int i = 0; i < nCount; i++)
+	{
+		CPair& szPair = m_charMarkArray.GetAt(i);
+		
+		if(IsStartsWith(sLine, szPair.m_szStart, nBeginIndex))
+		{
+			return i;
+		}
+	}
+	return -1;
+}
+BOOL CLangGrammar::IsCharEnd(int iStrIndex, const CString& sLine, int nBeginIndex)
+{
+	ASSERT(iStrIndex >= 0 && iStrIndex < m_charMarkArray.GetSize());
+	
+	CPair& strPair = m_charMarkArray.GetAt(iStrIndex);
 	
 	return IsStartsWith(sLine, strPair.m_szEnd, nBeginIndex);
 }

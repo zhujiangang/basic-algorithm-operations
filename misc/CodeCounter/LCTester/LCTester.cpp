@@ -20,10 +20,12 @@ static char THIS_FILE[] = __FILE__;
 CWinApp theApp;
 
 using namespace std;
+bool bBatchTest = false;
 void test(LPCTSTR lpFileName);
 int EnumDirectoryIt(LPCTSTR lpszDirName)
 {
 	ASSERT(lpszDirName);
+	bBatchTest = true;
 	
 	CStringList sDirList;
 	sDirList.AddTail(lpszDirName);
@@ -121,10 +123,13 @@ CFileInfo* parseByFsm(LPCTSTR lpFileName)
 	CFileInfo* pFileInfo = new CFileInfo();
 	pFileInfo->SetFileName(lpFileName);
 	CCFileParser parser(pFileInfo);
+#ifdef _DEBUG
 	parser.SetLogFile("C:\\temp\\fsm_log.txt");
+#endif
 	parser.ParseFile();
 	return pFileInfo;
 }
+
 
 CFileInfo* parseByPlc(LPCTSTR lpFileName)
 {
@@ -133,10 +138,31 @@ CFileInfo* parseByPlc(LPCTSTR lpFileName)
 	CPlcFileParser parser(pFileInfo);
 
 	LPCTSTR lpLogFile = "C:\\temp\\plc_log.txt";
-//	parser.SetLogger(lpLogFile);
+	if(!bBatchTest)
+	{
+		parser.SetLogger(lpLogFile);
+	}
 
 	parser.ParseFile();
 	return pFileInfo;
+}
+CLangGrammar langGrammar;
+
+void InitGrammar()
+{	
+	CSingleLineComment singleComment("//");
+	langGrammar.m_singleCommentArray.Add(singleComment);
+	
+	CMultiLineComment multiComment("/*", "*/");
+	langGrammar.m_multiCommentArray.Add(multiComment);
+	
+	CPair strPair("\"", "\"");
+	langGrammar.m_stringMarkArray.Add(strPair);
+	
+	CPair strPair2("'", "'");
+	langGrammar.m_stringMarkArray.Add(strPair2);
+	
+	langGrammar.m_escapeStrArray.Add("\\");
 }
 
 CFileInfo* parseByGen(LPCTSTR lpFileName)
@@ -144,25 +170,12 @@ CFileInfo* parseByGen(LPCTSTR lpFileName)
 	CFileInfo* pFileInfo = new CFileInfo();
 	pFileInfo->SetFileName(lpFileName);
 
-	CLangGrammar langGrammar;
-
-	CSingleLineComment singleComment("//");
-	langGrammar.m_singleCommentArray.Add(singleComment);
-
-	CMultiLineComment multiComment("/*", "*/");
-	langGrammar.m_multiCommentArray.Add(multiComment);
-
-	CPair strPair("\"", "\"");
-	langGrammar.m_strMarkArray.Add(strPair);
-
-	CPair strPair2("'", "'");
-	langGrammar.m_strMarkArray.Add(strPair2);
-
-	langGrammar.m_escapeStrArray.Add("\\");
-
 	CGenericFileParser parser(pFileInfo, &langGrammar);
 	LPCTSTR lpLogFile = "C:\\temp\\gen_log.txt";
-//	parser.SetLogger(lpLogFile);
+	if(!bBatchTest)
+	{
+		parser.SetLogger(lpLogFile);
+	}	
 	
 	parser.ParseFile();
 	return pFileInfo;
@@ -199,18 +212,19 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 	else
 	{
 		// TODO: code your application's behavior here.
-		CString strHello;
-		strHello.LoadString(IDS_HELLO);
-		cout << (LPCTSTR)strHello << endl;
+// 		CString strHello;
+// 		strHello.LoadString(IDS_HELLO);
+// 		cout << (LPCTSTR)strHello << endl;
 	}
-
+	bBatchTest = false;
+	InitGrammar();
 	LPCTSTR lpFileName = _T("C:\\diskf\\workspace3.4.1\\e2u\\src\\com\\e2u\\test\\test.txt");
-// 	lpFileName = "C:\\diskf\\vc6works\\msdn\\Samples\\VC98\\sdk\\graphics\\audio\\acmapp\\acmapp.h";
- 	lpFileName = "C:\\lgao1\\87svnwc\\cosps\\CxImage\\CxImage5.99\\jbig\\jbig.c";
- 	lpFileName = "C:\\lgao1\\87svnwc\\cosps\\tinyxml_2_5_3\\tinystr.cpp";
+ 	lpFileName = "C:\\lgao1\\87svnwc\\cosps\\tinyxml_2_5_3\\tinyxmlparser.cpp";
+	lpFileName = "C:\\temp\\abc.txt";
+	lpFileName = "C:\\lgao1\\87svnwc\\dvd-slideshow\\dvd-slideshow";
 	test(lpFileName);
 
-	EnumDirectoryIt(_T("C:\\lgao1\\87svnwc\\cosps"));
+	EnumDirectoryIt(_T("C:\\lgao1\\87svnwc"));
 
 	return nRetCode;
 }
