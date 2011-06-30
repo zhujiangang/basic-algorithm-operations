@@ -9,6 +9,8 @@
 #define MASK_BLANK_LINE		0x00000004
 #define MASK_MIXED_LINE		0x00000008
 
+#include "TinyVector.h"
+
 class CFileInfo
 {
 public:
@@ -82,12 +84,21 @@ public:
 	int  IndexOfEscStr(const CString& sLine, int nBeginIndex = 0);
 	int  GetStringStartIndex(const CString& sLine, int nBeginIndex = 0);
 	BOOL IsStringEnd(int iStrIndex, const CString& sLine, int nBeginIndex = 0);
+	int  GetCharStartIndex(const CString& sLine, int nBeginIndex = 0);
+	BOOL IsCharEnd(int iStrIndex, const CString& sLine, int nBeginIndex = 0);
 	static BOOL IsStartsWith(const CString& sSrc, const CString& sPrefix, int nBeginIndex = 0);
 public:
-	CArray<CSingleLineComment, CSingleLineComment&> m_singleCommentArray;
-	CArray<CMultiLineComment, CMultiLineComment&> m_multiCommentArray;
-	CArray<CPair, CPair&> m_strMarkArray;
-	CStringArray m_escapeStrArray;	
+// 	CArray<CSingleLineComment, CSingleLineComment&> m_singleCommentArray;
+// 	CArray<CMultiLineComment, CMultiLineComment&> m_multiCommentArray;
+// 	CArray<CPair, CPair&> m_stringMarkArray;	// eg. "string"
+// 	CArray<CPair, CPair&> m_charMarkArray;		// eg. 'A'
+// 	CStringArray m_escapeStrArray;
+
+	CTinyVector<CSingleLineComment> m_singleCommentArray;
+	CTinyVector<CMultiLineComment> m_multiCommentArray;
+	CTinyVector<CPair> m_stringMarkArray;	// eg. "string"
+	CTinyVector<CPair> m_charMarkArray;		// eg. 'A'
+	CTinyVector<CString> m_escapeStrArray;	
 };
 
 class IFileParser

@@ -85,6 +85,10 @@ LIB32=link.exe -lib
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 # Begin Source File
 
+SOURCE=.\BaseLogger.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\CFileParser.cpp
 # End Source File
 # Begin Source File
@@ -101,10 +105,6 @@ SOURCE=.\PLCFileParser.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\BaseLogger.cpp
-# End Source File
-# Begin Source File
-
 SOURCE=.\StdAfx.cpp
 # ADD CPP /Yc"stdafx.h"
 # End Source File
@@ -112,6 +112,10 @@ SOURCE=.\StdAfx.cpp
 # Begin Group "Header Files"
 
 # PROP Default_Filter "h;hpp;hxx;hm;inl"
+# Begin Source File
+
+SOURCE=.\BaseLogger.h
+# End Source File
 # Begin Source File
 
 SOURCE=.\CFileParser.h
@@ -126,15 +130,15 @@ SOURCE=.\GenericFileParser.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\BaseLogger.h
-# End Source File
-# Begin Source File
-
 SOURCE=.\PLCFileParser.h
 # End Source File
 # Begin Source File
 
 SOURCE=.\StdAfx.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\TinyVector.h
 # End Source File
 # End Group
 # Begin Source File

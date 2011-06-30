@@ -110,7 +110,47 @@ void CPlcFileParser::ParseLine(
             bHasComments = true;
             return;
         }
-		
+		else if(!bInMultiLineComment  &&  !bInString && ((char)ch == '\'') )
+		{
+			bHasCode = true;
+			
+			int oldIndex = i;
+			//go to next char
+			i++;
+			
+			//This should be a grammar error. 
+			//Eg. The char ' is the last char in the line
+			if(i >= iLineLen - 1)
+			{
+				return;
+			}
+			ch = (*pLine)[i];
+			if( ch == '\\' )
+			{
+				i++;
+			}
+			//This should be a grammar error. 
+			//Eg. The char '\ is the last char in the line
+			if(i >= iLineLen - 1)
+			{
+				return;
+			}
+			
+			//Skip one char
+			i++;
+			if(i >= iLineLen - 1)
+			{
+				return;
+			}
+			ch = (*pLine)[i];
+			//This should be a grammar error. We just skip this error. 
+			//Eg. 'abcd, ' is expected after the char a
+			if( ch != '\'' ) // in eg. ch == b
+			{
+				//Go back to '
+				i = oldIndex;
+			}
+		}
         // start of /* comment
         else if (IS_PAIR(/, *)  &&  !bInMultiLineComment  &&  !bInString  &&  
             cfg_bProcessComments)
@@ -121,7 +161,7 @@ void CPlcFileParser::ParseLine(
         }
 		
         // end of /* comment (
-        else if (IS_PAIR(*, /)  &&  !bInString  &&  cfg_bProcessComments)
+        else if (IS_PAIR(*, /)  &&  bInMultiLineComment && !bInString  &&  cfg_bProcessComments)
         {
             bInMultiLineComment = false;
             ++i;
