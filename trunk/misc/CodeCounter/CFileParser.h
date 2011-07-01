@@ -18,12 +18,6 @@ protected:
 	void CommentEndAction(CString& line, int chIndex);
 	void CommentSegIncAction(CString& line, int chIndex);
 	void CodeBlankMarkSetAction(CString& line, int chIndex);
-
-	BOOL IsSpace(int ch);
-	void CountBlankLineInCommentBlock();
-	void CountCodeCommentInOneLine();
-
-	void Increase(DWORD dwFlag);
 protected:
 	//All the states in the FSM.
 	enum EStat
@@ -83,12 +77,6 @@ protected:
 	//In the non-comment segment, is it all blank?
 	//In the comment segment, is the previous code segment all blank?
 	BOOL m_bAllBlank;
-	
-#ifdef _DEBUG
-public:
-	FILE* m_pLogFile;
-	void SetLogFile(LPCTSTR lpLogFileName);
-#endif
 };
 
 #endif

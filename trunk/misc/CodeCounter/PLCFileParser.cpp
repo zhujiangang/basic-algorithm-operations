@@ -2,17 +2,12 @@
 #include "PLCFileParser.h"
 #include "BaseLogger.h"
 
-CPlcFileParser::CPlcFileParser(CFileInfo* pFileInfo) : IFileParser(pFileInfo), m_pLogger(NULL)
+CPlcFileParser::CPlcFileParser(CFileInfo* pFileInfo) : IFileParser(pFileInfo)
 {
 }
 
 CPlcFileParser::~CPlcFileParser()
 {
-	if(m_pLogger != NULL)
-	{
-		delete m_pLogger;
-		m_pLogger = NULL;
-	}
 }
 
 BOOL cfg_bProcessComments = TRUE;
@@ -188,60 +183,4 @@ void CPlcFileParser::ParseLine(
             }
         }
     }
-}
-
-void CPlcFileParser::CountBlankLineInCommentBlock()
-{
-	Increase(MASK_COMMENT_LINE);
-}
-
-void CPlcFileParser::CountCodeCommentInOneLine()
-{
-	Increase(MASK_CODE_LINE | MASK_COMMENT_LINE | MASK_MIXED_LINE);
-}
-
-BOOL CPlcFileParser::IsSpace(int ch)
-{
-	if(ch == ' ' || ch == '\t')
-	{
-		return TRUE;
-	}
-	return FALSE;
-}
-
-void CPlcFileParser::Increase(DWORD dwFlags)
-{
-	m_pFileInfo->Increase(dwFlags);
-	if(m_pLogger == NULL)
-	{
-		return;
-	}
-
-	if(dwFlags == MASK_TOTAL_LINE)
-	{
-		return;
-	}
-	CString sLineInfo;
-	if(dwFlags & MASK_CODE_LINE)
-	{
-		sLineInfo += _T("CODE ");
-	}
-	if(dwFlags & MASK_COMMENT_LINE)
-	{
-		sLineInfo += _T("COMMENT ");
-	}
-	if(dwFlags & MASK_BLANK_LINE)
-	{
-		sLineInfo += _T("BLANK ");
-	}
-	if(dwFlags & MASK_MIXED_LINE)
-	{
-		sLineInfo += _T("MIXED");
-	}
-	m_pLogger->log(1, "(%d), Type=%s, dwFlags=%x\n", m_pFileInfo->m_nTotalLines, sLineInfo, dwFlags);
-}
-
-void CPlcFileParser::SetLogger(LPCTSTR lpLogFileName)
-{
-	m_pLogger = new CBaseLogger(lpLogFileName);
 }

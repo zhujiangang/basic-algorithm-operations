@@ -9,12 +9,10 @@
 #define MASK_BLANK_LINE		0x00000004
 #define MASK_MIXED_LINE		0x00000008
 
-#include "TinyVector.h"
-
 class CFileInfo
 {
 public:
-	CFileInfo();
+	CFileInfo(LPCTSTR lpszFullFileName = NULL);
 	void SetFileName(LPCTSTR lpszFullFileName);
 	UINT GetMixedLines() const;
 	void Increase(DWORD dwFlags);
@@ -48,68 +46,48 @@ public:
 	UINT m_nTotalMixedLines;
 };
 
-#define START_COLUMN_ANY	(-1)
-//SOL -- Start of Line
-#define START_COLUMN_SOL	(0)
+#define FP_MODE_BLANK_IN_COMMENT_BLOCK_COMMENT			0x00000001
+#define FP_MODE_MIXED_LINE_CODE							0x00000002
+#define FP_MODE_MIXED_LINE_COMMENT						0x00000004
+#define FP_MODE_STRING_IN_MULTI_LINE					0x00000008
+#define FP_MODE_BLANK_IN_MULTI_LINE_STRING_AS_BLANK		0x00000010
 
-class CSingleLineComment
-{
-public:
-	CSingleLineComment(LPCTSTR lpszCommentStr = NULL, int nColumn = START_COLUMN_ANY);
-public:
-	CString m_szTag;
-	int m_nStartCol;
-};
+#define FP_MODE_DEFAULT									0x000000FF
 
-class CPair
-{
-public:
-	CPair();
-	CPair(LPCTSTR lpszStart, LPCTSTR lpszEnd);
-public:
-	CString m_szStart;
-	CString m_szEnd;
-};
-
-typedef CPair CMultiLineComment;
-
-class CLangGrammar
-{
-public:
-	CLangGrammar();
-	~CLangGrammar();
-	BOOL IsSingleLineComment(const CString& sLine, int nBeginIndex = 0);
-	int  GetMultiLineCommentStartIndex(const CString& sLine, int nBeginIndex = 0);
-	BOOL IsMultiLineCommentEnd(int iIndexOfMultiComment, const CString& sLine, int nBeginIndex = 0);
-	int  IndexOfEscStr(const CString& sLine, int nBeginIndex = 0);
-	int  GetStringStartIndex(const CString& sLine, int nBeginIndex = 0);
-	BOOL IsStringEnd(int iStrIndex, const CString& sLine, int nBeginIndex = 0);
-	int  GetCharStartIndex(const CString& sLine, int nBeginIndex = 0);
-	BOOL IsCharEnd(int iStrIndex, const CString& sLine, int nBeginIndex = 0);
-	static BOOL IsStartsWith(const CString& sSrc, const CString& sPrefix, int nBeginIndex = 0);
-public:
-// 	CArray<CSingleLineComment, CSingleLineComment&> m_singleCommentArray;
-// 	CArray<CMultiLineComment, CMultiLineComment&> m_multiCommentArray;
-// 	CArray<CPair, CPair&> m_stringMarkArray;	// eg. "string"
-// 	CArray<CPair, CPair&> m_charMarkArray;		// eg. 'A'
-// 	CStringArray m_escapeStrArray;
-
-	CTinyVector<CSingleLineComment> m_singleCommentArray;
-	CTinyVector<CMultiLineComment> m_multiCommentArray;
-	CTinyVector<CPair> m_stringMarkArray;	// eg. "string"
-	CTinyVector<CPair> m_charMarkArray;		// eg. 'A'
-	CTinyVector<CString> m_escapeStrArray;	
-};
-
+class CBaseLogger;
 class IFileParser
 {
 public:
-	IFileParser(CFileInfo* pFileInfo = NULL) : m_pFileInfo(pFileInfo) {};
-    virtual ~IFileParser() {};
+	IFileParser(CFileInfo* pFileInfo = NULL, DWORD nMode = FP_MODE_DEFAULT, LPCTSTR lpLogFileName = NULL);
+    virtual ~IFileParser();
 	
-    virtual void ParseFile() = 0;
+	void SetFileInfo(CFileInfo* pFileInfo)
+	{
+		m_pFileInfo = pFileInfo;
+	}
+
+	virtual void ParseFile() = 0;
+
+	void SetLogger(LPCTSTR lpLogFileName);
+	DWORD GetMode() const
+	{
+		return m_nMode;
+	}
+	void SetMode(DWORD nMode)
+	{
+		m_nMode = nMode;
+	}
+protected:
+	virtual void Increase(DWORD dwFlags);
+	virtual void CountBlankLineInCommentBlock();
+	virtual void CountBlankLineInMultiString();
+	virtual void CountCodeCommentInOneLine();
 protected:
 	CFileInfo* m_pFileInfo;
+	CBaseLogger* m_pLogger;
+	DWORD	m_nMode;
+public:
+	static BOOL IsSpace(int ch);
 };
 
 #endif

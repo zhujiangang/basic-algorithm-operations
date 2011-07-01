@@ -21,7 +21,7 @@ public:
 	}
 	~CTinyVector()
 	{
-		Clear();
+		RemoveAll();
 	}
 	void Add(const T& data)
 	{
@@ -53,11 +53,20 @@ public:
 		}
 		return m_pVectorExt->at(pos);
 	}
+	const T& GetAt(size_type pos) const
+	{
+		ASSERT(pos < m_size);
+		if(m_size == 1)
+		{
+			return m_data;
+		}
+		return m_pVectorExt->at(pos);
+	}
 	size_type GetSize() const
 	{
 		return m_size;
 	}
-	void Clear()
+	void RemoveAll()
 	{
 		if(m_size > 1)
 		{

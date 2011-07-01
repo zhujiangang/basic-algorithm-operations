@@ -1,90 +1,18 @@
 #include "StdAfx.h"
 #include "GenericFileParser.h"
 #include "BaseLogger.h"
-#include "TinyVector.h"
+#include "LangGrammar.h"
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#undef THIS_FILE
-static char THIS_FILE[] = __FILE__;
-#endif
-
-CGenericFileParser::CGenericFileParser(CFileInfo* pFileInfo, CLangGrammar* pLangGrammar)
-	: IFileParser(pFileInfo), m_pLangGrammar(pLangGrammar), m_pLogger(NULL)
+CGenericFileParser::CGenericFileParser(CFileInfo* pFileInfo, CLangGrammar* pLangGrammar, DWORD nMode, LPCTSTR lpLogFileName)
+	: IFileParser(pFileInfo, nMode, lpLogFileName), m_pLangGrammar(pLangGrammar)
 {
 }
 
 CGenericFileParser::~CGenericFileParser()
 {
-	if(m_pLogger != NULL)
-	{
-		delete m_pLogger;
-		m_pLogger = NULL;
-	}	
 }
 
-void CGenericFileParser::SetLogger(LPCTSTR lpLogFileName)
-{
-	m_pLogger = new CBaseLogger(lpLogFileName);
-}
-/*
-void CGenericFileParser::ParseFile()
-{
-	CStdioFile file;
-	if(!file.Open(m_pFileInfo->m_sFullFileName, CFile::modeRead))
-	{
-		AfxTrace(_T("Failed to Open file %s\n"), m_pFileInfo->m_sFullFileName);
-		return;
-	}
-	
-	CString sLine;
-	bool bInMultiLineComment = false, bHasCode, bHasComments;
-	int iMultiLineComment = -1;
-	while(file.ReadString(sLine))
-	{
-		Increase(MASK_TOTAL_LINE);
-		
-		sLine.TrimLeft();
-		sLine.TrimRight();
-		if(sLine.IsEmpty())
-		{
-			if(bInMultiLineComment)
-			{
-				CountBlankLineInCommentBlock();
-			}
-			else
-			{
-				Increase(MASK_BLANK_LINE);
-			}
-			continue;
-		}
-		
-        ParseLine(&sLine, bInMultiLineComment, bHasCode, bHasComments, iMultiLineComment);
 
-		if( bHasComments && bHasCode)
-		{
-			CountCodeCommentInOneLine();
-		}
-		else
-		{
-			if (bHasComments)
-			{
-				Increase(MASK_COMMENT_LINE);
-			}
-			if (bHasCode)
-			{
-				Increase(MASK_CODE_LINE);
-			}
-		}
-        if (!bHasCode  &&  !bHasComments)
-        {
-			Increase(MASK_BLANK_LINE);
-        }
-	}
-	
-	file.Close();
-}
-*/
 void CGenericFileParser::ParseFile()
 {
 	CStdioFile file;
@@ -102,14 +30,33 @@ void CGenericFileParser::ParseFile()
 	while(file.ReadString(sLine))
 	{
 		Increase(MASK_TOTAL_LINE);
+
+		if(state.m_nMajorState == STATE_STRING)
+		{
+			//Multi Line String is NOT allowed
+			if( (m_nMode & FP_MODE_STRING_IN_MULTI_LINE) == 0)
+			{
+				state.m_nMajorState = STATE_NORMAL;
+				if(m_pLogger != NULL)
+				{
+					m_pLogger->log(1, "[Grammar Error]: Unexpected String in line(%d)\n", m_pFileInfo->m_nTotalLines);
+				}
+			}
+		}
 		
 		sLine.TrimLeft();
 		sLine.TrimRight();
+
 		if(sLine.IsEmpty())
 		{
 			if(state.m_nMajorState == STATE_MULTI_COMMENT)
 			{
 				CountBlankLineInCommentBlock();
+			}
+			//Multi Line String must be allowed yet.
+			else if(state.m_nMajorState == STATE_STRING)
+			{
+				CountBlankLineInMultiString();
 			}
 			else
 			{
@@ -117,18 +64,7 @@ void CGenericFileParser::ParseFile()
 			}
 			continue;
 		}
-		if(m_pFileInfo->m_nTotalLines == 1282)
-		{
-			AfxTrace("Just here for Debug\n");
-		}
-		if(state.m_nMajorState != STATE_MULTI_COMMENT && state.m_nMajorState != STATE_NORMAL)
-		{
-			state.m_nMajorState = STATE_NORMAL;
-// 			if(m_pLogger != NULL)
-// 			{
-// 				m_pLogger->log(1, "State Wrong. State=%d, line=%d\n", state.m_nMajorState, m_pFileInfo->m_nTotalLines);
-// 			}		
-		}
+
         ParseLineFsm(sLine, state, bHasCode, bHasComments);
 		
 		if( bHasComments && bHasCode)
@@ -146,10 +82,6 @@ void CGenericFileParser::ParseFile()
 				Increase(MASK_CODE_LINE);
 			}
 		}
-        if (!bHasCode  &&  !bHasComments)
-        {
-			Increase(MASK_BLANK_LINE);
-        }
 	}
 	
 	file.Close();
@@ -182,7 +114,7 @@ void CGenericFileParser::ParseLineFsm(const CString& sLine, ParseState& state, b
 				int oldIndex = i;
 				
 				CPair& pair = m_pLangGrammar->m_charMarkArray.GetAt(iCharIndex);
-				i += pair.m_szStart.GetLength();
+				i += GetLength(pair.m_szStart);
 				
 				//This should be a grammar error. 
 				//Eg. The char ' is the last char in the line
@@ -193,8 +125,8 @@ void CGenericFileParser::ParseLineFsm(const CString& sLine, ParseState& state, b
 				
 				if( (iIndex = m_pLangGrammar->IndexOfEscStr(sLine, i)) >= 0 )
 				{
-					CString szEsc = m_pLangGrammar->m_escapeStrArray.GetAt(iIndex);
-					i += szEsc.GetLength();
+					LG_STRING szEsc = m_pLangGrammar->m_escapeStrArray.GetAt(iIndex);
+					i += GetLength(szEsc);
 
 					//This should be a grammar error. 
 					//Eg. The char '\ is the last char in the line
@@ -214,8 +146,9 @@ void CGenericFileParser::ParseLineFsm(const CString& sLine, ParseState& state, b
 				}
 				else
 				{
-					i += pair.m_szEnd.GetLength() - 1;
+					i += GetLength(pair.m_szEnd) - 1;
 				}
+				continue;
 			}
 			//3. Multi Line Comment Check: /*
 			else if( (iIndex = m_pLangGrammar->GetMultiLineCommentStartIndex(sLine, i)) >= 0 )
@@ -227,7 +160,9 @@ void CGenericFileParser::ParseLineFsm(const CString& sLine, ParseState& state, b
 				state.m_nMinorState = iIndex;
 
 				CPair pair = m_pLangGrammar->m_multiCommentArray.GetAt(iIndex);
-				i += pair.m_szStart.GetLength() - 1;
+				i += GetLength(pair.m_szStart) - 1;
+
+				continue;
 			}
 			//4. String Check: "
 			else if( (iIndex = m_pLangGrammar->GetStringStartIndex(sLine, i)) >= 0 )
@@ -239,7 +174,9 @@ void CGenericFileParser::ParseLineFsm(const CString& sLine, ParseState& state, b
 				state.m_nMinorState = iIndex;
 
 				CPair pair = m_pLangGrammar->m_stringMarkArray.GetAt(iIndex);
-				i += pair.m_szStart.GetLength() - 1;
+				i += GetLength(pair.m_szStart) - 1;
+
+				continue;
 			}
 			//5. Escape Char Check: 
 			else if((iIndex = m_pLangGrammar->IndexOfEscStr(sLine, i)) >= 0)
@@ -248,8 +185,10 @@ void CGenericFileParser::ParseLineFsm(const CString& sLine, ParseState& state, b
 
 				// escape character - so skip next char
 				//++i;
-				CString szEsc = m_pLangGrammar->m_escapeStrArray.GetAt(iIndex);
-				i += szEsc.GetLength();					
+				LG_STRING szEsc = m_pLangGrammar->m_escapeStrArray.GetAt(iIndex);
+				i += GetLength(szEsc);	
+				
+				continue;
 			}
 			//6. Other cases
 			else
@@ -258,6 +197,7 @@ void CGenericFileParser::ParseLineFsm(const CString& sLine, ParseState& state, b
 				{
 					bHasCode = true;
 				}
+				continue;
 			}
 		}
 		else if(state.m_nMajorState == STATE_STRING)
@@ -269,8 +209,9 @@ void CGenericFileParser::ParseLineFsm(const CString& sLine, ParseState& state, b
 				
 				// escape character - so skip next char
 				//++i;
-				CString szEsc = m_pLangGrammar->m_escapeStrArray.GetAt(iIndex);
-				i += szEsc.GetLength();					
+				LG_STRING szEsc = m_pLangGrammar->m_escapeStrArray.GetAt(iIndex);
+				i += GetLength(szEsc);
+				continue;
 			}
 			//2. String End Check
 			else if(m_pLangGrammar->IsStringEnd(state.m_nMinorState, sLine, i))
@@ -281,7 +222,8 @@ void CGenericFileParser::ParseLineFsm(const CString& sLine, ParseState& state, b
 				state.m_nMajorState = STATE_NORMAL;
 
 				CPair pair = m_pLangGrammar->m_stringMarkArray.GetAt(state.m_nMinorState);
-				i += pair.m_szEnd.GetLength() - 1;
+				i += GetLength(pair.m_szEnd) - 1;
+				continue;
 			}
 			//3. Other cases
 			else
@@ -290,6 +232,7 @@ void CGenericFileParser::ParseLineFsm(const CString& sLine, ParseState& state, b
 				{
 					bHasCode = true;
 				}
+				continue;
 			}
 		}
 		else if(state.m_nMajorState == STATE_MULTI_COMMENT)
@@ -303,8 +246,9 @@ void CGenericFileParser::ParseLineFsm(const CString& sLine, ParseState& state, b
 				state.m_nMajorState = STATE_NORMAL;
 
 				CPair pair = m_pLangGrammar->m_multiCommentArray.GetAt(state.m_nMinorState);
-				i += pair.m_szEnd.GetLength() - 1;
+				i += GetLength(pair.m_szEnd) - 1;
 			}
+			continue;
 		}
 		else
 		{
@@ -345,7 +289,7 @@ void CGenericFileParser::ParseLine(const CString *pLine,
 			int oldIndex = i;
 
 			CPair& pair = m_pLangGrammar->m_charMarkArray.GetAt(iCharIndex);
-			i += pair.m_szStart.GetLength();
+			i += GetLength(pair.m_szStart);
 			
 			//This should be a grammar error. 
 			//Eg. The char ' is the last char in the line
@@ -357,8 +301,8 @@ void CGenericFileParser::ParseLine(const CString *pLine,
 			
 			if( (iIndex = m_pLangGrammar->IndexOfEscStr(*pLine, i)) >= 0 )
 			{
-				CString szEsc = m_pLangGrammar->m_escapeStrArray.GetAt(iIndex);
-				i += szEsc.GetLength();
+				LG_STRING szEsc = m_pLangGrammar->m_escapeStrArray.GetAt(iIndex);
+				i += GetLength(szEsc);
 			}
 			//This should be a grammar error. 
 			//Eg. The char '\ is the last char in the line
@@ -380,7 +324,7 @@ void CGenericFileParser::ParseLine(const CString *pLine,
 			}
 			else
 			{
-				i += pair.m_szEnd.GetLength() - 1;
+				i += GetLength(pair.m_szEnd) - 1;
 				iCharIndex = -1;
 			}
 		}
@@ -392,13 +336,13 @@ void CGenericFileParser::ParseLine(const CString *pLine,
             bHasComments = true;
             //++i;
 			CPair pair = m_pLangGrammar->m_multiCommentArray.GetAt(iMultiLineComment);
-			i += pair.m_szStart.GetLength() - 1;
+			i += GetLength(pair.m_szStart) - 1;
         }
         // end of /* comment (
         else if ((iStrIndex < 0) && (iMultiLineComment >= 0) && m_pLangGrammar->IsMultiLineCommentEnd(iMultiLineComment, *pLine, i))
         {
 			CPair pair = m_pLangGrammar->m_multiCommentArray.GetAt(iMultiLineComment);
-			i += pair.m_szEnd.GetLength() - 1;
+			i += GetLength(pair.m_szEnd) - 1;
 
 			iMultiLineComment = -1;
             bInMultiLineComment = false;
@@ -406,10 +350,10 @@ void CGenericFileParser::ParseLine(const CString *pLine,
         }
 		else if( (iMultiLineComment < 0) && ((iIndex = m_pLangGrammar->IndexOfEscStr(*pLine, i)) >= 0) )
         {
-			CString szEsc = m_pLangGrammar->m_escapeStrArray.GetAt(iIndex);	
+			LG_STRING szEsc = m_pLangGrammar->m_escapeStrArray.GetAt(iIndex);	
             // escape character - so skip next char
             //++i;
-			i += szEsc.GetLength();
+			i += GetLength(szEsc);
             bHasCode = true;
         }
 		else if( (iMultiLineComment < 0) && (iStrIndex < 0) && ((iStrIndex = m_pLangGrammar->GetStringStartIndex(*pLine, i)) >= 0) )
@@ -429,57 +373,4 @@ void CGenericFileParser::ParseLine(const CString *pLine,
             }
         }
     }
-}
-
-
-void CGenericFileParser::CountBlankLineInCommentBlock()
-{
-	Increase(MASK_COMMENT_LINE);
-}
-
-void CGenericFileParser::CountCodeCommentInOneLine()
-{
-	Increase(MASK_CODE_LINE | MASK_COMMENT_LINE | MASK_MIXED_LINE);
-}
-
-BOOL CGenericFileParser::IsSpace(int ch)
-{
-	if(ch == ' ' || ch == '\t')
-	{
-		return TRUE;
-	}
-	return FALSE;
-}
-
-
-void CGenericFileParser::Increase(DWORD dwFlags)
-{
-	m_pFileInfo->Increase(dwFlags);
-	if(m_pLogger == NULL)
-	{
-		return;
-	}
-	
-	if(dwFlags == MASK_TOTAL_LINE)
-	{
-		return;
-	}
-	CString sLineInfo;
-	if(dwFlags & MASK_CODE_LINE)
-	{
-		sLineInfo += _T("CODE ");
-	}
-	if(dwFlags & MASK_COMMENT_LINE)
-	{
-		sLineInfo += _T("COMMENT ");
-	}
-	if(dwFlags & MASK_BLANK_LINE)
-	{
-		sLineInfo += _T("BLANK ");
-	}
-	if(dwFlags & MASK_MIXED_LINE)
-	{
-		sLineInfo += _T("MIXED");
-	}
-	m_pLogger->log(1, "(%d), Type=%s, dwFlags=%x\n", m_pFileInfo->m_nTotalLines, sLineInfo, dwFlags);
 }
