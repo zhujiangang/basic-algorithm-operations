@@ -1,8 +1,14 @@
 #include "StdAfx.h"
 #include "FileParser.h"
+#include "BaseLogger.h"
 
-CFileInfo::CFileInfo() : m_nTotalLines(0), m_nCodeLines(0), m_nCommentLines(0), m_nBlankLines(0), m_nMixedLines(0)
+CFileInfo::CFileInfo(LPCTSTR lpszFullFileName)
+ : m_nTotalLines(0), m_nCodeLines(0), m_nCommentLines(0), m_nBlankLines(0), m_nMixedLines(0)
 {
+	if(lpszFullFileName != NULL)
+	{
+		SetFileName(lpszFullFileName);
+	}
 }
 
 bool CFileInfo::operator==(const CFileInfo& other) const
@@ -101,174 +107,120 @@ UINT CTotalInfo::GetTotalMixedLines() const
 	return nResult;
 }
 
-CSingleLineComment::CSingleLineComment(LPCTSTR lpszCommentStr, int nColumn)
+IFileParser::IFileParser(CFileInfo* pFileInfo, DWORD nMode, LPCTSTR lpLogFileName)
+ : m_pFileInfo(pFileInfo), m_nMode(nMode), m_pLogger(NULL)
 {
-	if(lpszCommentStr != NULL)
+	if(lpLogFileName != NULL)
 	{
-		m_szTag = lpszCommentStr;
+		SetLogger(lpLogFileName);
 	}
-	m_nStartCol = nColumn;
 }
 
-CPair::CPair()
+IFileParser::~IFileParser()
 {
-}
-CPair::CPair(LPCTSTR lpszStart, LPCTSTR lpszEnd) : m_szStart(lpszStart), m_szEnd(lpszEnd)
-{
-}
-
-CLangGrammar::CLangGrammar()
-{
-}
-CLangGrammar::~CLangGrammar()
-{
-	m_singleCommentArray.Clear();
-	m_multiCommentArray.Clear();
-	m_stringMarkArray.Clear();
-	m_charMarkArray.Clear();
-	m_escapeStrArray.Clear();
-}
-
-BOOL CLangGrammar::IsStartsWith(const CString& sSrc, const CString& sPrefix, int nBeginIndex)
-{
-	int nPrefixLen = sPrefix.GetLength();
-	if(nBeginIndex + nPrefixLen > sSrc.GetLength())
+	if(m_pLogger != NULL)
 	{
-		return FALSE;
+		delete m_pLogger;
+		m_pLogger = NULL;
 	}
-	for(int i = 0; i < nPrefixLen; i++)
-	{
-		if(sPrefix.GetAt(i) != sSrc.GetAt(nBeginIndex + i))
-		{
-			return FALSE;
-		}
-	}
-	return TRUE;
 }
 
-BOOL CLangGrammar::IsSingleLineComment(const CString& sLine, int nBeginIndex)
+void IFileParser::SetLogger(LPCTSTR lpLogFileName)
 {
-	int nCount = m_singleCommentArray.GetSize();
-	if(nCount <= 0)
-	{
-		return FALSE;
-	}
+	m_pLogger = new CBaseLogger(lpLogFileName);
+}
 
-	for(int i = 0; i < nCount; i++)
+BOOL IFileParser::IsSpace(int ch)
+{
+	if(ch == ' ' || ch == '\t')
 	{
-		CSingleLineComment& singleComment = m_singleCommentArray.GetAt(i);
-
-		//TODO: concern about the case "singleComment.m_nStartCol > 0"
-		if(IsStartsWith(sLine, singleComment.m_szTag, nBeginIndex))
-		{
-			return TRUE;
-		}
+		return TRUE;
 	}
 	return FALSE;
 }
 
-int  CLangGrammar::GetMultiLineCommentStartIndex(const CString& sLine, int nBeginIndex)
+static LPCTSTR lpBlank = "Blank";
+static LPCTSTR lpCode  = "Code";
+static LPCTSTR lpComment = "Comment";
+static LPCTSTR lpMixed	= "Code Comment Mixed";
+
+void IFileParser::Increase(DWORD dwFlags)
 {
-	int nCount = m_multiCommentArray.GetSize();
-	if(nCount <= 0)
+	m_pFileInfo->Increase(dwFlags);
+
+	//Add logs
+	if(dwFlags == MASK_TOTAL_LINE)
 	{
-		return -1;
+		return;
 	}
-	
-	for(int i = 0; i < nCount; i++)
+	if(m_pLogger == NULL)
 	{
-		CMultiLineComment& multiComment = m_multiCommentArray.GetAt(i);
-		
-		if(IsStartsWith(sLine, multiComment.m_szStart, nBeginIndex))
+		return;
+	}
+
+
+	LPCTSTR lpStr = "";
+	if(dwFlags & MASK_BLANK_LINE)
+	{
+		lpStr = lpBlank;
+	}
+	else
+	{
+		if((dwFlags & MASK_CODE_LINE) && (dwFlags & MASK_COMMENT_LINE))
 		{
-			return i;
+			lpStr = lpMixed;
+		}
+		else
+		{
+			if(dwFlags & MASK_COMMENT_LINE)
+			{
+				lpStr = lpComment;
+			}
+			else if(dwFlags & MASK_CODE_LINE)
+			{
+				lpStr = lpCode;
+			}
 		}
 	}
-	return -1;
+//	m_pLogger->log(1, "(%d): F=%X, Info=%s\n", m_pFileInfo->m_nTotalLines, dwFlags, lpStr);
 }
 
-BOOL CLangGrammar::IsMultiLineCommentEnd(int iIndexOfMultiComment, const CString& sLine, int nBeginIndex)
+void IFileParser::CountBlankLineInCommentBlock()
 {
-	ASSERT(iIndexOfMultiComment >= 0 && iIndexOfMultiComment < m_multiCommentArray.GetSize());
-
-	CMultiLineComment& multiComment = m_multiCommentArray.GetAt(iIndexOfMultiComment);
-
-	return IsStartsWith(sLine, multiComment.m_szEnd, nBeginIndex);
+	if(m_nMode & FP_MODE_BLANK_IN_COMMENT_BLOCK_COMMENT)
+	{
+		Increase(MASK_COMMENT_LINE);
+	}
+	else
+	{
+		Increase(MASK_BLANK_LINE);
+	}
 }
 
-int  CLangGrammar::IndexOfEscStr(const CString& sLine, int nBeginIndex)
+void IFileParser::CountBlankLineInMultiString()
 {
-	int nCount = m_escapeStrArray.GetSize();
-	if(nCount <= 0)
+	ASSERT(m_nMode & FP_MODE_STRING_IN_MULTI_LINE);
+	if(m_nMode & FP_MODE_BLANK_IN_MULTI_LINE_STRING_AS_BLANK)
 	{
-		return -1;
+		Increase(MASK_BLANK_LINE);
 	}
-	
-	for(int i = 0; i < nCount; i++)
+	else
 	{
-		CString& szEsc = m_escapeStrArray.GetAt(i);
-		
-		if(IsStartsWith(sLine, szEsc, nBeginIndex))
-		{
-			return i;
-		}
+		Increase(MASK_CODE_LINE);
 	}
-	return -1;
 }
 
-int  CLangGrammar::GetStringStartIndex(const CString& sLine, int nBeginIndex)
+void IFileParser::CountCodeCommentInOneLine()
 {
-	int nCount = m_stringMarkArray.GetSize();
-	if(nCount <= 0)
+	DWORD dwFlags = MASK_MIXED_LINE;
+	if(m_nMode & FP_MODE_MIXED_LINE_CODE)
 	{
-		return -1;
+		dwFlags |= MASK_CODE_LINE;
 	}
-	
-	for(int i = 0; i < nCount; i++)
+	if(m_nMode & FP_MODE_MIXED_LINE_COMMENT)
 	{
-		CPair& szPair = m_stringMarkArray.GetAt(i);
-		
-		if(IsStartsWith(sLine, szPair.m_szStart, nBeginIndex))
-		{
-			return i;
-		}
+		dwFlags |= MASK_COMMENT_LINE;
 	}
-	return -1;
-}
-
-BOOL CLangGrammar::IsStringEnd(int iStrIndex, const CString& sLine, int nBeginIndex)
-{
-	ASSERT(iStrIndex >= 0 && iStrIndex < m_stringMarkArray.GetSize());
-	
-	CPair& strPair = m_stringMarkArray.GetAt(iStrIndex);
-	
-	return IsStartsWith(sLine, strPair.m_szEnd, nBeginIndex);
-}
-
-int  CLangGrammar::GetCharStartIndex(const CString& sLine, int nBeginIndex)
-{
-	int nCount = m_charMarkArray.GetSize();
-	if(nCount <= 0)
-	{
-		return -1;
-	}
-	
-	for(int i = 0; i < nCount; i++)
-	{
-		CPair& szPair = m_charMarkArray.GetAt(i);
-		
-		if(IsStartsWith(sLine, szPair.m_szStart, nBeginIndex))
-		{
-			return i;
-		}
-	}
-	return -1;
-}
-BOOL CLangGrammar::IsCharEnd(int iStrIndex, const CString& sLine, int nBeginIndex)
-{
-	ASSERT(iStrIndex >= 0 && iStrIndex < m_charMarkArray.GetSize());
-	
-	CPair& strPair = m_charMarkArray.GetAt(iStrIndex);
-	
-	return IsStartsWith(sLine, strPair.m_szEnd, nBeginIndex);
+	Increase(dwFlags);
+//	Increase(MASK_MIXED_LINE | MASK_CODE_LINE | MASK_COMMENT_LINE);
 }

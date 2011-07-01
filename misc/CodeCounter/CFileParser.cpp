@@ -78,18 +78,9 @@ CCFileParser::CCFileParser(CFileInfo* pFileInfo) : IFileParser(pFileInfo)
 		}
 	}
 	Reset();
-#ifdef _DEBUG
-	m_pLogFile = NULL;
-#endif
 }
 CCFileParser::~CCFileParser()
 {
-#ifdef _DEBUG
-	if(m_pLogFile != NULL)
-	{
-		fclose(m_pLogFile);
-	}
-#endif
 }
 
 void CCFileParser::ParseFile()
@@ -296,92 +287,3 @@ void CCFileParser::CommentEndAction(CString& line, int chIndex)
 	
 	IncCommentOnLastCharAction(line, chIndex);
 }
-
-void CCFileParser::CountBlankLineInCommentBlock()
-{
-	if(m_eCurStat == STAT_STAR_AFTER_SLASH)
-	{
-		switch(m_eModeCountBlankLine)
-		{
-		case COUNT_BLANK_LINE_AS_BLANK_IN_COMMENT_BLOCK:
-			{
-				Increase(MASK_BLANK_LINE);
-				break;
-			}
-		case COUNT_BLANK_LINE_AS_COMMENT_IN_COMMENT_BLOCK:
-			{
-				Increase(MASK_COMMENT_LINE);
-				break;
-			}
-		default:
-			{
-				AfxTrace("Unknown mode : %d\n", m_eModeCountBlankLine);
-				break;
-			}
-		}
-	}
-	else
-	{
-		Increase(MASK_BLANK_LINE);
-	}
-}
-
-void CCFileParser::CountCodeCommentInOneLine()
-{
-	Increase(MASK_CODE_LINE | MASK_COMMENT_LINE | MASK_MIXED_LINE);
-}
-
-BOOL CCFileParser::IsSpace(int ch)
-{
-	if(ch == ' ' || ch == '\t')
-	{
-		return TRUE;
-	}
-	return FALSE;
-}
-
-void CCFileParser::Increase(DWORD dwFlags)
-{
-	m_pFileInfo->Increase(dwFlags);
-#ifdef _DEBUG
-	if(m_pLogFile == NULL)
-	{
-		return;
-	}
-	if(dwFlags == MASK_TOTAL_LINE)
-	{
-		return;
-	}
-	CString sLineInfo;
-	if(dwFlags & MASK_CODE_LINE)
-	{
-		sLineInfo += _T("CODE ");
-	}
-	if(dwFlags & MASK_COMMENT_LINE)
-	{
-		sLineInfo += _T("COMMENT ");
-	}
-	if(dwFlags & MASK_BLANK_LINE)
-	{
-		sLineInfo += _T("BLANK ");
-	}
-	if(dwFlags & MASK_MIXED_LINE)
-	{
-		sLineInfo += _T("MIXED");
-	}
-	fprintf(m_pLogFile, "(%d), Type=%s, dwFlags=%x\n",  m_pFileInfo->m_nTotalLines, sLineInfo, dwFlags);
-#endif
-}
-
-#ifdef _DEBUG
-void CCFileParser::SetLogFile(LPCTSTR lpLogFileName)
-{
-	FILE* pf = fopen(lpLogFileName, "w");
-	if(pf == NULL)
-	{
-		fprintf(stderr, "Failed to open log file: %s\n", lpLogFileName);
-		return;
-	}
-	m_pLogFile = pf;
-}
-#endif

@@ -105,6 +105,14 @@ SOURCE=.\PLCFileParser.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\tinystr.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\LangGrammar.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\StdAfx.cpp
 # ADD CPP /Yc"stdafx.h"
 # End Source File
@@ -131,6 +139,14 @@ SOURCE=.\GenericFileParser.h
 # Begin Source File
 
 SOURCE=.\PLCFileParser.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\tinystr.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\LangGrammar.h
 # End Source File
 # Begin Source File
 

@@ -7,12 +7,14 @@
 #include "PLCFileParser.h"
 #include "BaseLogger.h"
 #include "GenericFileParser.h"
-
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#undef THIS_FILE
-static char THIS_FILE[] = __FILE__;
-#endif
+#include "LangGrammar.h"
+#include "TimeCost.h"
+// 
+// #ifdef _DEBUG
+// #define new DEBUG_NEW
+// #undef THIS_FILE
+// static char THIS_FILE[] = __FILE__;
+// #endif
 
 /////////////////////////////////////////////////////////////////////////////
 // The one and only application object
@@ -20,12 +22,35 @@ static char THIS_FILE[] = __FILE__;
 CWinApp theApp;
 
 using namespace std;
-bool bBatchTest = false;
+
+bool gIsBatchCount = false;
+
+typedef void (*func)(LPCTSTR lpFileName);
+
 void test(LPCTSTR lpFileName);
-int EnumDirectoryIt(LPCTSTR lpszDirName)
+
+CLangGrammar gLangGrammar;
+void InitGrammar()
+{	
+	CSingleLineComment singleComment("//");
+	gLangGrammar.m_singleCommentArray.Add(singleComment);
+	
+	CMultiLineComment multiComment("/*", "*/");
+	gLangGrammar.m_multiCommentArray.Add(multiComment);
+	
+	CPair strPair("\"", "\"");
+	gLangGrammar.m_stringMarkArray.Add(strPair);
+	
+	// 	CPair strPair2("'", "'");
+	// 	gLangGrammar.m_stringMarkArray.Add(strPair2);
+	
+	gLangGrammar.m_escapeStrArray.Add("\\");
+}
+
+int EnumDirectoryIt(LPCTSTR lpszDirName, func pFunc)
 {
 	ASSERT(lpszDirName);
-	bBatchTest = true;
+	gIsBatchCount = true;
 	
 	CStringList sDirList;
 	sDirList.AddTail(lpszDirName);
@@ -55,7 +80,7 @@ int EnumDirectoryIt(LPCTSTR lpszDirName)
 			if((FindFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0)
 			{				
 				sCurFile.Format("%s\\%s", sCurDir, FindFileData.cFileName);
-				test(sCurFile);
+				(*pFunc)(sCurFile);
 			}
 			//2. Dir
 			else if( ((FindFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0) )
@@ -79,27 +104,6 @@ int EnumDirectoryIt(LPCTSTR lpszDirName)
 	return 0;
 }
 
-void test1(LPCTSTR lpFileName)
-{
-	CFileInfo* pFileInfo = new CFileInfo();
-	pFileInfo->SetFileName(lpFileName);
-	
-	CCFileParser parser(pFileInfo);
-#ifdef _DEBUG
-	parser.SetLogFile("C:\\temp\\mylog.txt");
-#endif
-	parser.ParseFile();
-	
-	printf("\n====================================\n");
-	printf("Total Lines:\t %d\n", pFileInfo->m_nTotalLines);
-	printf("Code Lines:\t %d\n", pFileInfo->m_nCodeLines);
-	printf("Comment Lines:\t %d\n", pFileInfo->m_nCommentLines);
-	printf("Blank Lines:\t %d\n", pFileInfo->m_nBlankLines);
-	printf("Mixed Lines:\t %d\n", pFileInfo->GetMixedLines());
-	
-	delete pFileInfo;
-}
-
 void test2(LPCTSTR lpFileName)
 {
 	CFileInfo* pFileInfo = new CFileInfo();
@@ -118,84 +122,114 @@ void test2(LPCTSTR lpFileName)
 	delete pFileInfo;
 }
 
-CFileInfo* parseByFsm(LPCTSTR lpFileName)
+#define FP_FSM		0
+#define FP_PLC		1
+#define FP_GEN		2
+
+IFileParser* BuildFileParser(int type)
 {
-	CFileInfo* pFileInfo = new CFileInfo();
-	pFileInfo->SetFileName(lpFileName);
-	CCFileParser parser(pFileInfo);
-#ifdef _DEBUG
-	parser.SetLogFile("C:\\temp\\fsm_log.txt");
-#endif
-	parser.ParseFile();
-	return pFileInfo;
-}
-
-
-CFileInfo* parseByPlc(LPCTSTR lpFileName)
-{
-	CFileInfo* pFileInfo = new CFileInfo();
-	pFileInfo->SetFileName(lpFileName);
-	CPlcFileParser parser(pFileInfo);
-
-	LPCTSTR lpLogFile = "C:\\temp\\plc_log.txt";
-	if(!bBatchTest)
+	IFileParser* pFileParser = NULL;
+	LPCTSTR lpLogFile = NULL;
+	if(type == FP_FSM)
 	{
-		parser.SetLogger(lpLogFile);
+		lpLogFile = "C:\\temp\\fsm_log.txt";
+		pFileParser = new CCFileParser(NULL);
+	}
+	else if(type == FP_PLC)
+	{
+		lpLogFile = "C:\\temp\\plc_log.txt";
+		pFileParser = new CPlcFileParser(NULL);
+	}
+	else if(type == FP_GEN)
+	{
+		lpLogFile = "C:\\temp\\gen_log.txt";
+		pFileParser = new CGenericFileParser(NULL, &gLangGrammar);
 	}
 
-	parser.ParseFile();
-	return pFileInfo;
-}
-CLangGrammar langGrammar;
-
-void InitGrammar()
-{	
-	CSingleLineComment singleComment("//");
-	langGrammar.m_singleCommentArray.Add(singleComment);
-	
-	CMultiLineComment multiComment("/*", "*/");
-	langGrammar.m_multiCommentArray.Add(multiComment);
-	
-	CPair strPair("\"", "\"");
-	langGrammar.m_stringMarkArray.Add(strPair);
-	
-	CPair strPair2("'", "'");
-	langGrammar.m_stringMarkArray.Add(strPair2);
-	
-	langGrammar.m_escapeStrArray.Add("\\");
-}
-
-CFileInfo* parseByGen(LPCTSTR lpFileName)
-{
-	CFileInfo* pFileInfo = new CFileInfo();
-	pFileInfo->SetFileName(lpFileName);
-
-	CGenericFileParser parser(pFileInfo, &langGrammar);
-	LPCTSTR lpLogFile = "C:\\temp\\gen_log.txt";
-	if(!bBatchTest)
+	if(pFileParser != NULL && !gIsBatchCount)
 	{
-		parser.SetLogger(lpLogFile);
-	}	
+		pFileParser->SetLogger(lpLogFile);
+	}
+	return pFileParser;
+}
+
+
+void test(LPCTSTR lpFileName, IFileParser* pFileParser, CFileInfo*& pFileInfo, UINT& nTimeCost)
+{
+	pFileInfo = new CFileInfo(lpFileName);
+	pFileParser->SetFileInfo(pFileInfo);
+
+	CTimeCost timeCost;
+
+	pFileParser->ParseFile();
+
+	timeCost.UpdateCurrClock();
+	nTimeCost = timeCost.GetTimeCost();
+}
+
+
+void parseByPlc(LPCTSTR lpFileName)
+{
+// 	CFileInfo* pFileInfo = new CFileInfo();
+// 	pFileInfo->SetFileName(lpFileName);
+// 	CPlcFileParser parser(pFileInfo);
+// 
+// 	LPCTSTR lpLogFile = "C:\\temp\\plc_log.txt";
+// 	if(!gIsBatchCount)
+// 	{
+// 		parser.SetLogger(lpLogFile);
+// 	}
+// 
+// 	parser.ParseFile();
+// 	return pFileInfo;
+
+	CFileInfo* pFileInfoGen = NULL;
+	UINT nTimeCostGen = 0;
+	IFileParser* pFileParserGen = BuildFileParser(FP_PLC);
+	test(lpFileName, pFileParserGen, pFileInfoGen, nTimeCostGen);
 	
-	parser.ParseFile();
-	return pFileInfo;
+	printf("Time-PLC: %d. File=%s\n", nTimeCostGen, lpFileName);
+	delete pFileInfoGen;
+	delete pFileParserGen;
+}
+
+void parseByGen(LPCTSTR lpFileName)
+{
+	CFileInfo* pFileInfoGen = NULL;
+	UINT nTimeCostGen = 0;
+	IFileParser* pFileParserGen = BuildFileParser(FP_GEN);
+	test(lpFileName, pFileParserGen, pFileInfoGen, nTimeCostGen);
+
+	printf("Time-GEN: %d. File=%s\n", nTimeCostGen, lpFileName);
+	delete pFileInfoGen;
+	delete pFileParserGen;
 }
 
 void test(LPCTSTR lpFileName)
 {
-	CFileInfo* pFileInfo1 = parseByPlc(lpFileName);
-	CFileInfo* pFileInfo2 = parseByGen(lpFileName);
+	CFileInfo* pFileInfoPlc = NULL;
+	UINT nTimeCostPlc = 0;
+	IFileParser* pFileParserPlc = BuildFileParser(FP_PLC);
+	test(lpFileName, pFileParserPlc, pFileInfoPlc, nTimeCostPlc);
 
-	if( !(*pFileInfo1 == *pFileInfo2) )
+	CFileInfo* pFileInfoGen = NULL;
+	UINT nTimeCostGen = 0;
+	IFileParser* pFileParserGen = BuildFileParser(FP_GEN);
+	test(lpFileName, pFileParserGen, pFileInfoGen, nTimeCostGen);
+
+	if( !(*pFileInfoPlc == *pFileInfoGen) )
 	{
 		printf("[Failed ]: %s\n", lpFileName);
 	}
-// 	else
-// 	{
-// 		printf("[Success]: %s\n", lpFileName);
-// 	}
-	delete pFileInfo1;
-	delete pFileInfo2;
+	if(nTimeCostGen > nTimeCostPlc)
+	{
+		printf("Time-PLC: %d, Time-GEN: %d. File=%s\n", nTimeCostPlc, nTimeCostGen, lpFileName);
+	}	
+	delete pFileInfoPlc;
+	delete pFileInfoGen;
+
+	delete pFileParserPlc;
+	delete pFileParserGen;
 }
 
 int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
@@ -209,22 +243,26 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 		cerr << _T("Fatal Error: MFC initialization failed") << endl;
 		nRetCode = 1;
 	}
-	else
-	{
-		// TODO: code your application's behavior here.
-// 		CString strHello;
-// 		strHello.LoadString(IDS_HELLO);
-// 		cout << (LPCTSTR)strHello << endl;
-	}
-	bBatchTest = false;
+	gIsBatchCount = false;
 	InitGrammar();
-	LPCTSTR lpFileName = _T("C:\\diskf\\workspace3.4.1\\e2u\\src\\com\\e2u\\test\\test.txt");
+
+	LPCTSTR lpFileName = NULL;
+	lpFileName = "C:\\diskf\\workspace3.4.1\\e2u\\src\\com\\e2u\\test\\test.txt";
  	lpFileName = "C:\\lgao1\\87svnwc\\cosps\\tinyxml_2_5_3\\tinyxmlparser.cpp";
 	lpFileName = "C:\\temp\\abc.txt";
-	lpFileName = "C:\\lgao1\\87svnwc\\dvd-slideshow\\dvd-slideshow";
-	test(lpFileName);
+	lpFileName = "C:\\lgao1\\87svnwc\\cosps\\CxImage\\CxImage6.0\\cximage600_full\\CxImage\\ximatran.cpp";
 
-	EnumDirectoryIt(_T("C:\\lgao1\\87svnwc"));
+	for(int i = 0; i < 30; i++)
+	{
+		parseByGen(lpFileName);
+		parseByPlc(lpFileName);
+	}
+	
+
+// 	CTimeCost timeCost;
+// 	EnumDirectoryIt(_T("C:\\lgao1\\87svnwc"), test);
+// 	timeCost.UpdateCurrClock();
+// 	printf("Time Cost: %d\n", timeCost.GetTimeCost());
 
 	return nRetCode;
 }
