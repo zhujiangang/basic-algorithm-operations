@@ -148,16 +148,15 @@ void IFileParser::Increase(DWORD dwFlags)
 {
 	m_pFileInfo->Increase(dwFlags);
 
+	if(m_pLogger == NULL)
+	{
+		return;
+	}
 	//Add logs
 	if(dwFlags == MASK_TOTAL_LINE)
 	{
 		return;
 	}
-	if(m_pLogger == NULL)
-	{
-		return;
-	}
-
 
 	LPCTSTR lpStr = "";
 	if(dwFlags & MASK_BLANK_LINE)
@@ -182,7 +181,7 @@ void IFileParser::Increase(DWORD dwFlags)
 			}
 		}
 	}
-//	m_pLogger->log(1, "(%d): F=%X, Info=%s\n", m_pFileInfo->m_nTotalLines, dwFlags, lpStr);
+	m_pLogger->log(1, "(%d): F=%X, Info=%s\n", m_pFileInfo->m_nTotalLines, dwFlags, lpStr);
 }
 
 void IFileParser::CountBlankLineInCommentBlock()
@@ -223,4 +222,85 @@ void IFileParser::CountCodeCommentInOneLine()
 	}
 	Increase(dwFlags);
 //	Increase(MASK_MIXED_LINE | MASK_CODE_LINE | MASK_COMMENT_LINE);
+}
+
+void IFileParser::ParseFile()
+{
+	CStdioFile file;
+	if(!file.Open(m_pFileInfo->m_sFullFileName, CFile::modeRead))
+	{
+		AfxTrace(_T("Failed to Open file %s\n"), m_pFileInfo->m_sFullFileName);
+		return;
+	}
+	
+	CString sLine;
+	ParseState state;
+	state.m_nMajorState = STATE_NORMAL;
+	
+	bool bHasCode, bHasComments;
+	while(file.ReadString(sLine))
+	{
+		Increase(MASK_TOTAL_LINE);
+		
+		if(state.m_nMajorState == STATE_STRING)
+		{
+			AfxTrace("[Note]: Multi String in line(%d)\n", m_pFileInfo->m_nTotalLines);
+			if(m_pLogger != NULL)
+			{
+				m_pLogger->log(1, "[Note]: Multi String in line(%d)\n", m_pFileInfo->m_nTotalLines);
+			}
+			//Multi Line String is NOT allowed
+			if( (m_nMode & FP_MODE_STRING_IN_MULTI_LINE) == 0)
+			{
+				state.m_nMajorState = STATE_NORMAL;
+			}
+		}
+		
+		sLine.TrimLeft();
+		sLine.TrimRight();
+		
+		if(sLine.IsEmpty())
+		{
+			if(state.m_nMajorState == STATE_MULTI_COMMENT)
+			{
+				CountBlankLineInCommentBlock();
+			}
+			//Multi Line String must be allowed yet.
+			else if(state.m_nMajorState == STATE_STRING)
+			{
+				CountBlankLineInMultiString();
+			}
+			else
+			{
+				Increase(MASK_BLANK_LINE);
+			}
+			continue;
+		}
+		
+        ParseLine(sLine, state, bHasCode, bHasComments);
+		
+		if( bHasComments && bHasCode)
+		{
+			CountCodeCommentInOneLine();
+		}
+		else
+		{
+			if (bHasComments)
+			{
+				Increase(MASK_COMMENT_LINE);
+			}
+			if (bHasCode)
+			{
+				Increase(MASK_CODE_LINE);
+			}
+		}
+		ASSERT( bHasComments || bHasCode );
+	}
+	
+	file.Close();
+}
+
+void IFileParser::ParseLine(const CString& sLine, ParseState& state, bool& bHasCode, bool& bHasComments)
+{
+
 }

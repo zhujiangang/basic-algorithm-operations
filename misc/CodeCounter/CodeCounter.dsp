@@ -93,6 +93,10 @@ SOURCE=.\CFileParser.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\CPPFileParser.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\FileParser.cpp
 # End Source File
 # Begin Source File
@@ -101,20 +105,20 @@ SOURCE=.\GenericFileParser.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\PLCFileParser.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\tinystr.cpp
-# End Source File
-# Begin Source File
-
 SOURCE=.\LangGrammar.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\PLCFileParser.cpp
 # End Source File
 # Begin Source File
 
 SOURCE=.\StdAfx.cpp
 # ADD CPP /Yc"stdafx.h"
+# End Source File
+# Begin Source File
+
+SOURCE=.\tinystr.cpp
 # End Source File
 # End Group
 # Begin Group "Header Files"
@@ -130,6 +134,10 @@ SOURCE=.\CFileParser.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\CPPFileParser.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\FileParser.h
 # End Source File
 # Begin Source File
@@ -138,19 +146,19 @@ SOURCE=.\GenericFileParser.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\PLCFileParser.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\tinystr.h
-# End Source File
-# Begin Source File
-
 SOURCE=.\LangGrammar.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\PLCFileParser.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\StdAfx.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\tinystr.h
 # End Source File
 # Begin Source File
 
