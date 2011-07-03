@@ -7,14 +7,15 @@
 #include "PLCFileParser.h"
 #include "BaseLogger.h"
 #include "GenericFileParser.h"
+#include "CPPFileParser.h"
 #include "LangGrammar.h"
 #include "TimeCost.h"
-// 
-// #ifdef _DEBUG
-// #define new DEBUG_NEW
-// #undef THIS_FILE
-// static char THIS_FILE[] = __FILE__;
-// #endif
+
+#ifdef _DEBUG
+#define new DEBUG_NEW
+#undef THIS_FILE
+static char THIS_FILE[] = __FILE__;
+#endif
 
 /////////////////////////////////////////////////////////////////////////////
 // The one and only application object
@@ -29,28 +30,24 @@ typedef void (*func)(LPCTSTR lpFileName);
 
 void test(LPCTSTR lpFileName);
 
-CLangGrammar gLangGrammar;
+ILangGrammar* pGLangGrammar = NULL;
 void InitGrammar()
 {	
-	CSingleLineComment singleComment("//");
-	gLangGrammar.m_singleCommentArray.Add(singleComment);
-	
-	CMultiLineComment multiComment("/*", "*/");
-	gLangGrammar.m_multiCommentArray.Add(multiComment);
-	
-	CPair strPair("\"", "\"");
-	gLangGrammar.m_stringMarkArray.Add(strPair);
-	
-	// 	CPair strPair2("'", "'");
-	// 	gLangGrammar.m_stringMarkArray.Add(strPair2);
-	
-	gLangGrammar.m_escapeStrArray.Add("\\");
+	CLangGrammarBuilder builder;
+	builder.AddSingleComment("//");
+	builder.AddMultiComment("/*", "*/");
+	builder.AddStringMark("\"", "\"");
+	builder.AddCharMark("'", "'");
+	builder.AddEscapeStr("\\");
+
+	pGLangGrammar = builder.GetResult();
 }
 
 int EnumDirectoryIt(LPCTSTR lpszDirName, func pFunc)
 {
 	ASSERT(lpszDirName);
 	gIsBatchCount = true;
+	int nCount = 0;
 	
 	CStringList sDirList;
 	sDirList.AddTail(lpszDirName);
@@ -81,6 +78,7 @@ int EnumDirectoryIt(LPCTSTR lpszDirName, func pFunc)
 			{				
 				sCurFile.Format("%s\\%s", sCurDir, FindFileData.cFileName);
 				(*pFunc)(sCurFile);
+				nCount++;
 			}
 			//2. Dir
 			else if( ((FindFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0) )
@@ -101,30 +99,13 @@ int EnumDirectoryIt(LPCTSTR lpszDirName, func pFunc)
 		}
 	}
 	
-	return 0;
-}
-
-void test2(LPCTSTR lpFileName)
-{
-	CFileInfo* pFileInfo = new CFileInfo();
-	pFileInfo->SetFileName(lpFileName);
-	
-	CPlcFileParser parser(pFileInfo);
-	parser.ParseFile();
-	
-	printf("\n====================================\n");
-	printf("Total Lines:\t %d\n", pFileInfo->m_nTotalLines);
-	printf("Code Lines:\t %d\n", pFileInfo->m_nCodeLines);
-	printf("Comment Lines:\t %d\n", pFileInfo->m_nCommentLines);
-	printf("Blank Lines:\t %d\n", pFileInfo->m_nBlankLines);
-	printf("Mixed Lines:\t %d\n", pFileInfo->GetMixedLines());
-	
-	delete pFileInfo;
+	return nCount;
 }
 
 #define FP_FSM		0
 #define FP_PLC		1
 #define FP_GEN		2
+#define FP_CPP		3
 
 IFileParser* BuildFileParser(int type)
 {
@@ -143,7 +124,12 @@ IFileParser* BuildFileParser(int type)
 	else if(type == FP_GEN)
 	{
 		lpLogFile = "C:\\temp\\gen_log.txt";
-		pFileParser = new CGenericFileParser(NULL, &gLangGrammar);
+		pFileParser = new CGenericFileParser(NULL, pGLangGrammar);
+	}
+	else if(type == FP_CPP)
+	{
+		lpLogFile = "C:\\temp\\cpp_log.txt";
+		pFileParser = new CCPPFileParser(NULL);
 	}
 
 	if(pFileParser != NULL && !gIsBatchCount)
@@ -167,42 +153,42 @@ void test(LPCTSTR lpFileName, IFileParser* pFileParser, CFileInfo*& pFileInfo, U
 	nTimeCost = timeCost.GetTimeCost();
 }
 
-
-void parseByPlc(LPCTSTR lpFileName)
+void parseSingle(LPCTSTR lpFileName, int type)
 {
-// 	CFileInfo* pFileInfo = new CFileInfo();
-// 	pFileInfo->SetFileName(lpFileName);
-// 	CPlcFileParser parser(pFileInfo);
-// 
-// 	LPCTSTR lpLogFile = "C:\\temp\\plc_log.txt";
-// 	if(!gIsBatchCount)
-// 	{
-// 		parser.SetLogger(lpLogFile);
-// 	}
-// 
-// 	parser.ParseFile();
-// 	return pFileInfo;
-
 	CFileInfo* pFileInfoGen = NULL;
 	UINT nTimeCostGen = 0;
-	IFileParser* pFileParserGen = BuildFileParser(FP_PLC);
+	IFileParser* pFileParserGen = BuildFileParser(type);
 	test(lpFileName, pFileParserGen, pFileInfoGen, nTimeCostGen);
 	
-	printf("Time-PLC: %d. File=%s\n", nTimeCostGen, lpFileName);
+	printf("type=%d, Time: %d. File=%s\n", type, nTimeCostGen, lpFileName);
 	delete pFileInfoGen;
 	delete pFileParserGen;
 }
 
-void parseByGen(LPCTSTR lpFileName)
-{
-	CFileInfo* pFileInfoGen = NULL;
-	UINT nTimeCostGen = 0;
-	IFileParser* pFileParserGen = BuildFileParser(FP_GEN);
-	test(lpFileName, pFileParserGen, pFileInfoGen, nTimeCostGen);
+#define CREATE_FILE_PARSER(CLASSNAME) CFileInfo fileInfo(lpFileName); \
+	CLASSNAME fileParser(&fileInfo); \
+	fileParser.ParseFile()
 
-	printf("Time-GEN: %d. File=%s\n", nTimeCostGen, lpFileName);
-	delete pFileInfoGen;
-	delete pFileParserGen;
+void parseByPlcBatch(LPCTSTR lpFileName)
+{
+// 	CFileInfo fileInfo(lpFileName);
+// 	CPlcFileParser fileParser(&fileInfo);
+// 	fileParser.ParseFile();
+	CREATE_FILE_PARSER(CPlcFileParser);
+}
+void parseByGenBatch(LPCTSTR lpFileName)
+{
+	CFileInfo fileInfo(lpFileName);
+	CGenericFileParser fileParser(&fileInfo, pGLangGrammar);
+	fileParser.ParseFile();
+}
+
+void parseByCppBatch(LPCTSTR lpFileName)
+{
+// 	CFileInfo fileInfo(lpFileName);
+// 	CCPPFileParser fileParser(&fileInfo);
+// 	fileParser.ParseFile();
+	CREATE_FILE_PARSER(CCPPFileParser);
 }
 
 void test(LPCTSTR lpFileName)
@@ -214,22 +200,51 @@ void test(LPCTSTR lpFileName)
 
 	CFileInfo* pFileInfoGen = NULL;
 	UINT nTimeCostGen = 0;
-	IFileParser* pFileParserGen = BuildFileParser(FP_GEN);
+	IFileParser* pFileParserGen = BuildFileParser(FP_CPP);
 	test(lpFileName, pFileParserGen, pFileInfoGen, nTimeCostGen);
 
 	if( !(*pFileInfoPlc == *pFileInfoGen) )
 	{
 		printf("[Failed ]: %s\n", lpFileName);
-	}
-	if(nTimeCostGen > nTimeCostPlc)
-	{
-		printf("Time-PLC: %d, Time-GEN: %d. File=%s\n", nTimeCostPlc, nTimeCostGen, lpFileName);
 	}	
 	delete pFileInfoPlc;
 	delete pFileInfoGen;
 
 	delete pFileParserPlc;
 	delete pFileParserGen;
+}
+
+void testWorkable()
+{
+	LPCTSTR lpDir = "F:\\googlecode\\cosps";
+	EnumDirectoryIt(lpDir, test);
+}
+
+void testSingleFile()
+{
+	LPCTSTR lpFileName = NULL;
+	lpFileName = "C:\\diskf\\workspace3.4.1\\e2u\\src\\com\\e2u\\test\\test.txt";
+	lpFileName = "F:\\googlecode\\cosps\\CxImage\\Temp\\cximage600_full\\mng\\libmng_pixels.c";
+	lpFileName = "F:\\googlecode\\cosps\\CxImage\\Temp\\cximage600_full\\mng\\libmng_chunk_io.c";
+	lpFileName = "F:\\googlecode\\cosps\\Misc\\PLC\\PLC221Src\\Help\\IDH_ABOUT.htm";
+
+	test(lpFileName);
+}
+
+void testBatchFiles()
+{
+	LPCTSTR lpDir = "F:\\googlecode\\cosps";
+	
+	CTimeCost timeCost;
+	int nCount = 0;
+	nCount = EnumDirectoryIt(lpDir, parseByCppBatch);
+	timeCost.UpdateCurrClock();
+	printf("Gen Time Cost: %d, nCount = %d\n", timeCost.GetTimeCost(), nCount);
+	
+	timeCost.Reset();
+	nCount = EnumDirectoryIt(lpDir, parseByPlcBatch);
+	timeCost.UpdateCurrClock();
+	printf("Plc Time Cost: %d, nCount = %d\n", timeCost.GetTimeCost(), nCount);
 }
 
 int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
@@ -246,23 +261,14 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 	gIsBatchCount = false;
 	InitGrammar();
 
-	LPCTSTR lpFileName = NULL;
-	lpFileName = "C:\\diskf\\workspace3.4.1\\e2u\\src\\com\\e2u\\test\\test.txt";
- 	lpFileName = "C:\\lgao1\\87svnwc\\cosps\\tinyxml_2_5_3\\tinyxmlparser.cpp";
-	lpFileName = "C:\\temp\\abc.txt";
-	lpFileName = "C:\\lgao1\\87svnwc\\cosps\\CxImage\\CxImage6.0\\cximage600_full\\CxImage\\ximatran.cpp";
+//	testWorkable();
+//	testSingleFile();
+	testBatchFiles();
 
-	for(int i = 0; i < 30; i++)
+	if(pGLangGrammar != NULL)
 	{
-		parseByGen(lpFileName);
-		parseByPlc(lpFileName);
+		delete pGLangGrammar;
 	}
-	
-
-// 	CTimeCost timeCost;
-// 	EnumDirectoryIt(_T("C:\\lgao1\\87svnwc"), test);
-// 	timeCost.UpdateCurrClock();
-// 	printf("Time Cost: %d\n", timeCost.GetTimeCost());
 
 	return nRetCode;
 }

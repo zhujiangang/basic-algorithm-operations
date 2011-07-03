@@ -46,6 +46,24 @@ public:
 	UINT m_nTotalMixedLines;
 };
 
+enum
+{
+	STATE_NORMAL = 0,
+	STATE_STRING = 1,
+	STATE_MULTI_COMMENT = 2
+};
+class CFsmState
+{
+public:
+	CFsmState() : m_nMajorState(STATE_NORMAL), m_nMinorState(-1)
+	{
+	}
+public:
+	int m_nMajorState;		//STATE_NORMAL, STATE_STRING, STATE_MULTI_COMMENT
+	int m_nMinorState;		//Detailed information about m_nMajorState;
+};
+typedef CFsmState ParseState;
+
 #define FP_MODE_BLANK_IN_COMMENT_BLOCK_COMMENT			0x00000001
 #define FP_MODE_MIXED_LINE_CODE							0x00000002
 #define FP_MODE_MIXED_LINE_COMMENT						0x00000004
@@ -66,7 +84,8 @@ public:
 		m_pFileInfo = pFileInfo;
 	}
 
-	virtual void ParseFile() = 0;
+	virtual void ParseFile();
+	virtual void ParseLine(const CString& sLine, ParseState& state, bool& bHasCode, bool& bHasComments);
 
 	void SetLogger(LPCTSTR lpLogFileName);
 	DWORD GetMode() const

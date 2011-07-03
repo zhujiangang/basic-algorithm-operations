@@ -12,16 +12,16 @@
 //SOL -- Start of Line
 #define START_COLUMN_SOL	(0)
 
-//#define USE_TIXML
+//#define STRING_USE_TINY
 
-#if defined(TIXML_USE_STL)
+#if defined(STRING_USE_STL)
 #include <string>
 #define LG_STRING	std::string
-#elif defined(USE_TIXML)
+#elif defined(STRING_USE_TINY)
 #include "tinystr.h"
 #define LG_STRING	TiXmlString
 #else
-#define LG_STRING CString
+#define LG_STRING	CString
 #endif
 
 int GetLength(const LG_STRING& str);
@@ -48,27 +48,89 @@ public:
 
 typedef CPair CMultiLineComment;
 
-class CLangGrammar
+class ILangGrammar
 {
 public:
-	CLangGrammar();
-	~CLangGrammar();
+	virtual ~ILangGrammar() {};
+	virtual	CSingleLineComment& GetSingleLineComment(int nIndex = 0) = 0;
+	virtual BOOL IsSingleLineComment(const CString& sLine, int nBeginIndex = 0) = 0;
+
+	virtual LG_STRING& GetEscapeStr(int nIndex = 0) = 0;
+	virtual int  IndexOfEscStr(const CString& sLine, int nBeginIndex = 0) = 0;
 	
-	BOOL IsSingleLineComment(const CString& sLine, int nBeginIndex = 0);
-	int  IndexOfEscStr(const CString& sLine, int nBeginIndex = 0);
+	virtual CMultiLineComment& GetMultiLineComment(int nIndex = 0) = 0;
+	virtual int  GetMultiLineCommentStartIndex(const CString& sLine, int nBeginIndex = 0) = 0;
+	virtual BOOL IsMultiLineCommentEnd(int iIndexOfMultiComment, const CString& sLine, int nBeginIndex = 0) = 0;
 	
-	int  GetMultiLineCommentStartIndex(const CString& sLine, int nBeginIndex = 0);
-	BOOL IsMultiLineCommentEnd(int iIndexOfMultiComment, const CString& sLine, int nBeginIndex = 0);
+	virtual CPair& GetStringMark(int nIndex = 0) = 0;
+	virtual int  GetStringStartIndex(const CString& sLine, int nBeginIndex = 0) = 0;
+	virtual BOOL IsStringEnd(int iStrIndex, const CString& sLine, int nBeginIndex = 0) = 0;
 	
-	int  GetStringStartIndex(const CString& sLine, int nBeginIndex = 0);
-	BOOL IsStringEnd(int iStrIndex, const CString& sLine, int nBeginIndex = 0);
-	
-	int  GetCharStartIndex(const CString& sLine, int nBeginIndex = 0);
-	BOOL IsCharEnd(int iStrIndex, const CString& sLine, int nBeginIndex = 0);
-public:
+	virtual CPair& GetCharMark(int iCharIndex = 0) = 0;
+	virtual int  GetCharStartIndex(const CString& sLine, int nBeginIndex = 0) = 0;
+	virtual BOOL IsCharEnd(int iStrIndex, const CString& sLine, int nBeginIndex = 0) = 0;
+
 	static int  GetStartIndex(const CTinyVector<CPair>& tinyVector, const CString& sLine, int nBeginIndex = 0);
 	static BOOL IsEnd(const CTinyVector<CPair>& tinyVector, int iIndex, const CString& sLine, int nBeginIndex = 0);
 	static BOOL IsStartsWith(const CString& sSrc, const LG_STRING& sPrefix, int nBeginIndex = 0);
+	static BOOL IsSingleComment(const CSingleLineComment& sComment, const CString& sLine, int nBeginIndex = 0);
+};
+
+class CSingleLangGrammar : public ILangGrammar
+{
+public:
+	CSingleLangGrammar();
+	~CSingleLangGrammar();
+	
+	CSingleLineComment& GetSingleLineComment(int nIndex = 0);
+	BOOL IsSingleLineComment(const CString& sLine, int nBeginIndex = 0);
+
+	LG_STRING& GetEscapeStr(int nIndex = 0);
+	int  IndexOfEscStr(const CString& sLine, int nBeginIndex = 0);
+	
+	CMultiLineComment& GetMultiLineComment(int nIndex = 0);
+	int  GetMultiLineCommentStartIndex(const CString& sLine, int nBeginIndex = 0);
+	BOOL IsMultiLineCommentEnd(int iIndexOfMultiComment, const CString& sLine, int nBeginIndex = 0);
+	
+	CPair& GetStringMark(int nIndex = 0);
+	int  GetStringStartIndex(const CString& sLine, int nBeginIndex = 0);
+	BOOL IsStringEnd(int iStrIndex, const CString& sLine, int nBeginIndex = 0);
+	
+	CPair& GetCharMark(int nIndex = 0);
+	int  GetCharStartIndex(const CString& sLine, int nBeginIndex = 0);
+	BOOL IsCharEnd(int iStrIndex, const CString& sLine, int nBeginIndex = 0);
+public:
+	CSingleLineComment m_singleComment;
+	CMultiLineComment  m_multiComment;
+	CPair m_stringMark;
+	CPair m_charMark;
+	LG_STRING m_escapeStr;
+};
+
+class CMultiLangGrammar : public ILangGrammar
+{
+public:
+	CMultiLangGrammar();
+	~CMultiLangGrammar();
+	
+	CSingleLineComment& GetSingleLineComment(int nIndex = 0);
+	BOOL IsSingleLineComment(const CString& sLine, int nBeginIndex = 0);
+
+	LG_STRING& GetEscapeStr(int nIndex = 0);
+	int  IndexOfEscStr(const CString& sLine, int nBeginIndex = 0);
+	
+	CMultiLineComment& GetMultiLineComment(int nIndex = 0);
+	int  GetMultiLineCommentStartIndex(const CString& sLine, int nBeginIndex = 0);
+	BOOL IsMultiLineCommentEnd(int iIndexOfMultiComment, const CString& sLine, int nBeginIndex = 0);
+	
+	CPair& GetStringMark(int nIndex = 0);
+	int  GetStringStartIndex(const CString& sLine, int nBeginIndex = 0);
+	BOOL IsStringEnd(int iStrIndex, const CString& sLine, int nBeginIndex = 0);
+	
+	CPair& GetCharMark(int nIndex = 0);
+	int  GetCharStartIndex(const CString& sLine, int nBeginIndex = 0);
+	BOOL IsCharEnd(int iStrIndex, const CString& sLine, int nBeginIndex = 0);
+public:
 
 // 	CArray<CSingleLineComment, CSingleLineComment&> m_singleCommentArray;
 // 	CArray<CMultiLineComment, CMultiLineComment&> m_multiCommentArray;
@@ -81,6 +143,24 @@ public:
 	CTinyVector<CPair> m_stringMarkArray;	// eg. "string"
 	CTinyVector<CPair> m_charMarkArray;		// eg. 'A'
 	CTinyVector<LG_STRING> m_escapeStrArray;	
+};
+
+#define LG_TYPE_SINGLE		0
+#define LG_TYPE_MULTI		1
+
+class CLangGrammarBuilder
+{
+public:
+	CLangGrammarBuilder(int type = LG_TYPE_SINGLE);
+	ILangGrammar* GetResult();
+	void AddSingleComment(const char* lpszCommentStr, int nColumn = START_COLUMN_ANY);
+	void AddMultiComment(const char* lpszStart, const char* lpszEnd);
+	void AddStringMark(const char* lpszStart, const char* lpszEnd);
+	void AddCharMark(const char* lpszStart, const char* lpszEnd);
+	void AddEscapeStr(const char* lpszEscapeStr);
+protected:
+	CSingleLangGrammar* m_pSingleLangGrammar;
+	CMultiLangGrammar*  m_pMultiLangGrammar;
 };
 
 #endif // _LANG_GRAMMAR_H_
