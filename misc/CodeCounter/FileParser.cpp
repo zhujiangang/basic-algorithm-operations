@@ -301,6 +301,5 @@ void IFileParser::ParseFile()
 }
 
 void IFileParser::ParseLine(const CString& sLine, ParseState& state, bool& bHasCode, bool& bHasComments)
-{
-
+{	
 }

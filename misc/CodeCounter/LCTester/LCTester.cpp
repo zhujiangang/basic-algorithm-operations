@@ -195,12 +195,12 @@ void test(LPCTSTR lpFileName)
 {
 	CFileInfo* pFileInfoPlc = NULL;
 	UINT nTimeCostPlc = 0;
-	IFileParser* pFileParserPlc = BuildFileParser(FP_PLC);
+	IFileParser* pFileParserPlc = BuildFileParser(FP_CPP);
 	test(lpFileName, pFileParserPlc, pFileInfoPlc, nTimeCostPlc);
 
 	CFileInfo* pFileInfoGen = NULL;
 	UINT nTimeCostGen = 0;
-	IFileParser* pFileParserGen = BuildFileParser(FP_CPP);
+	IFileParser* pFileParserGen = BuildFileParser(FP_PLC);
 	test(lpFileName, pFileParserGen, pFileInfoGen, nTimeCostGen);
 
 	if( !(*pFileInfoPlc == *pFileInfoGen) )
@@ -216,7 +216,7 @@ void test(LPCTSTR lpFileName)
 
 void testWorkable()
 {
-	LPCTSTR lpDir = "F:\\googlecode\\cosps";
+	LPCTSTR lpDir = "C:\\lgao1\\87svnwc\\cosps";
 	EnumDirectoryIt(lpDir, test);
 }
 
@@ -224,9 +224,10 @@ void testSingleFile()
 {
 	LPCTSTR lpFileName = NULL;
 	lpFileName = "C:\\diskf\\workspace3.4.1\\e2u\\src\\com\\e2u\\test\\test.txt";
-	lpFileName = "F:\\googlecode\\cosps\\CxImage\\Temp\\cximage600_full\\mng\\libmng_pixels.c";
-	lpFileName = "F:\\googlecode\\cosps\\CxImage\\Temp\\cximage600_full\\mng\\libmng_chunk_io.c";
-	lpFileName = "F:\\googlecode\\cosps\\Misc\\PLC\\PLC221Src\\Help\\IDH_ABOUT.htm";
+// 	lpFileName = "F:\\googlecode\\cosps\\CxImage\\Temp\\cximage600_full\\mng\\libmng_pixels.c";
+// 	lpFileName = "F:\\googlecode\\cosps\\CxImage\\Temp\\cximage600_full\\mng\\libmng_chunk_io.c";
+// 	lpFileName = "C:\\lgao1\\87svnwc\\cosps\\CxImage\\CxImage6.0\\cximage600_full\\jbig\\jbig.c";
+ 	lpFileName = "C:\\lgao1\\87svnwc\\cosps\\CxImage\\CxImage5.99\\png\\CHANGES";
 
 	test(lpFileName);
 }
@@ -261,9 +262,20 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 	gIsBatchCount = false;
 	InitGrammar();
 
-//	testWorkable();
-//	testSingleFile();
-	testBatchFiles();
+	int testType = 2;
+
+	if(testType == 1)
+	{
+		testWorkable();
+	}
+	else if(testType == 2)
+	{
+		testSingleFile();
+	}
+ 	else if(testType == 3)
+	{
+		testBatchFiles();
+	}
 
 	if(pGLangGrammar != NULL)
 	{

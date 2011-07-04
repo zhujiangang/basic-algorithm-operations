@@ -8,21 +8,17 @@
 
 #include "TinyVector.h"
 
-#define START_COLUMN_ANY	(-1)
-//SOL -- Start of Line
-#define START_COLUMN_SOL	(0)
+#define START_COLUMN_ANY	(-1)	//ANY -- Any Column of Line
+#define START_COLUMN_SOL	(0)		//SOL -- Start of Line
 
-//#define STRING_USE_TINY
 
 #if defined(STRING_USE_STL)
 #include <string>
 #define LG_STRING	std::string
-#elif defined(STRING_USE_TINY)
-#include "tinystr.h"
-#define LG_STRING	TiXmlString
 #else
 #define LG_STRING	CString
 #endif
+
 
 int GetLength(const LG_STRING& str);
 char GetAt(const LG_STRING& str, int nIndex);
@@ -131,13 +127,6 @@ public:
 	int  GetCharStartIndex(const CString& sLine, int nBeginIndex = 0);
 	BOOL IsCharEnd(int iStrIndex, const CString& sLine, int nBeginIndex = 0);
 public:
-
-// 	CArray<CSingleLineComment, CSingleLineComment&> m_singleCommentArray;
-// 	CArray<CMultiLineComment, CMultiLineComment&> m_multiCommentArray;
-// 	CArray<CPair, CPair&> m_stringMarkArray;	// eg. "string"
-// 	CArray<CPair, CPair&> m_charMarkArray;		// eg. 'A'
-// 	CArray<LG_STRING, LG_STRING&> m_escapeStrArray;	
-
 	CTinyVector<CSingleLineComment> m_singleCommentArray;
 	CTinyVector<CMultiLineComment> m_multiCommentArray;
 	CTinyVector<CPair> m_stringMarkArray;	// eg. "string"

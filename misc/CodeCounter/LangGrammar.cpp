@@ -7,11 +7,10 @@
 static char THIS_FILE[] = __FILE__;
 #endif
 
+
 int GetLength(const LG_STRING& str)
 {
 #if defined(STRING_USE_STL)
-	return str.length();
-#elif defined(STRING_USE_TINY)
 	return str.length();
 #else
 	return str.GetLength();
@@ -21,8 +20,6 @@ int GetLength(const LG_STRING& str)
 char GetAt(const LG_STRING& str, int nIndex)
 {
 #if defined(STRING_USE_STL)
-	return str.at(nIndex);
-#elif defined(STRING_USE_TINY)
 	return str.at(nIndex);
 #else
 	return str.GetAt(nIndex);
