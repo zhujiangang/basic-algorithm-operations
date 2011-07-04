@@ -3,11 +3,12 @@
 
 #include "stdafx.h"
 #include "LCTester.h"
-#include "CFileParser.h"
-#include "PLCFileParser.h"
-#include "BaseLogger.h"
-#include "GenericFileParser.h"
-#include "CPPFileParser.h"
+#include "FileParser.h"
+//#include "CFileParser.h"
+//#include "PLCFileParser.h"
+//#include "BaseLogger.h"
+//#include "GenericFileParser.h"
+//#include "CPPFileParser.h"
 #include "LangGrammar.h"
 #include "TimeCost.h"
 
@@ -114,22 +115,26 @@ IFileParser* BuildFileParser(int type)
 	if(type == FP_FSM)
 	{
 		lpLogFile = "C:\\temp\\fsm_log.txt";
-		pFileParser = new CCFileParser(NULL);
+//		pFileParser = new CCFileParser(NULL);
+		pFileParser = CFileParserFactory::GetFileParser(LANG_TYPE_FSM, NULL);
 	}
 	else if(type == FP_PLC)
 	{
 		lpLogFile = "C:\\temp\\plc_log.txt";
-		pFileParser = new CPlcFileParser(NULL);
+//		pFileParser = new CPlcFileParser(NULL);
+		pFileParser = CFileParserFactory::GetFileParser(LANG_TYPE_PLC, NULL);
 	}
 	else if(type == FP_GEN)
 	{
 		lpLogFile = "C:\\temp\\gen_log.txt";
-		pFileParser = new CGenericFileParser(NULL, pGLangGrammar);
+//		pFileParser = new CGenericFileParser(pGLangGrammar, NULL);
+		pFileParser = CFileParserFactory::GetGenericFileParser(pGLangGrammar, NULL);
 	}
 	else if(type == FP_CPP)
 	{
-		lpLogFile = "C:\\temp\\cpp_log.txt";
-		pFileParser = new CCPPFileParser(NULL);
+		lpLogFile = "C:\\temp\\cpp_log.txt";		
+//		pFileParser = new CCPPFileParser(NULL);
+		pFileParser = CFileParserFactory::GetFileParser(LANG_TYPE_CPP, NULL);
 	}
 
 	if(pFileParser != NULL && !gIsBatchCount)
@@ -171,24 +176,26 @@ void parseSingle(LPCTSTR lpFileName, int type)
 
 void parseByPlcBatch(LPCTSTR lpFileName)
 {
-// 	CFileInfo fileInfo(lpFileName);
-// 	CPlcFileParser fileParser(&fileInfo);
-// 	fileParser.ParseFile();
-	CREATE_FILE_PARSER(CPlcFileParser);
+	CFileInfo fileInfo(lpFileName);
+	IFileParser* pFileParser = CFileParserFactory::GetFileParser(LANG_TYPE_PLC, &fileInfo);
+	pFileParser->ParseFile();
+	delete pFileParser;
 }
 void parseByGenBatch(LPCTSTR lpFileName)
 {
 	CFileInfo fileInfo(lpFileName);
-	CGenericFileParser fileParser(&fileInfo, pGLangGrammar);
-	fileParser.ParseFile();
+	IFileParser* pFileParser = CFileParserFactory::GetGenericFileParser(pGLangGrammar, &fileInfo);
+	pFileParser->ParseFile();
+	delete pFileParser;
 }
 
 void parseByCppBatch(LPCTSTR lpFileName)
 {
-// 	CFileInfo fileInfo(lpFileName);
-// 	CCPPFileParser fileParser(&fileInfo);
-// 	fileParser.ParseFile();
-	CREATE_FILE_PARSER(CCPPFileParser);
+//	CREATE_FILE_PARSER(CCPPFileParser);
+	CFileInfo fileInfo(lpFileName);
+	IFileParser* pFileParser = CFileParserFactory::GetFileParser(LANG_TYPE_CPP, &fileInfo);
+	pFileParser->ParseFile();
+	delete pFileParser;
 }
 
 void test(LPCTSTR lpFileName)
@@ -262,7 +269,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 	gIsBatchCount = false;
 	InitGrammar();
 
-	int testType = 2;
+	int testType = 3;
 
 	if(testType == 1)
 	{

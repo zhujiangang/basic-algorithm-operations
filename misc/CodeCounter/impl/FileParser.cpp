@@ -1,6 +1,10 @@
 #include "StdAfx.h"
 #include "FileParser.h"
 #include "BaseLogger.h"
+#include "CPPFileParser.h"
+#include "GenericFileParser.h"
+#include "CFileParser.h"
+#include "PLCFileParser.h"
 
 CFileInfo::CFileInfo(LPCTSTR lpszFullFileName)
  : m_nTotalLines(0), m_nCodeLines(0), m_nCommentLines(0), m_nBlankLines(0), m_nMixedLines(0)
@@ -302,4 +306,67 @@ void IFileParser::ParseFile()
 
 void IFileParser::ParseLine(const CString& sLine, ParseState& state, bool& bHasCode, bool& bHasComments)
 {	
+}
+
+
+CFileParserFactory::CFileParserFactory()
+{
+}
+
+IFileParser* CFileParserFactory::GetFileParser(ELangType eLangType, CFileInfo* pFileInfo, DWORD nMode, LPCTSTR lpLogFileName)
+{
+	IFileParser* pFileParser = NULL;
+	switch(eLangType)
+	{
+	case LANG_TYPE_C:
+	case LANG_TYPE_CPP:
+	case LANG_TYPE_CSHARP:
+	case LANG_TYPE_JAVA:
+		{
+			pFileParser = new CCPPFileParser(pFileInfo, nMode, lpLogFileName);
+		}
+		break;
+
+	case LANG_TYPE_SQL:
+		{
+			pFileParser = new CCPPFileParser(pFileInfo, nMode, lpLogFileName);
+		}
+		break;
+
+	case LANG_TYPE_FSM:
+		{
+#if defined(_DEBUG)
+			pFileParser = new CCFileParser(pFileInfo);
+#else
+			pFileParser = NULL;
+#endif
+		}
+		break;
+
+	case LANG_TYPE_PLC:
+		{
+#if defined(_DEBUG)
+			pFileParser = new CPlcFileParser(pFileInfo);
+#else
+			pFileParser = NULL;
+#endif
+		}
+		break;
+
+	default:
+		{
+			AfxTrace("Unsupported language type: %d\n", eLangType);
+		}
+		break;
+
+	}
+	return pFileParser;
+}
+
+IFileParser* CFileParserFactory::GetGenericFileParser(ILangGrammar* pLangGrammar, CFileInfo* pFileInfo, 
+													  DWORD nMode, LPCTSTR lpLogFileName)
+{
+	IFileParser* pFileParser = new CGenericFileParser(pLangGrammar, pFileInfo, nMode, lpLogFileName);
+
+	return pFileParser;
 }
