@@ -78,16 +78,13 @@ class IFileParser
 public:
 	IFileParser(CFileInfo* pFileInfo = NULL, DWORD nMode = FP_MODE_DEFAULT, LPCTSTR lpLogFileName = NULL);
     virtual ~IFileParser();
-	
+	virtual void ParseFile();
+	virtual void SetLogger(LPCTSTR lpLogFileName);
+public:
 	void SetFileInfo(CFileInfo* pFileInfo)
 	{
 		m_pFileInfo = pFileInfo;
 	}
-
-	virtual void ParseFile();
-	virtual void ParseLine(const CString& sLine, ParseState& state, bool& bHasCode, bool& bHasComments);
-
-	void SetLogger(LPCTSTR lpLogFileName);
 	DWORD GetMode() const
 	{
 		return m_nMode;
@@ -97,6 +94,7 @@ public:
 		m_nMode = nMode;
 	}
 protected:
+	virtual void ParseLine(const CString& sLine, ParseState& state, bool& bHasCode, bool& bHasComments);
 	virtual void Increase(DWORD dwFlags);
 	virtual void CountBlankLineInCommentBlock();
 	virtual void CountBlankLineInMultiString();
@@ -107,6 +105,49 @@ protected:
 	DWORD	m_nMode;
 public:
 	static BOOL IsSpace(int ch);
+};
+
+enum ELangType
+{
+	LANG_TYPE_ADA,
+	LANG_TYPE_ASSEMBLY,
+	LANG_TYPE_ASP,
+	LANG_TYPE_BASIC,
+	LANG_TYPE_BAT,
+	LANG_TYPE_C,
+	LANG_TYPE_COBOL,
+	LANG_TYPE_CPP,
+	LANG_TYPE_CSHARP,
+	LANG_TYPE_CSS,
+	LANG_TYPE_CSV,
+	LANG_TYPE_DELPHI,
+	LANG_TYPE_FORTRAN,
+	LANG_TYPE_HTML,
+	LANG_TYPE_INI,
+	LANG_TYPE_JAVA,
+	LANG_TYPE_LISP,
+	LANG_TYPE_LUA,
+	LANG_TYPE_PASCAL,
+	LANG_TYPE_PERL,
+	LANG_TYPE_PHP,
+	LANG_TYPE_PYTHON,
+	LANG_TYPE_RUBY,
+	LANG_TYPE_SCALA,
+	LANG_TYPE_SQL,
+	LANG_TYPE_TCL,
+	LANG_TYPE_XML
+};
+
+class ILangGrammar;
+class CFileParserFactory
+{
+private:
+	CFileParserFactory();
+public:
+	static IFileParser* GetFileParser(ELangType eLangType, CFileInfo* pFileInfo = NULL, DWORD nMode = FP_MODE_DEFAULT, 
+		LPCTSTR lpLogFileName = NULL);
+	static IFileParser* GetGenericFileParser(ILangGrammar* pLangGrammar, CFileInfo* pFileInfo = NULL, DWORD nMode = FP_MODE_DEFAULT, 
+		LPCTSTR lpLogFileName = NULL);
 };
 
 #endif

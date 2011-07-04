@@ -1,5 +1,6 @@
 #include "StdAfx.h"
 #include "CFileParser.h"
+#include "BaseLogger.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -48,13 +49,13 @@ int CCFileParser::nextLineState[] =
 	STAT_STAR_AFTER_SLASH,   //  STAT_ESC_AFTER_SECOND_STAR
 	STAT_FIRST_QM,           //  STAT_FIRST_QM
 	STAT_FIRST_QM,           //  STAT_ESC_AFTER_FIRST_QM
-	STAT_FIRST_SQM,          //  STAT_FIRST_SQM
-	STAT_FIRST_SQM           //  STAT_ESC_AFTER_FIRST_SQM
+	STAT_NONE,				 //  STAT_FIRST_SQM
+	STAT_NONE				 //  STAT_ESC_AFTER_FIRST_SQM
 };
 
 CCFileParser::CCFileParser(CFileInfo* pFileInfo) : IFileParser(pFileInfo)
 {
-	m_eModeCountBlankLine = COUNT_BLANK_LINE_AS_BLANK_IN_COMMENT_BLOCK;
+	m_eModeCountBlankLine = COUNT_BLANK_LINE_AS_COMMENT_IN_COMMENT_BLOCK;
 	FileParserActionProc temp[MAX_STAT][MAX_TRANS] = 
 	{
 		{CodeBlankMarkSetAction, CodeBlankMarkSetAction, CodeBlankMarkSetAction, CodeBlankMarkSetAction},
@@ -104,6 +105,20 @@ void CCFileParser::ParseFile()
 		m_bAllBlank = TRUE;
 		
 		Increase(MASK_TOTAL_LINE);
+
+		if(m_eCurStat == STAT_FIRST_QM)
+		{
+			AfxTrace("[Note]: Multi String in line(%d)\n", m_pFileInfo->m_nTotalLines);
+			if(m_pLogger != NULL)
+			{
+				m_pLogger->log(1, "[Note]: Multi String in line(%d)\n", m_pFileInfo->m_nTotalLines);
+			}
+			//Multi Line String is NOT allowed
+			if( (m_nMode & FP_MODE_STRING_IN_MULTI_LINE) == 0)
+			{
+				m_eCurStat = STAT_NONE;
+			}
+		}
 		
 		sLine.TrimLeft();
 		sLine.TrimRight();
@@ -111,7 +126,12 @@ void CCFileParser::ParseFile()
 		{
 			CountBlankLineInCommentBlock();
 			continue;
-		}				
+		}
+		
+		if(m_pFileInfo->m_nTotalLines == 1671)
+		{
+			AfxTrace("Debug here");
+		}
 		
 		nLineLength = sLine.GetLength();
 		for(int i = 0; i < nLineLength; i++)
@@ -154,6 +174,19 @@ int CCFileParser::Transition(CString& line, int chIndex, int state)
 			if(chIndex == line.GetLength() - 1)
 			{
 				nextState = nextLineState[nextState];
+			}
+			if( (state == STAT_FIRST_SQM && nextState == STAT_FIRST_SQM) || 
+				(state == STAT_ESC_AFTER_FIRST_SQM && nextState == STAT_FIRST_SQM) )
+			{
+				if(chIndex < line.GetLength() - 1)
+				{
+					TCHAR chNext = line.GetAt(chIndex + 1);
+					//Grammar error
+					if(chNext != '\'')
+					{
+						nextState = STAT_NONE;
+					}
+				}
 			}
 			break;    
 		}
@@ -210,6 +243,10 @@ void CCFileParser::CodeBlankMarkSetAction(CString& line, int chIndex)
 		//No need to set
 		if(*grammar[m_eCurStat][i] != 0 && strchr(grammar[m_eCurStat][i], ch))
 		{
+			if(ch != '/')
+			{
+				m_bAllBlank = FALSE;
+			}
 			break;
 		}
 		else if(*grammar[m_eCurStat][i] == 0)
@@ -286,4 +323,33 @@ void CCFileParser::CommentEndAction(CString& line, int chIndex)
 	m_bAllBlank = TRUE;
 	
 	IncCommentOnLastCharAction(line, chIndex);
+}
+
+void CCFileParser::CountBlankLineInCommentBlock()
+{
+	if(m_eCurStat == STAT_STAR_AFTER_SLASH)
+	{
+		switch(m_eModeCountBlankLine)
+		{
+		case COUNT_BLANK_LINE_AS_BLANK_IN_COMMENT_BLOCK:
+			{
+				Increase(MASK_BLANK_LINE);
+				break;
+			}
+		case COUNT_BLANK_LINE_AS_COMMENT_IN_COMMENT_BLOCK:
+			{
+				Increase(MASK_COMMENT_LINE);
+				break;
+			}
+		default:
+			{
+				AfxTrace("Unknown mode : %d\n", m_eModeCountBlankLine);
+				break;
+			}
+		}
+	}
+	else
+	{
+		Increase(MASK_BLANK_LINE);
+	}
 }

@@ -18,6 +18,7 @@ protected:
 	void CommentEndAction(CString& line, int chIndex);
 	void CommentSegIncAction(CString& line, int chIndex);
 	void CodeBlankMarkSetAction(CString& line, int chIndex);
+	void CountBlankLineInCommentBlock();
 protected:
 	//All the states in the FSM.
 	enum EStat
