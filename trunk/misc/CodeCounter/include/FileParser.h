@@ -135,7 +135,11 @@ enum ELangType
 	LANG_TYPE_SCALA,
 	LANG_TYPE_SQL,
 	LANG_TYPE_TCL,
-	LANG_TYPE_XML
+	LANG_TYPE_XML,
+
+	//Test types
+	LANG_TYPE_FSM,
+	LANG_TYPE_PLC
 };
 
 class ILangGrammar;

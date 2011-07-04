@@ -3,7 +3,7 @@
 #include "BaseLogger.h"
 #include "LangGrammar.h"
 
-CGenericFileParser::CGenericFileParser(CFileInfo* pFileInfo, ILangGrammar* pLangGrammar, DWORD nMode, LPCTSTR lpLogFileName)
+CGenericFileParser::CGenericFileParser(ILangGrammar* pLangGrammar, CFileInfo* pFileInfo, DWORD nMode, LPCTSTR lpLogFileName)
 	: IFileParser(pFileInfo, nMode, lpLogFileName), m_pLangGrammar(pLangGrammar)
 {
 }

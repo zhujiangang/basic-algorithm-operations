@@ -6,7 +6,7 @@
 class CCFileParser : public IFileParser
 {
 public:
-	CCFileParser(CFileInfo* pFileInfo);
+	CCFileParser(CFileInfo* pFileInfo = NULL, DWORD nMode = FP_MODE_DEFAULT, LPCTSTR lpLogFileName = NULL);
 	virtual ~CCFileParser();
 	virtual void ParseFile();
 	virtual void Reset();

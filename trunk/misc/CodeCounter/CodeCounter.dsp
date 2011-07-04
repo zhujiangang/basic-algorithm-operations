@@ -64,7 +64,7 @@ LIB32=link.exe -lib
 # PROP Intermediate_Dir "Debug"
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_AFXDLL" /Yu"stdafx.h" /FD /GZ /c
-# ADD CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_AFXDLL" /D "_MBCS" /Yu"stdafx.h" /FD /GZ /c
+# ADD CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /I ".\include" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_AFXDLL" /D "_MBCS" /Yu"stdafx.h" /FD /GZ /c
 # ADD BASE RSC /l 0x409 /d "_DEBUG" /d "_AFXDLL"
 # ADD RSC /l 0x409 /d "_DEBUG" /d "_AFXDLL"
 BSC32=bscmake.exe
@@ -85,40 +85,8 @@ LIB32=link.exe -lib
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 # Begin Source File
 
-SOURCE=.\BaseLogger.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\CFileParser.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\CPPFileParser.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\FileParser.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\GenericFileParser.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\LangGrammar.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\PLCFileParser.cpp
-# End Source File
-# Begin Source File
-
 SOURCE=.\StdAfx.cpp
 # ADD CPP /Yc"stdafx.h"
-# End Source File
-# Begin Source File
-
-SOURCE=.\tinystr.cpp
 # End Source File
 # End Group
 # Begin Group "Header Files"
@@ -126,43 +94,91 @@ SOURCE=.\tinystr.cpp
 # PROP Default_Filter "h;hpp;hxx;hm;inl"
 # Begin Source File
 
-SOURCE=.\BaseLogger.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\CFileParser.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\CPPFileParser.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\FileParser.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\GenericFileParser.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\LangGrammar.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\PLCFileParser.h
-# End Source File
-# Begin Source File
-
 SOURCE=.\StdAfx.h
 # End Source File
+# End Group
+# Begin Group "include"
+
+# PROP Default_Filter "*.h"
 # Begin Source File
 
-SOURCE=.\tinystr.h
+SOURCE=.\include\FileParser.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\TinyVector.h
+SOURCE=.\include\LangGrammar.h
+# End Source File
+# End Group
+# Begin Group "impl"
+
+# PROP Default_Filter ""
+# Begin Source File
+
+SOURCE=.\impl\BaseLogger.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\impl\BaseLogger.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\impl\CFileParser.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\impl\CFileParser.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\impl\CPPFileParser.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\impl\CPPFileParser.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\impl\FileParser.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\impl\GenericFileParser.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\impl\GenericFileParser.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\impl\LangGrammar.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\impl\MultiLangGrammar.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\impl\MultiLangGrammar.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\impl\PLCFileParser.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\impl\PLCFileParser.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\impl\SingleLangGrammar.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\impl\SingleLangGrammar.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\impl\TinyVector.h
 # End Source File
 # End Group
 # Begin Source File

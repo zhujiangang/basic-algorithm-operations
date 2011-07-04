@@ -53,7 +53,8 @@ int CCFileParser::nextLineState[] =
 	STAT_NONE				 //  STAT_ESC_AFTER_FIRST_SQM
 };
 
-CCFileParser::CCFileParser(CFileInfo* pFileInfo) : IFileParser(pFileInfo)
+CCFileParser::CCFileParser(CFileInfo* pFileInfo, DWORD nMode, LPCTSTR lpLogFileName)
+ : IFileParser(pFileInfo, nMode, lpLogFileName)
 {
 	m_eModeCountBlankLine = COUNT_BLANK_LINE_AS_COMMENT_IN_COMMENT_BLOCK;
 	FileParserActionProc temp[MAX_STAT][MAX_TRANS] = 
