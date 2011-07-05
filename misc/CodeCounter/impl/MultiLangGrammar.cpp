@@ -19,7 +19,7 @@ int  CMultiLangGrammar::GetStartIndex(const CTinyVector<CPair>& tinyVector, cons
 }
 BOOL CMultiLangGrammar::IsEnd(const CTinyVector<CPair>& tinyVector, int iIndex, const CString& sLine, int nBeginIndex)
 {
-	if(iIndex < 0 || iIndex >= tinyVector.GetSize())
+	if(iIndex < 0 || iIndex >= (int)tinyVector.GetSize())
 	{
 		return FALSE;
 	}	
