@@ -5,6 +5,8 @@
 #include "GenericFileParser.h"
 #include "CFileParser.h"
 #include "PLCFileParser.h"
+#include "BasicFileParser.h"
+#include "SolFileParser.h"
 
 CFileInfo::CFileInfo(LPCTSTR lpszFullFileName)
  : m_nTotalLines(0), m_nCodeLines(0), m_nCommentLines(0), m_nBlankLines(0), m_nMixedLines(0)
@@ -230,82 +232,101 @@ void IFileParser::CountCodeCommentInOneLine()
 
 void IFileParser::ParseFile()
 {
-	CStdioFile file;
-	if(!file.Open(m_pFileInfo->m_sFullFileName, CFile::modeRead))
+	TRY
 	{
-		AfxTrace(_T("Failed to Open file %s\n"), m_pFileInfo->m_sFullFileName);
-		return;
-	}
-	
-	CString sLine;
-	ParseState state;
-	state.m_nMajorState = STATE_NORMAL;
-	
-	bool bHasCode, bHasComments;
-	while(file.ReadString(sLine))
-	{
-		Increase(MASK_TOTAL_LINE);
-		
-		if(state.m_nMajorState == STATE_STRING)
+		CStdioFile file;
+		if(!file.Open(m_pFileInfo->m_sFullFileName, CFile::modeRead))
 		{
-			AfxTrace("[Note]: Multi String in line(%d)\n", m_pFileInfo->m_nTotalLines);
-			if(m_pLogger != NULL)
-			{
-				m_pLogger->log(1, "[Note]: Multi String in line(%d)\n", m_pFileInfo->m_nTotalLines);
-			}
-			//Multi Line String is NOT allowed
-			if( (m_nMode & FP_MODE_STRING_IN_MULTI_LINE) == 0)
-			{
-				state.m_nMajorState = STATE_NORMAL;
-			}
+			AfxTrace("Failed to Open file %s\n", m_pFileInfo->m_sFullFileName);
+			return;
 		}
 		
-		sLine.TrimLeft();
-		sLine.TrimRight();
+		CString sLine;
+		ParseState state;
+		state.m_nMajorState = STATE_NORMAL;
 		
-		if(sLine.IsEmpty())
+		bool bHasCode, bHasComments;
+		while(file.ReadString(sLine))
 		{
-			if(state.m_nMajorState == STATE_MULTI_COMMENT)
+			Increase(MASK_TOTAL_LINE);
+			
+			if(state.m_nMajorState == STATE_STRING)
 			{
-				CountBlankLineInCommentBlock();
+				AfxTrace("[Note]: Multi String in line(%d)\n", m_pFileInfo->m_nTotalLines);
+				if(m_pLogger != NULL)
+				{
+					m_pLogger->log(1, "[Note]: Multi String in line(%d)\n", m_pFileInfo->m_nTotalLines);
+				}
+				//Multi Line String is NOT allowed
+				if( (m_nMode & FP_MODE_STRING_IN_MULTI_LINE) == 0)
+				{
+					state.m_nMajorState = STATE_NORMAL;
+				}
 			}
-			//Multi Line String must be allowed yet.
-			else if(state.m_nMajorState == STATE_STRING)
+			
+			sLine.TrimLeft();
+			sLine.TrimRight();
+			
+			if(sLine.IsEmpty())
 			{
-				CountBlankLineInMultiString();
+				if(state.m_nMajorState == STATE_MULTI_COMMENT)
+				{
+					CountBlankLineInCommentBlock();
+				}
+				//Multi Line String must be allowed yet.
+				else if(state.m_nMajorState == STATE_STRING)
+				{
+					CountBlankLineInMultiString();
+				}
+				else
+				{
+					Increase(MASK_BLANK_LINE);
+				}
+				continue;
+			}
+			
+			ParseLine(sLine, state, bHasCode, bHasComments);
+
+			ASSERT( bHasComments || bHasCode );
+
+			if( bHasComments && bHasCode)
+			{
+				CountCodeCommentInOneLine();
 			}
 			else
 			{
-				Increase(MASK_BLANK_LINE);
+				if (bHasComments)
+				{
+					Increase(MASK_COMMENT_LINE);
+				}
+				if (bHasCode)
+				{
+					Increase(MASK_CODE_LINE);
+				}
 			}
-			continue;
 		}
 		
-        ParseLine(sLine, state, bHasCode, bHasComments);
-		
-		if( bHasComments && bHasCode)
-		{
-			CountCodeCommentInOneLine();
-		}
-		else
-		{
-			if (bHasComments)
-			{
-				Increase(MASK_COMMENT_LINE);
-			}
-			if (bHasCode)
-			{
-				Increase(MASK_CODE_LINE);
-			}
-		}
-		ASSERT( bHasComments || bHasCode );
+		file.Close();
 	}
-	
-	file.Close();
+	CATCH(CFileException, e)
+	{
+		TCHAR szCause[512];
+		e->GetErrorMessage(szCause, 512);
+		AfxTrace("[CFileException]-%s: %s\n", m_pFileInfo->m_sFullFileName, szCause);
+		REPORT_EXCEPTION_ERROR(e);
+	}
+	AND_CATCH_ALL(e)
+	{
+		TCHAR szCause[512];
+		e->GetErrorMessage(szCause, 512);
+		AfxTrace("%s: %s\n", m_pFileInfo->m_sFullFileName, szCause);
+		REPORT_EXCEPTION_ERROR(e);
+	}
+	END_CATCH_ALL
 }
 
 void IFileParser::ParseLine(const CString& sLine, ParseState& state, bool& bHasCode, bool& bHasComments)
-{	
+{
 }
 
 
@@ -326,13 +347,21 @@ IFileParser* CFileParserFactory::GetFileParser(ELangType eLangType, CFileInfo* p
 			pFileParser = new CCPPFileParser(pFileInfo, nMode, lpLogFileName);
 		}
 		break;
-
-	case LANG_TYPE_SQL:
+	case LANG_TYPE_BASIC:
 		{
-			pFileParser = new CCPPFileParser(pFileInfo, nMode, lpLogFileName);
+			pFileParser = new CBasicFileParser(pFileInfo, nMode, lpLogFileName);
 		}
 		break;
-
+	case LANG_TYPE_INI:
+		{
+			pFileParser = new CSolFileParser(";", pFileInfo, nMode, lpLogFileName);
+		}
+		break;
+	case LANG_TYPE_MAK:
+		{
+			pFileParser = new CSolFileParser("#", pFileInfo, nMode, lpLogFileName);
+		}
+		break;
 	case LANG_TYPE_FSM:
 		{
 #if defined(_DEBUG)

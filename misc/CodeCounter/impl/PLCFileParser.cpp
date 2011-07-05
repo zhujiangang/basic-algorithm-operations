@@ -15,6 +15,8 @@ BOOL cfg_bProcessBlanks = TRUE;
 
 void CPlcFileParser::ParseFile()
 {
+	TRY
+	{
 	CStdioFile file;
 	if(!file.Open(m_pFileInfo->m_sFullFileName, CFile::modeRead))
 	{
@@ -75,6 +77,22 @@ void CPlcFileParser::ParseFile()
 	}
 	
 	file.Close();
+	}
+	CATCH(CFileException, e)
+	{
+		TCHAR szCause[512];
+		e->GetErrorMessage(szCause, 512);
+		AfxTrace("[CFileException]-%s: %s\n", m_pFileInfo->m_sFullFileName, szCause);
+		REPORT_EXCEPTION_ERROR(e);
+	}
+	AND_CATCH_ALL(e)
+	{
+		TCHAR szCause[512];
+		e->GetErrorMessage(szCause, 512);
+		AfxTrace("%s: %s\n", m_pFileInfo->m_sFullFileName, szCause);
+		REPORT_EXCEPTION_ERROR(e);
+	}
+	END_CATCH_ALL
 }
 
 #define IS_PAIR(A, B) (ch == #@A  &&  chNext == #@B)

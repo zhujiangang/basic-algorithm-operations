@@ -4,11 +4,6 @@
 #include "stdafx.h"
 #include "LCTester.h"
 #include "FileParser.h"
-//#include "CFileParser.h"
-//#include "PLCFileParser.h"
-//#include "BaseLogger.h"
-//#include "GenericFileParser.h"
-//#include "CPPFileParser.h"
 #include "LangGrammar.h"
 #include "TimeCost.h"
 
@@ -241,13 +236,13 @@ void testSingleFile()
 
 void testBatchFiles()
 {
-	LPCTSTR lpDir = "F:\\googlecode\\cosps";
+	LPCTSTR lpDir = "C:\\lgao1\\87svnwc";
 	
 	CTimeCost timeCost;
 	int nCount = 0;
 	nCount = EnumDirectoryIt(lpDir, parseByCppBatch);
 	timeCost.UpdateCurrClock();
-	printf("Gen Time Cost: %d, nCount = %d\n", timeCost.GetTimeCost(), nCount);
+	printf("Cpp Time Cost: %d, nCount = %d\n", timeCost.GetTimeCost(), nCount);
 	
 	timeCost.Reset();
 	nCount = EnumDirectoryIt(lpDir, parseByPlcBatch);
@@ -281,7 +276,11 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 	}
  	else if(testType == 3)
 	{
-		testBatchFiles();
+		for(int i = 1; i <= 100; i++)
+		{
+			printf("(%d)\n", i);
+			testBatchFiles();
+		}	
 	}
 
 	if(pGLangGrammar != NULL)
