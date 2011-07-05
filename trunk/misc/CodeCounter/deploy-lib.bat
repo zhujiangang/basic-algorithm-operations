@@ -10,6 +10,6 @@ if exist ".\Release\CodeCounter.lib" (
 )
 
 copy /Y /B ".\FileParser.h" "%DST_DIR%\Include\FileParser.h"
-copy /Y /B ".\CFileParser.h" "%DST_DIR%\Include\CFileParser.h"
+copy /Y /B ".\LangGrammar.h" "%DST_DIR%\Include\LangGrammar.h"
 
 pause

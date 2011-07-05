@@ -72,6 +72,13 @@ typedef CFsmState ParseState;
 
 #define FP_MODE_DEFAULT									0x000000FF
 
+
+#if defined(_DEBUG)
+#define REPORT_EXCEPTION_ERROR(e)	e->ReportError()
+#else
+#define REPORT_EXCEPTION_ERROR(e)
+#endif
+
 class CBaseLogger;
 class IFileParser
 {
@@ -127,6 +134,7 @@ enum ELangType
 	LANG_TYPE_JAVA,
 	LANG_TYPE_LISP,
 	LANG_TYPE_LUA,
+	LANG_TYPE_MAK,
 	LANG_TYPE_PASCAL,
 	LANG_TYPE_PERL,
 	LANG_TYPE_PHP,
