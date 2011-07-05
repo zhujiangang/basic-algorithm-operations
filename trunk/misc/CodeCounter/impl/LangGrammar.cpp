@@ -28,13 +28,14 @@ char GetAt(const LG_STRING& str, int nIndex)
 #endif
 }
 
-CSingleLineComment::CSingleLineComment(LPCTSTR lpszCommentStr, int nColumn)
+CSingleLineComment::CSingleLineComment(LPCTSTR lpszCommentStr, int nColumn, BOOL bCaseSensitive)
 {
 	if(lpszCommentStr != NULL)
 	{
 		m_szTag = lpszCommentStr;
 	}
 	m_nStartCol = nColumn;
+	m_bCaseSensitive = TRUE;
 }
 
 CPair::CPair()
@@ -51,13 +52,15 @@ BOOL ILangGrammar::IsStartsWith(const CString& sSrc, const LG_STRING& sPrefix, i
 	{
 		return FALSE;
 	}
-	for(int i = 0; i < nPrefixLen; i++)
+	int i;
+	for(i = 0; i < nPrefixLen; i++)
 	{
 		if(GetAt(sPrefix, i) != sSrc.GetAt(nBeginIndex + i))
 		{
 			return FALSE;
 		}
 	}
+
 	return TRUE;
 }
 
@@ -72,7 +75,6 @@ BOOL ILangGrammar::IsSingleComment(const CSingleLineComment& sComment, const CSt
 	{
 		return FALSE;
 	}
-	
 	//TODO: concern about the case "singleComment.m_nStartCol > 0"
 	if(IsStartsWith(sLine, sComment.m_szTag, nBeginIndex))
 	{
@@ -107,7 +109,7 @@ ILangGrammar* CLangGrammarBuilder::GetResult()
 	}
 }
 
-void CLangGrammarBuilder::AddSingleComment(const char* lpszCommentStr, int nColumn /* = START_COLUMN_ANY */)
+void CLangGrammarBuilder::AddSingleComment(const char* lpszCommentStr, int nColumn, BOOL bCaseSensitive)
 {
 	if(m_pSingleLangGrammar != NULL)
 	{
@@ -115,8 +117,13 @@ void CLangGrammarBuilder::AddSingleComment(const char* lpszCommentStr, int nColu
 		{
 			m_pSingleLangGrammar->m_singleComment.m_szTag = lpszCommentStr;
 			m_pSingleLangGrammar->m_singleComment.m_nStartCol = nColumn;
+			m_pSingleLangGrammar->m_singleComment.m_bCaseSensitive = bCaseSensitive;
 			return;
 		}
+		ASSERT(m_pMultiLangGrammar == NULL);
+		m_pMultiLangGrammar = new CMultiLangGrammar();
+		m_pMultiLangGrammar->m_singleCommentArray.Add(m_pSingleLangGrammar->m_singleComment);
+
 		//Change to multi
 		delete m_pSingleLangGrammar;
 		m_pSingleLangGrammar = NULL;
@@ -135,6 +142,9 @@ void CLangGrammarBuilder::AddMultiComment(const char* lpszStart, const char* lps
 			m_pSingleLangGrammar->m_multiComment.m_szEnd = lpszEnd;
 			return;
 		}
+		ASSERT(m_pMultiLangGrammar == NULL);
+		m_pMultiLangGrammar = new CMultiLangGrammar();
+		m_pMultiLangGrammar->m_multiCommentArray.Add(m_pSingleLangGrammar->m_multiComment);
 		//Change to multi
 		delete m_pSingleLangGrammar;
 		m_pSingleLangGrammar = NULL;
@@ -153,6 +163,9 @@ void CLangGrammarBuilder::AddStringMark(const char* lpszStart, const char* lpszE
 			m_pSingleLangGrammar->m_stringMark.m_szEnd = lpszEnd;
 			return;
 		}
+		ASSERT(m_pMultiLangGrammar == NULL);
+		m_pMultiLangGrammar = new CMultiLangGrammar();
+		m_pMultiLangGrammar->m_stringMarkArray.Add(m_pSingleLangGrammar->m_stringMark);
 		//Change to multi
 		delete m_pSingleLangGrammar;
 		m_pSingleLangGrammar = NULL;
@@ -171,6 +184,9 @@ void CLangGrammarBuilder::AddCharMark(const char* lpszStart, const char* lpszEnd
 			m_pSingleLangGrammar->m_charMark.m_szEnd = lpszEnd;
 			return;
 		}
+		ASSERT(m_pMultiLangGrammar == NULL);
+		m_pMultiLangGrammar = new CMultiLangGrammar();
+		m_pMultiLangGrammar->m_charMarkArray.Add(m_pSingleLangGrammar->m_charMark);
 		//Change to multi
 		delete m_pSingleLangGrammar;
 		m_pSingleLangGrammar = NULL;
@@ -188,6 +204,9 @@ void CLangGrammarBuilder::AddEscapeStr(const char* lpszEscapeStr)
 			m_pSingleLangGrammar->m_escapeStr = lpszEscapeStr;
 			return;
 		}
+		ASSERT(m_pMultiLangGrammar == NULL);
+		m_pMultiLangGrammar = new CMultiLangGrammar();
+		m_pMultiLangGrammar->m_escapeStrArray.Add(m_pSingleLangGrammar->m_escapeStr);
 		//Change to multi
 		delete m_pSingleLangGrammar;
 		m_pSingleLangGrammar = NULL;
