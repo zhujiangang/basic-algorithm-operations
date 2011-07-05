@@ -21,10 +21,11 @@ char GetAt(const LG_STRING& str, int nIndex);
 class CSingleLineComment
 {
 public:
-	CSingleLineComment(const char* lpszCommentStr = NULL, int nColumn = START_COLUMN_ANY);
+	CSingleLineComment(const char* lpszCommentStr = NULL, int nColumn = START_COLUMN_ANY, BOOL bCaseSensitive = TRUE);
 public:
 	LG_STRING m_szTag;
 	int m_nStartCol;
+	BOOL m_bCaseSensitive;
 };
 
 class CPair
@@ -76,7 +77,7 @@ class CLangGrammarBuilder
 public:
 	CLangGrammarBuilder(int type = LG_TYPE_SINGLE);
 	ILangGrammar* GetResult();
-	void AddSingleComment(const char* lpszCommentStr, int nColumn = START_COLUMN_ANY);
+	void AddSingleComment(const char* lpszCommentStr, int nColumn = START_COLUMN_ANY, BOOL bCaseSensitive = TRUE);
 	void AddMultiComment(const char* lpszStart, const char* lpszEnd);
 	void AddStringMark(const char* lpszStart, const char* lpszEnd);
 	void AddCharMark(const char* lpszStart, const char* lpszEnd);
