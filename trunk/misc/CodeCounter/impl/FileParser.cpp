@@ -364,21 +364,13 @@ IFileParser* CFileParserFactory::GetFileParser(ELangType eLangType, CFileInfo* p
 		break;
 	case LANG_TYPE_FSM:
 		{
-#if defined(_DEBUG)
 			pFileParser = new CCFileParser(pFileInfo);
-#else
-			pFileParser = NULL;
-#endif
 		}
 		break;
 
 	case LANG_TYPE_PLC:
 		{
-#if defined(_DEBUG)
 			pFileParser = new CPlcFileParser(pFileInfo);
-#else
-			pFileParser = NULL;
-#endif
 		}
 		break;
 

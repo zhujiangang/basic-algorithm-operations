@@ -236,7 +236,7 @@ void testSingleFile()
 
 void testBatchFiles()
 {
-	LPCTSTR lpDir = "C:\\lgao1\\87svnwc";
+	LPCTSTR lpDir = "C:\\lgao1\\87svnwc\\cosps";
 	
 	CTimeCost timeCost;
 	int nCount = 0;
@@ -264,14 +264,16 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 	gIsBatchCount = false;
 	InitGrammar();
 
-	int testType = 3;
+	int testType = 1;
 
 	if(testType == 1)
 	{
+		printf("start.\n");
 		testWorkable();
 	}
 	else if(testType == 2)
 	{
+		printf("start.\n");
 		testSingleFile();
 	}
  	else if(testType == 3)

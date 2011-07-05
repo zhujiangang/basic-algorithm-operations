@@ -9,7 +9,6 @@ if exist ".\Release\CodeCounter.lib" (
 	copy /Y /B ".\Release\CodeCounter.lib" "%DST_DIR%\Lib\SCC.lib"
 )
 
-copy /Y /B ".\FileParser.h" "%DST_DIR%\Include\FileParser.h"
-copy /Y /B ".\LangGrammar.h" "%DST_DIR%\Include\LangGrammar.h"
+xcopy /Y ".\include" "%DST_DIR%\Include"
 
 pause

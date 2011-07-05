@@ -5,7 +5,7 @@
 #pragma once
 #endif
 
-#include <vector>
+//include <vector>
 
 
 template<class T>
@@ -31,16 +31,23 @@ public:
 		}
 		else if(m_size == 1)
 		{
-			m_pVectorExt = new std::vector<T>();
-			m_pVectorExt->reserve(2);
-			m_pVectorExt->push_back(m_data);
-			m_pVectorExt->push_back(data);
+// 			m_pVectorExt = new std::vector<T>();
+// 			m_pVectorExt->reserve(2);
+// 			m_pVectorExt->push_back(m_data);
+// 			m_pVectorExt->push_back(data);
+			m_pVectorExt = new CArray<T, const T&>();
+			m_pVectorExt->SetSize(2, 2);
+			m_pVectorExt->Add(m_data);
+			m_pVectorExt->Add(data);
 		}
 		else
 		{
 			ASSERT(m_pVectorExt != NULL);
-			ASSERT(m_pVectorExt->size() >= 2);
-			m_pVectorExt->push_back(data);
+// 			ASSERT(m_pVectorExt->size() >= 2);
+// 			m_pVectorExt->push_back(data);
+
+			ASSERT(m_pVectorExt->GetSize() >= 2);
+			m_pVectorExt->Add(data);
 		}
 		m_size++;
 	}
@@ -51,7 +58,8 @@ public:
 		{
 			return m_data;
 		}
-		return m_pVectorExt->at(pos);
+//		return m_pVectorExt->at(pos);
+		return m_pVectorExt->ElementAt(pos);
 	}
 	const T& GetAt(size_type pos) const
 	{
@@ -60,7 +68,8 @@ public:
 		{
 			return m_data;
 		}
-		return m_pVectorExt->at(pos);
+//		return m_pVectorExt->at(pos);
+		return m_pVectorExt->ElementAt(pos);
 	}
 	size_type GetSize() const
 	{
@@ -71,7 +80,8 @@ public:
 		if(m_size > 1)
 		{
 			ASSERT(m_pVectorExt != NULL);
-			m_pVectorExt->clear();
+//			m_pVectorExt->clear();
+			m_pVectorExt->RemoveAll();
 			delete m_pVectorExt;
 			m_pVectorExt = NULL;
 		}
@@ -79,7 +89,8 @@ public:
 	}
 protected:
 	size_type m_size;
-	std::vector<T>* m_pVectorExt;
+//	std::vector<T>* m_pVectorExt;
+	CArray<T, const T&>* m_pVectorExt;
 	T m_data;
 };
 
