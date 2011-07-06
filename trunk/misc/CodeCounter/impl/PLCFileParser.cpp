@@ -1,6 +1,7 @@
 #include "StdAfx.h"
 #include "PLCFileParser.h"
 #include "BaseLogger.h"
+#include "StdioExFile.h"
 
 CPlcFileParser::CPlcFileParser(CFileInfo* pFileInfo) : IFileParser(pFileInfo)
 {
@@ -17,7 +18,7 @@ void CPlcFileParser::ParseFile()
 {
 	TRY
 	{
-	CStdioFile file;
+	CStdioExFile file;
 	if(!file.Open(m_pFileInfo->m_sFullFileName, CFile::modeRead))
 	{
 		AfxTrace(_T("Failed to Open file %s\n"), m_pFileInfo->m_sFullFileName);
@@ -26,11 +27,10 @@ void CPlcFileParser::ParseFile()
 	
 	CString sLine;
 	bool bInMultiLineComment = false, bHasCode, bHasComments;
-
-	while(file.ReadString(sLine))
+	while(file.ReadLine(sLine))
 	{
 		Increase(MASK_TOTAL_LINE);
-		
+
 		sLine.TrimLeft();
 		sLine.TrimRight();
 		if(sLine.IsEmpty())
