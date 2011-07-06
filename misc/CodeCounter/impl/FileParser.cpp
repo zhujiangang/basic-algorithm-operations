@@ -7,6 +7,7 @@
 #include "PLCFileParser.h"
 #include "BasicFileParser.h"
 #include "SolFileParser.h"
+#include "StdioExFile.h"
 
 CFileInfo::CFileInfo(LPCTSTR lpszFullFileName)
  : m_nTotalLines(0), m_nCodeLines(0), m_nCommentLines(0), m_nBlankLines(0), m_nMixedLines(0)
@@ -234,7 +235,7 @@ void IFileParser::ParseFile()
 {
 	TRY
 	{
-		CStdioFile file;
+		CStdioExFile file;
 		if(!file.Open(m_pFileInfo->m_sFullFileName, CFile::modeRead))
 		{
 			AfxTrace("Failed to Open file %s\n", m_pFileInfo->m_sFullFileName);
@@ -246,7 +247,7 @@ void IFileParser::ParseFile()
 		state.m_nMajorState = STATE_NORMAL;
 		
 		bool bHasCode, bHasComments;
-		while(file.ReadString(sLine))
+		while(file.ReadLine(sLine))
 		{
 			Increase(MASK_TOTAL_LINE);
 			

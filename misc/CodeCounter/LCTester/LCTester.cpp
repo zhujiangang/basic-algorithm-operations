@@ -6,6 +6,7 @@
 #include "FileParser.h"
 #include "LangGrammar.h"
 #include "TimeCost.h"
+#include "../impl/BaseLogger.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -20,6 +21,8 @@ CWinApp theApp;
 
 using namespace std;
 
+CBaseLogger* pSysLogger = NULL;
+TCHAR* pBaseDir = _T("..\\..\\..\\..");
 bool gIsBatchCount = false;
 
 typedef void (*func)(LPCTSTR lpFileName);
@@ -218,25 +221,31 @@ void test(LPCTSTR lpFileName)
 
 void testWorkable()
 {
-	LPCTSTR lpDir = "C:\\lgao1\\87svnwc\\cosps";
-	EnumDirectoryIt(lpDir, test);
+	CString szFullPath = pBaseDir;
+
+	LPCTSTR lpDir = "cosps";
+	if(lstrlen(lpDir) > 0)
+	{
+		szFullPath += "\\";
+		szFullPath += lpDir;
+	}
+	
+	EnumDirectoryIt(szFullPath, test);
 }
 
 void testSingleFile()
 {
 	LPCTSTR lpFileName = NULL;
-	lpFileName = "C:\\diskf\\workspace3.4.1\\e2u\\src\\com\\e2u\\test\\test.txt";
-// 	lpFileName = "F:\\googlecode\\cosps\\CxImage\\Temp\\cximage600_full\\mng\\libmng_pixels.c";
-// 	lpFileName = "F:\\googlecode\\cosps\\CxImage\\Temp\\cximage600_full\\mng\\libmng_chunk_io.c";
-// 	lpFileName = "C:\\lgao1\\87svnwc\\cosps\\CxImage\\CxImage6.0\\cximage600_full\\jbig\\jbig.c";
- 	lpFileName = "C:\\lgao1\\87svnwc\\cosps\\CxImage\\CxImage5.99\\png\\CHANGES";
+ 	lpFileName = "cosps\\CxImage\\CxImage5.99\\png\\CHANGES";
 
-	test(lpFileName);
+	CString szFullPath;
+	szFullPath.Format("%s\\%s", pBaseDir, lpFileName);
+	test(szFullPath);
 }
 
 void testBatchFiles()
 {
-	LPCTSTR lpDir = "C:\\lgao1\\87svnwc\\cosps";
+	LPCTSTR lpDir = pBaseDir;
 	
 	CTimeCost timeCost;
 	int nCount = 0;
@@ -261,33 +270,48 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 		cerr << _T("Fatal Error: MFC initialization failed") << endl;
 		nRetCode = 1;
 	}
+	if(argc > 1)
+	{
+		pBaseDir = argv[1];
+	}
+	int testType = 1;
+	if(argc > 2)
+	{
+		testType = atoi(argv[2]);
+	}
+
 	gIsBatchCount = false;
+	pSysLogger = new CBaseLogger("C:\\temp\\syslog.txt");
 	InitGrammar();
 
-	int testType = 1;
-
-	if(testType == 1)
+	for(int i = 1; i <= 100; i++)
 	{
-		printf("start.\n");
-		testWorkable();
-	}
-	else if(testType == 2)
-	{
-		printf("start.\n");
-		testSingleFile();
-	}
- 	else if(testType == 3)
-	{
-		for(int i = 1; i <= 100; i++)
+		printf("(%d)\n", i);
+		if(testType == 1)
 		{
-			printf("(%d)\n", i);
+			printf("start testType = 1\n");
+			testWorkable();
+		}
+		else if(testType == 2)
+		{
+			printf("start testType = 2\n");
+			testSingleFile();
+		}
+		else if(testType == 3)
+		{
+			printf("start testType = 3\n");
 			testBatchFiles();
-		}	
+		}
 	}
 
 	if(pGLangGrammar != NULL)
 	{
 		delete pGLangGrammar;
+	}
+
+	if(pSysLogger != NULL)
+	{
+		delete pSysLogger;
 	}
 
 	return nRetCode;
