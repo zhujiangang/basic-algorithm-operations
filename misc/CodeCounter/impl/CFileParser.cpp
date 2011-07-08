@@ -1,12 +1,15 @@
 #include "StdAfx.h"
 #include "CFileParser.h"
-#include "BaseLogger.h"
+
+#pragma warning(disable : 4786)
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
 static char THIS_FILE[] = __FILE__;
 #endif
+
+DECLARE_THE_LOGGER_NAME("CFileParser.cpp")
 
 const CCFileParser::EStat CCFileParser::STAT_FIRST = STAT_NONE;
 const CCFileParser::EStat CCFileParser::STAT_LAST  = STAT_ESC_AFTER_FIRST_SQM;
@@ -53,8 +56,8 @@ int CCFileParser::nextLineState[] =
 	STAT_NONE				 //  STAT_ESC_AFTER_FIRST_SQM
 };
 
-CCFileParser::CCFileParser(CFileInfo* pFileInfo, DWORD nMode, LPCTSTR lpLogFileName)
- : IFileParser(pFileInfo, nMode, lpLogFileName)
+CCFileParser::CCFileParser(CFileInfo* pFileInfo, DWORD nMode)
+ : IFileParser(pFileInfo, nMode)
 {
 	m_eModeCountBlankLine = COUNT_BLANK_LINE_AS_COMMENT_IN_COMMENT_BLOCK;
 	FileParserActionProc temp[MAX_STAT][MAX_TRANS] = 
@@ -109,11 +112,7 @@ void CCFileParser::ParseFile()
 
 		if(m_eCurStat == STAT_FIRST_QM)
 		{
-			AfxTrace("[Note]: Multi String in line(%d)\n", m_pFileInfo->m_nTotalLines);
-			if(m_pLogger != NULL)
-			{
-				m_pLogger->log(1, "[Note]: Multi String in line(%d)\n", m_pFileInfo->m_nTotalLines);
-			}
+			LOG4CPLUS_INFO(THE_LOGGER, "[Note]: Multi String in line("<<m_pFileInfo->m_nTotalLines<<")")
 			//Multi Line String is NOT allowed
 			if( (m_nMode & FP_MODE_STRING_IN_MULTI_LINE) == 0)
 			{

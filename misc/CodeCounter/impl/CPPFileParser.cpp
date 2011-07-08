@@ -1,9 +1,8 @@
 #include "stdafx.h"
 #include "CPPFileParser.h"
-#include "BaseLogger.h"
 
-CCPPFileParser::CCPPFileParser(CFileInfo* pFileInfo, DWORD nMode, LPCTSTR lpLogFileName)
- : IFileParser(pFileInfo, nMode, lpLogFileName)
+CCPPFileParser::CCPPFileParser(CFileInfo* pFileInfo, DWORD nMode)
+ : IFileParser(pFileInfo, nMode)
 {
 
 }

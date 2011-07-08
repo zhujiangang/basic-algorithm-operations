@@ -1,6 +1,5 @@
 #include "StdAfx.h"
 #include "PLCFileParser.h"
-#include "BaseLogger.h"
 #include "StdioExFile.h"
 
 CPlcFileParser::CPlcFileParser(CFileInfo* pFileInfo) : IFileParser(pFileInfo)

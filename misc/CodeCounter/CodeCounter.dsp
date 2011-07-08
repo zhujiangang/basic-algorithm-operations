@@ -114,14 +114,6 @@ SOURCE=.\include\LangGrammar.h
 # PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=.\impl\BaseLogger.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\impl\BaseLogger.h
-# End Source File
-# Begin Source File
-
 SOURCE=.\impl\BasicFileParser.cpp
 # End Source File
 # Begin Source File

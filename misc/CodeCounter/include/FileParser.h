@@ -83,10 +83,9 @@ class CBaseLogger;
 class IFileParser
 {
 public:
-	IFileParser(CFileInfo* pFileInfo = NULL, DWORD nMode = FP_MODE_DEFAULT, LPCTSTR lpLogFileName = NULL);
+	IFileParser(CFileInfo* pFileInfo = NULL, DWORD nMode = FP_MODE_DEFAULT);
     virtual ~IFileParser();
 	virtual void ParseFile();
-	virtual void SetLogger(LPCTSTR lpLogFileName);
 public:
 	void SetFileInfo(CFileInfo* pFileInfo)
 	{
@@ -108,7 +107,6 @@ protected:
 	virtual void CountCodeCommentInOneLine();
 protected:
 	CFileInfo* m_pFileInfo;
-	CBaseLogger* m_pLogger;
 	DWORD	m_nMode;
 public:
 	static BOOL IsSpace(int ch);
@@ -156,10 +154,8 @@ class CFileParserFactory
 private:
 	CFileParserFactory();
 public:
-	static IFileParser* GetFileParser(ELangType eLangType, CFileInfo* pFileInfo = NULL, DWORD nMode = FP_MODE_DEFAULT, 
-		LPCTSTR lpLogFileName = NULL);
-	static IFileParser* GetGenericFileParser(ILangGrammar* pLangGrammar, CFileInfo* pFileInfo = NULL, DWORD nMode = FP_MODE_DEFAULT, 
-		LPCTSTR lpLogFileName = NULL);
+	static IFileParser* GetFileParser(ELangType eLangType, CFileInfo* pFileInfo = NULL, DWORD nMode = FP_MODE_DEFAULT);
+	static IFileParser* GetGenericFileParser(ILangGrammar* pLangGrammar, CFileInfo* pFileInfo = NULL, DWORD nMode = FP_MODE_DEFAULT);
 };
 
 #endif

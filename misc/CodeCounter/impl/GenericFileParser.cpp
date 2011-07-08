@@ -1,10 +1,9 @@
 #include "StdAfx.h"
 #include "GenericFileParser.h"
-#include "BaseLogger.h"
 #include "LangGrammar.h"
 
-CGenericFileParser::CGenericFileParser(ILangGrammar* pLangGrammar, CFileInfo* pFileInfo, DWORD nMode, LPCTSTR lpLogFileName)
-	: IFileParser(pFileInfo, nMode, lpLogFileName), m_pLangGrammar(pLangGrammar)
+CGenericFileParser::CGenericFileParser(ILangGrammar* pLangGrammar, CFileInfo* pFileInfo, DWORD nMode)
+	: IFileParser(pFileInfo, nMode), m_pLangGrammar(pLangGrammar)
 {
 }
 
