@@ -6,7 +6,7 @@
 #include "FileParser.h"
 #include "LangGrammar.h"
 #include "TimeCost.h"
-#include "../impl/BaseLogger.h"
+#include <log4cplus/configurator.h>
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -20,14 +20,33 @@ static char THIS_FILE[] = __FILE__;
 CWinApp theApp;
 
 using namespace std;
+using namespace log4cplus;
 
-CBaseLogger* pSysLogger = NULL;
+DECLARE_THE_LOGGER_NAME("LCTester.cpp")
+
 TCHAR* pBaseDir = _T("..\\..\\..\\..");
 bool gIsBatchCount = false;
 
 typedef void (*func)(LPCTSTR lpFileName);
 
 void test(LPCTSTR lpFileName);
+
+void InitLog4cplus()
+{
+#ifdef ENABLE_LOG4CPLUS
+	PropertyConfigurator::doConfigure("log4cplus.properties");
+
+// 	SharedAppenderPtr fileAppender(new RollingFileAppender(".\\log\\test.log", 20*1024*1024, 500));
+// 	fileAppender->setName("file");
+// 	
+// 	std::auto_ptr<Layout> pPatternLayout(new PatternLayout("[%d{%Y-%m-%d %H:%M:%S,%q}][%p][%t][%c][%l] - %m%n"));
+// 	fileAppender->setLayout(pPatternLayout);
+// 	
+// 	ROOT_LOGGER.addAppender(fileAppender);
+// 	
+// 	ROOT_LOGGER.setLogLevel(DEBUG_LOG_LEVEL);
+#endif
+}
 
 ILangGrammar* pGLangGrammar = NULL;
 void InitGrammar()
@@ -112,33 +131,27 @@ IFileParser* BuildFileParser(int type)
 	LPCTSTR lpLogFile = NULL;
 	if(type == FP_FSM)
 	{
-		lpLogFile = "C:\\temp\\fsm_log.txt";
-//		pFileParser = new CCFileParser(NULL);
 		pFileParser = CFileParserFactory::GetFileParser(LANG_TYPE_FSM, NULL);
 	}
 	else if(type == FP_PLC)
 	{
-		lpLogFile = "C:\\temp\\plc_log.txt";
-//		pFileParser = new CPlcFileParser(NULL);
 		pFileParser = CFileParserFactory::GetFileParser(LANG_TYPE_PLC, NULL);
 	}
 	else if(type == FP_GEN)
 	{
-		lpLogFile = "C:\\temp\\gen_log.txt";
-//		pFileParser = new CGenericFileParser(pGLangGrammar, NULL);
 		pFileParser = CFileParserFactory::GetGenericFileParser(pGLangGrammar, NULL);
 	}
 	else if(type == FP_CPP)
 	{
-		lpLogFile = "C:\\temp\\cpp_log.txt";		
-//		pFileParser = new CCPPFileParser(NULL);
 		pFileParser = CFileParserFactory::GetFileParser(LANG_TYPE_CPP, NULL);
 	}
 
-	if(pFileParser != NULL && !gIsBatchCount)
-	{
-		pFileParser->SetLogger(lpLogFile);
-	}
+#ifdef ENABLE_LOG4CPLUS
+	LogLevel ll = (gIsBatchCount ? INFO_LOG_LEVEL : DEBUG_LOG_LEVEL);
+	GET_LOGGER("FileParser.cpp").setLogLevel(ll);
+	GET_LOGGER("CFileParser.cpp").setLogLevel(ll);
+#endif
+
 	return pFileParser;
 }
 
@@ -210,7 +223,7 @@ void test(LPCTSTR lpFileName)
 
 	if( !(*pFileInfoPlc == *pFileInfoGen) )
 	{
-		printf("[Failed ]: %s\n", lpFileName);
+		LOG4CPLUS_ERROR(THE_LOGGER, "[Failed]: "<<lpFileName)
 	}	
 	delete pFileInfoPlc;
 	delete pFileInfoGen;
@@ -279,27 +292,24 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 	{
 		testType = atoi(argv[2]);
 	}
-
+	InitLog4cplus();
 	gIsBatchCount = false;
-	pSysLogger = new CBaseLogger("C:\\temp\\syslog.txt");
 	InitGrammar();
 
+	LOG4CPLUS_INFO(THE_LOGGER, "TestType="<<testType)
 	for(int i = 1; i <= 100; i++)
 	{
-		printf("(%d)\n", i);
+		LOG4CPLUS_INFO(THE_LOGGER, "("<<i<<")")
 		if(testType == 1)
 		{
-			printf("start testType = 1\n");
 			testWorkable();
 		}
 		else if(testType == 2)
 		{
-			printf("start testType = 2\n");
 			testSingleFile();
 		}
 		else if(testType == 3)
 		{
-			printf("start testType = 3\n");
 			testBatchFiles();
 		}
 	}
@@ -307,11 +317,6 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 	if(pGLangGrammar != NULL)
 	{
 		delete pGLangGrammar;
-	}
-
-	if(pSysLogger != NULL)
-	{
-		delete pSysLogger;
 	}
 
 	return nRetCode;

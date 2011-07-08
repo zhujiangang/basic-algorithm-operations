@@ -9,7 +9,7 @@ class ILangGrammar;
 class CGenericFileParser : public IFileParser
 {
 public:
-	CGenericFileParser(ILangGrammar* pLangGrammar, CFileInfo* pFileInfo = NULL, DWORD nMode = FP_MODE_DEFAULT, LPCTSTR lpLogFileName = NULL);
+	CGenericFileParser(ILangGrammar* pLangGrammar, CFileInfo* pFileInfo = NULL, DWORD nMode = FP_MODE_DEFAULT);
 	virtual ~CGenericFileParser();
 	virtual void ParseFile();
 	void ParseLine(const CString& sLine, ParseState& state, bool& bHasCode, bool& bHasComments);

@@ -1,9 +1,8 @@
 #include "StdAfx.h"
 #include "SolFileParser.h"
 
-CSolFileParser::CSolFileParser(const char* szLineComment, CFileInfo* pFileInfo, 
-							   DWORD nMode, LPCTSTR lpLogFileName)
- : IFileParser(pFileInfo, nMode, lpLogFileName)
+CSolFileParser::CSolFileParser(const char* szLineComment, CFileInfo* pFileInfo, DWORD nMode)
+ : IFileParser(pFileInfo, nMode)
 {
 	m_sSingleLineComment = szLineComment;
 }

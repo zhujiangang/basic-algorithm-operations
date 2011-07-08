@@ -8,7 +8,7 @@
 class CBasicFileParser : public IFileParser
 {
 public:
-	CBasicFileParser(CFileInfo* pFileInfo = NULL, DWORD nMode = FP_MODE_DEFAULT, LPCTSTR lpLogFileName = NULL);
+	CBasicFileParser(CFileInfo* pFileInfo = NULL, DWORD nMode = FP_MODE_DEFAULT);
 	void ParseLine(const CString& sLine, ParseState& state, bool& bHasCode, bool& bHasComments);
 };
 

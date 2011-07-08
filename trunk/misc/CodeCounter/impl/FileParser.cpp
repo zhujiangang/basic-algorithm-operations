@@ -1,6 +1,5 @@
 #include "StdAfx.h"
 #include "FileParser.h"
-#include "BaseLogger.h"
 #include "CPPFileParser.h"
 #include "GenericFileParser.h"
 #include "CFileParser.h"
@@ -114,27 +113,20 @@ UINT CTotalInfo::GetTotalMixedLines() const
 	return nResult;
 }
 
-IFileParser::IFileParser(CFileInfo* pFileInfo, DWORD nMode, LPCTSTR lpLogFileName)
- : m_pFileInfo(pFileInfo), m_nMode(nMode), m_pLogger(NULL)
+DECLARE_THE_LOGGER_NAME("FileParser.cpp")
+
+static LPCTSTR lpBlank = "Blank";
+static LPCTSTR lpCode  = "Code";
+static LPCTSTR lpComment = "Comment";
+static LPCTSTR lpMixed	= "Code Comment Mixed";
+
+IFileParser::IFileParser(CFileInfo* pFileInfo, DWORD nMode)
+ : m_pFileInfo(pFileInfo), m_nMode(nMode)
 {
-	if(lpLogFileName != NULL)
-	{
-		SetLogger(lpLogFileName);
-	}
 }
 
 IFileParser::~IFileParser()
 {
-	if(m_pLogger != NULL)
-	{
-		delete m_pLogger;
-		m_pLogger = NULL;
-	}
-}
-
-void IFileParser::SetLogger(LPCTSTR lpLogFileName)
-{
-	m_pLogger = new CBaseLogger(lpLogFileName);
 }
 
 BOOL IFileParser::IsSpace(int ch)
@@ -146,49 +138,45 @@ BOOL IFileParser::IsSpace(int ch)
 	return FALSE;
 }
 
-static LPCTSTR lpBlank = "Blank";
-static LPCTSTR lpCode  = "Code";
-static LPCTSTR lpComment = "Comment";
-static LPCTSTR lpMixed	= "Code Comment Mixed";
-
 void IFileParser::Increase(DWORD dwFlags)
 {
 	m_pFileInfo->Increase(dwFlags);
-
-	if(m_pLogger == NULL)
-	{
-		return;
-	}
 	//Add logs
 	if(dwFlags == MASK_TOTAL_LINE)
 	{
 		return;
 	}
 
-	LPCTSTR lpStr = "";
-	if(dwFlags & MASK_BLANK_LINE)
+	if(IS_LOG_ENABLED(THE_LOGGER, log4cplus::DEBUG_LOG_LEVEL))
 	{
-		lpStr = lpBlank;
-	}
-	else
-	{
-		if((dwFlags & MASK_CODE_LINE) && (dwFlags & MASK_COMMENT_LINE))
+		LPCTSTR lpStr = "";
+		if(dwFlags & MASK_BLANK_LINE)
 		{
-			lpStr = lpMixed;
+			lpStr = lpBlank;
 		}
 		else
 		{
-			if(dwFlags & MASK_COMMENT_LINE)
+			if((dwFlags & MASK_CODE_LINE) && (dwFlags & MASK_COMMENT_LINE))
 			{
-				lpStr = lpComment;
+				lpStr = lpMixed;
 			}
-			else if(dwFlags & MASK_CODE_LINE)
+			else
 			{
-				lpStr = lpCode;
+				if(dwFlags & MASK_COMMENT_LINE)
+				{
+					lpStr = lpComment;
+				}
+				else if(dwFlags & MASK_CODE_LINE)
+				{
+					lpStr = lpCode;
+				}
 			}
 		}
+		CString sLogInfo;
+		sLogInfo.Format("%s(%d): F=%X, Info=%s", m_pFileInfo->m_sFileName, m_pFileInfo->m_nTotalLines, 
+			dwFlags, lpStr);
+		LOG4CPLUS_DEBUG_STR(GET_LOGGER("FileParser.cpp"), (LPCTSTR)sLogInfo)
 	}
-	m_pLogger->log(1, "(%d): F=%X, Info=%s\n", m_pFileInfo->m_nTotalLines, dwFlags, lpStr);
 }
 
 void IFileParser::CountBlankLineInCommentBlock()
@@ -228,7 +216,6 @@ void IFileParser::CountCodeCommentInOneLine()
 		dwFlags |= MASK_COMMENT_LINE;
 	}
 	Increase(dwFlags);
-//	Increase(MASK_MIXED_LINE | MASK_CODE_LINE | MASK_COMMENT_LINE);
 }
 
 void IFileParser::ParseFile()
@@ -253,10 +240,11 @@ void IFileParser::ParseFile()
 			
 			if(state.m_nMajorState == STATE_STRING)
 			{
-				AfxTrace("[Note]: Multi String in line(%d)\n", m_pFileInfo->m_nTotalLines);
-				if(m_pLogger != NULL)
+				if(IS_LOG_ENABLED(THE_LOGGER, log4cplus::DEBUG_LOG_LEVEL))
 				{
-					m_pLogger->log(1, "[Note]: Multi String in line(%d)\n", m_pFileInfo->m_nTotalLines);
+					CString sLogInfo;
+					sLogInfo.Format("%s(%d): Multi String in line", m_pFileInfo->m_sFileName, m_pFileInfo->m_nTotalLines);
+					LOG4CPLUS_DEBUG_STR(GET_LOGGER("FileParser.cpp"), (LPCTSTR)sLogInfo)
 				}
 				//Multi Line String is NOT allowed
 				if( (m_nMode & FP_MODE_STRING_IN_MULTI_LINE) == 0)
@@ -335,7 +323,7 @@ CFileParserFactory::CFileParserFactory()
 {
 }
 
-IFileParser* CFileParserFactory::GetFileParser(ELangType eLangType, CFileInfo* pFileInfo, DWORD nMode, LPCTSTR lpLogFileName)
+IFileParser* CFileParserFactory::GetFileParser(ELangType eLangType, CFileInfo* pFileInfo, DWORD nMode)
 {
 	IFileParser* pFileParser = NULL;
 	switch(eLangType)
@@ -345,22 +333,22 @@ IFileParser* CFileParserFactory::GetFileParser(ELangType eLangType, CFileInfo* p
 	case LANG_TYPE_CSHARP:
 	case LANG_TYPE_JAVA:
 		{
-			pFileParser = new CCPPFileParser(pFileInfo, nMode, lpLogFileName);
+			pFileParser = new CCPPFileParser(pFileInfo, nMode);
 		}
 		break;
 	case LANG_TYPE_BASIC:
 		{
-			pFileParser = new CBasicFileParser(pFileInfo, nMode, lpLogFileName);
+			pFileParser = new CBasicFileParser(pFileInfo, nMode);
 		}
 		break;
 	case LANG_TYPE_INI:
 		{
-			pFileParser = new CSolFileParser(";", pFileInfo, nMode, lpLogFileName);
+			pFileParser = new CSolFileParser(";", pFileInfo, nMode);
 		}
 		break;
 	case LANG_TYPE_MAK:
 		{
-			pFileParser = new CSolFileParser("#", pFileInfo, nMode, lpLogFileName);
+			pFileParser = new CSolFileParser("#", pFileInfo, nMode);
 		}
 		break;
 	case LANG_TYPE_FSM:
@@ -386,9 +374,9 @@ IFileParser* CFileParserFactory::GetFileParser(ELangType eLangType, CFileInfo* p
 }
 
 IFileParser* CFileParserFactory::GetGenericFileParser(ILangGrammar* pLangGrammar, CFileInfo* pFileInfo, 
-													  DWORD nMode, LPCTSTR lpLogFileName)
+													  DWORD nMode)
 {
-	IFileParser* pFileParser = new CGenericFileParser(pLangGrammar, pFileInfo, nMode, lpLogFileName);
+	IFileParser* pFileParser = new CGenericFileParser(pLangGrammar, pFileInfo, nMode);
 
 	return pFileParser;
 }

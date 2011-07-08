@@ -10,7 +10,7 @@
 class CCPPFileParser : public IFileParser
 {
 public:
-	CCPPFileParser(CFileInfo* pFileInfo = NULL, DWORD nMode = FP_MODE_DEFAULT, LPCTSTR lpLogFileName = NULL);
+	CCPPFileParser(CFileInfo* pFileInfo = NULL, DWORD nMode = FP_MODE_DEFAULT);
 	virtual ~CCPPFileParser();
 	virtual void ParseFile();
 	void ParseLine(const CString& sLine, ParseState& state, bool& bHasCode, bool& bHasComments);

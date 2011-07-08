@@ -20,5 +20,10 @@
 
 //{{AFX_INSERT_LOCATION}}
 // Microsoft Visual C++ will insert additional declarations immediately before the previous line.
+#ifndef ENABLE_LOG4CPLUS
+#define ENABLE_LOG4CPLUS
+#endif
+
+#include "log4cplus_config.h"
 
 #endif // !defined(AFX_STDAFX_H__61FBF82C_EB11_4D0A_8EEA_9638710D664A__INCLUDED_)
