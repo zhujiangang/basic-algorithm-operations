@@ -7,6 +7,7 @@
 #include "LangGrammar.h"
 #include "TimeCost.h"
 #include <log4cplus/configurator.h>
+#include "gtb.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -24,17 +25,39 @@ using namespace log4cplus;
 
 DECLARE_THE_LOGGER_NAME("LCTester.cpp")
 
-TCHAR* pBaseDir = _T("..\\..\\..\\..");
+CString szBaseDir;
 bool gIsBatchCount = false;
 
 typedef void (*func)(LPCTSTR lpFileName);
 
 void test(LPCTSTR lpFileName);
 
+void InitBaseDir(LPCTSTR lpBaseDir)
+{
+	gtb::GetAbsolutePath(lpBaseDir, szBaseDir);
+	LOG4CPLUS_INFO(THE_LOGGER, "Base Dir = "<<(LPCTSTR)szBaseDir)
+}
+
 void InitLog4cplus()
 {
 #ifdef ENABLE_LOG4CPLUS
+
+	const char* pEnvName = "LOG_FILE_SUFFIX";
+	CString szOldValue = getenv(pEnvName);
+
+	//Set the env to the current time str
+	CString sTime = CTime::GetCurrentTime().Format("_%Y_%m_%d_%H_%M_%S");
+
+	CString szValue;
+	szValue.Format("%s=%s", pEnvName, sTime);
+	_putenv(szValue);
+
+	//This will take effect in the configure process
 	PropertyConfigurator::doConfigure("log4cplus.properties");
+	
+	//After configuration, restore the envrionment varialble.
+	szValue.Format("%s=%s", pEnvName, szOldValue);
+	_putenv(szValue);
 
 // 	SharedAppenderPtr fileAppender(new RollingFileAppender(".\\log\\test.log", 20*1024*1024, 500));
 // 	fileAppender->setName("file");
@@ -234,7 +257,7 @@ void test(LPCTSTR lpFileName)
 
 void testWorkable()
 {
-	CString szFullPath = pBaseDir;
+	CString szFullPath = szBaseDir;
 
 	LPCTSTR lpDir = "cosps";
 	if(lstrlen(lpDir) > 0)
@@ -249,16 +272,16 @@ void testWorkable()
 void testSingleFile()
 {
 	LPCTSTR lpFileName = NULL;
- 	lpFileName = "cosps\\CxImage\\CxImage5.99\\png\\CHANGES";
+ 	lpFileName = "cosps\\Misc\\PLC\\PLC221Src\\Help\\IDH_ABOUT.htm";
 
 	CString szFullPath;
-	szFullPath.Format("%s\\%s", pBaseDir, lpFileName);
+	szFullPath.Format("%s\\%s", szBaseDir, lpFileName);
 	test(szFullPath);
 }
 
 void testBatchFiles()
 {
-	LPCTSTR lpDir = pBaseDir;
+	LPCTSTR lpDir = szBaseDir;
 	
 	CTimeCost timeCost;
 	int nCount = 0;
@@ -283,16 +306,21 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 		cerr << _T("Fatal Error: MFC initialization failed") << endl;
 		nRetCode = 1;
 	}
+	InitLog4cplus();
+
+	LPCTSTR lpBaseDir = _T("..\\..\\..\\..");
 	if(argc > 1)
 	{
-		pBaseDir = argv[1];
+		lpBaseDir = argv[1];
 	}
-	int testType = 1;
+	InitBaseDir(lpBaseDir);
+
+	int testType = 2;
 	if(argc > 2)
 	{
 		testType = atoi(argv[2]);
 	}
-	InitLog4cplus();
+	
 	gIsBatchCount = false;
 	InitGrammar();
 

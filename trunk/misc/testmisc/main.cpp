@@ -1,0 +1,29 @@
+#include <stdlib.h>
+#include <stdio.h>
+#include "env_variable.h"
+
+void test_evn_variable();
+
+int main(int argc, char* argv[])
+{
+	test_evn_variable();
+	return 0;
+}
+
+void test_evn_variable()
+{
+	printf("show env by run time api:\n");
+	printf("=================================================\n");
+	show_env_api_rt();
+	printf("=================================================\n");
+	printf("=================================================\n");
+	printf("show env by windows api:\n");
+	printf("=================================================\n");
+	show_env_api_win();
+	printf("=================================================\n");
+	printf("=================================================\n");
+	printf("test_env_modify\n");
+	printf("=================================================\n");
+	test_env_modify();
+	printf("=================================================\n");
+}
