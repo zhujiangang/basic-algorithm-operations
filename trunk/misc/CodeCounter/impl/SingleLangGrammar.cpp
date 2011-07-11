@@ -94,3 +94,20 @@ BOOL CSingleLangGrammar::IsCharEnd(int iStrIndex, const CString& sLine, int nBeg
 	}
 	return FALSE;
 }
+
+int  CSingleLangGrammar::GetCountOfEscStr()
+{
+	return (GetLength(m_escapeStr) <= 0) ? 0 : 1;
+}
+int  CSingleLangGrammar::GetCountOfMultiLineComment()
+{
+	return (GetLength(m_singleComment.m_szTag) <= 0) ? 0 : 1;
+}
+int  CSingleLangGrammar::GetCountOfStringMark()
+{
+	return (GetLength(m_stringMark.m_szStart) <= 0) ? 0 : 1;
+}
+int  CSingleLangGrammar::GetCountOfCharMark()
+{
+	return (GetLength(m_charMark.m_szStart) <= 0) ? 0 : 1;
+}
