@@ -49,18 +49,22 @@ public:
 
 	virtual LG_STRING& GetEscapeStr(int nIndex = 0) = 0;
 	virtual int  IndexOfEscStr(const CString& sLine, int nBeginIndex = 0) = 0;
+	virtual int  GetCountOfEscStr() = 0;
 	
 	virtual CMultiLineComment& GetMultiLineComment(int nIndex = 0) = 0;
 	virtual int  GetMultiLineCommentStartIndex(const CString& sLine, int nBeginIndex = 0) = 0;
 	virtual BOOL IsMultiLineCommentEnd(int iIndexOfMultiComment, const CString& sLine, int nBeginIndex = 0) = 0;
+	virtual int  GetCountOfMultiLineComment() = 0;
 	
 	virtual CPair& GetStringMark(int nIndex = 0) = 0;
 	virtual int  GetStringStartIndex(const CString& sLine, int nBeginIndex = 0) = 0;
 	virtual BOOL IsStringEnd(int iStrIndex, const CString& sLine, int nBeginIndex = 0) = 0;
+	virtual int  GetCountOfStringMark() = 0;
 	
 	virtual CPair& GetCharMark(int iCharIndex = 0) = 0;
 	virtual int  GetCharStartIndex(const CString& sLine, int nBeginIndex = 0) = 0;
 	virtual BOOL IsCharEnd(int iStrIndex, const CString& sLine, int nBeginIndex = 0) = 0;
+	virtual int  GetCountOfCharMark() = 0;
 
 	static BOOL IsStartsWith(const CString& sSrc, const LG_STRING& sPrefix, int nBeginIndex = 0);
 	static BOOL IsSingleComment(const CSingleLineComment& sComment, const CString& sLine, int nBeginIndex = 0);
