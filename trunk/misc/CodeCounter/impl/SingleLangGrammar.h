@@ -13,6 +13,7 @@ public:
 	
 	CSingleLineComment& GetSingleLineComment(int nIndex = 0);
 	BOOL IsSingleLineComment(const CString& sLine, int nBeginIndex = 0);
+	int  GetCountOfSingleLineComment();
 	
 	LG_STRING& GetEscapeStr(int nIndex = 0);
 	int  IndexOfEscStr(const CString& sLine, int nBeginIndex = 0);

@@ -95,13 +95,17 @@ BOOL CSingleLangGrammar::IsCharEnd(int iStrIndex, const CString& sLine, int nBeg
 	return FALSE;
 }
 
+int  CSingleLangGrammar::GetCountOfSingleLineComment()
+{
+	return (GetLength(m_singleComment.m_szTag) <= 0) ? 0 : 1;
+}
 int  CSingleLangGrammar::GetCountOfEscStr()
 {
 	return (GetLength(m_escapeStr) <= 0) ? 0 : 1;
 }
 int  CSingleLangGrammar::GetCountOfMultiLineComment()
 {
-	return (GetLength(m_singleComment.m_szTag) <= 0) ? 0 : 1;
+	return (GetLength(m_multiComment.m_szStart) <= 0) ? 0 : 1;
 }
 int  CSingleLangGrammar::GetCountOfStringMark()
 {
