@@ -137,6 +137,10 @@ BOOL CMultiLangGrammar::IsCharEnd(int iStrIndex, const CString& sLine, int nBegi
 	return IsEnd(m_charMarkArray, iStrIndex, sLine, nBeginIndex);
 }
 
+int  CMultiLangGrammar::GetCountOfSingleLineComment()
+{
+	return m_singleCommentArray.GetSize();
+}
 int  CMultiLangGrammar::GetCountOfEscStr()
 {
 	return m_escapeStrArray.GetSize();

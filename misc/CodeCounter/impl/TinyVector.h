@@ -36,9 +36,9 @@ public:
 // 			m_pVectorExt->push_back(m_data);
 // 			m_pVectorExt->push_back(data);
 			m_pVectorExt = new CArray<T, const T&>();
-			m_pVectorExt->SetSize(2, 2);
-			m_pVectorExt->Add(m_data);
-			m_pVectorExt->Add(data);
+			m_pVectorExt->SetSize(2, 1);
+			m_pVectorExt->SetAt(0, m_data);
+			m_pVectorExt->SetAt(1, data);
 		}
 		else
 		{

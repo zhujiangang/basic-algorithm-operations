@@ -46,6 +46,7 @@ public:
 	virtual ~ILangGrammar() {};
 	virtual	CSingleLineComment& GetSingleLineComment(int nIndex = 0) = 0;
 	virtual BOOL IsSingleLineComment(const CString& sLine, int nBeginIndex = 0) = 0;
+	virtual int  GetCountOfSingleLineComment() = 0;
 
 	virtual LG_STRING& GetEscapeStr(int nIndex = 0) = 0;
 	virtual int  IndexOfEscStr(const CString& sLine, int nBeginIndex = 0) = 0;
