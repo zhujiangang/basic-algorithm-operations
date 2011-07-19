@@ -9,8 +9,6 @@
 static char THIS_FILE[] = __FILE__;
 #endif
 
-DECLARE_THE_LOGGER_NAME("CFileParser.cpp")
-
 const CCFileParser::EStat CCFileParser::STAT_FIRST = STAT_NONE;
 const CCFileParser::EStat CCFileParser::STAT_LAST  = STAT_ESC_AFTER_FIRST_SQM;
 
@@ -112,7 +110,7 @@ void CCFileParser::ParseFile()
 
 		if(m_eCurStat == STAT_FIRST_QM)
 		{
-			LOG4CPLUS_INFO(THE_LOGGER, "[Note]: Multi String in line("<<m_pFileInfo->m_nTotalLines<<")")
+			LOG4CPLUS_INFO(THE_LIB_LOGGER, "[Note]: Multi String in line("<<m_pFileInfo->m_nTotalLines<<")")
 			//Multi Line String is NOT allowed
 			if( (m_nMode & FP_MODE_STRING_IN_MULTI_LINE) == 0)
 			{

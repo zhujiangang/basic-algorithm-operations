@@ -120,13 +120,7 @@ void CLangGrammarBuilder::AddSingleComment(const char* lpszCommentStr, int nColu
 			m_pSingleLangGrammar->m_singleComment.m_bCaseSensitive = bCaseSensitive;
 			return;
 		}
-		ASSERT(m_pMultiLangGrammar == NULL);
-		m_pMultiLangGrammar = new CMultiLangGrammar();
-		m_pMultiLangGrammar->m_singleCommentArray.Add(m_pSingleLangGrammar->m_singleComment);
-
-		//Change to multi
-		delete m_pSingleLangGrammar;
-		m_pSingleLangGrammar = NULL;
+		ChangeToMultiLangGrammar();
 	}
 	CSingleLineComment sComment(lpszCommentStr, nColumn);
 	m_pMultiLangGrammar->m_singleCommentArray.Add(sComment);
@@ -142,12 +136,7 @@ void CLangGrammarBuilder::AddMultiComment(const char* lpszStart, const char* lps
 			m_pSingleLangGrammar->m_multiComment.m_szEnd = lpszEnd;
 			return;
 		}
-		ASSERT(m_pMultiLangGrammar == NULL);
-		m_pMultiLangGrammar = new CMultiLangGrammar();
-		m_pMultiLangGrammar->m_multiCommentArray.Add(m_pSingleLangGrammar->m_multiComment);
-		//Change to multi
-		delete m_pSingleLangGrammar;
-		m_pSingleLangGrammar = NULL;
+		ChangeToMultiLangGrammar();
 	}
 	CMultiLineComment mComment(lpszStart, lpszEnd);
 	m_pMultiLangGrammar->m_multiCommentArray.Add(mComment);
@@ -163,12 +152,7 @@ void CLangGrammarBuilder::AddStringMark(const char* lpszStart, const char* lpszE
 			m_pSingleLangGrammar->m_stringMark.m_szEnd = lpszEnd;
 			return;
 		}
-		ASSERT(m_pMultiLangGrammar == NULL);
-		m_pMultiLangGrammar = new CMultiLangGrammar();
-		m_pMultiLangGrammar->m_stringMarkArray.Add(m_pSingleLangGrammar->m_stringMark);
-		//Change to multi
-		delete m_pSingleLangGrammar;
-		m_pSingleLangGrammar = NULL;
+		ChangeToMultiLangGrammar();
 	}
 	CPair stringMark(lpszStart, lpszEnd);
 	m_pMultiLangGrammar->m_stringMarkArray.Add(stringMark);
@@ -184,12 +168,7 @@ void CLangGrammarBuilder::AddCharMark(const char* lpszStart, const char* lpszEnd
 			m_pSingleLangGrammar->m_charMark.m_szEnd = lpszEnd;
 			return;
 		}
-		ASSERT(m_pMultiLangGrammar == NULL);
-		m_pMultiLangGrammar = new CMultiLangGrammar();
-		m_pMultiLangGrammar->m_charMarkArray.Add(m_pSingleLangGrammar->m_charMark);
-		//Change to multi
-		delete m_pSingleLangGrammar;
-		m_pSingleLangGrammar = NULL;
+		ChangeToMultiLangGrammar();
 	}
 	CPair charMark(lpszStart, lpszEnd);
 	m_pMultiLangGrammar->m_charMarkArray.Add(charMark);
@@ -204,12 +183,37 @@ void CLangGrammarBuilder::AddEscapeStr(const char* lpszEscapeStr)
 			m_pSingleLangGrammar->m_escapeStr = lpszEscapeStr;
 			return;
 		}
-		ASSERT(m_pMultiLangGrammar == NULL);
-		m_pMultiLangGrammar = new CMultiLangGrammar();
-		m_pMultiLangGrammar->m_escapeStrArray.Add(m_pSingleLangGrammar->m_escapeStr);
-		//Change to multi
-		delete m_pSingleLangGrammar;
-		m_pSingleLangGrammar = NULL;
+		ChangeToMultiLangGrammar();
 	}
 	m_pMultiLangGrammar->m_escapeStrArray.Add(lpszEscapeStr);
+}
+
+void CLangGrammarBuilder::ChangeToMultiLangGrammar()
+{
+	ASSERT(m_pMultiLangGrammar == NULL);
+	m_pMultiLangGrammar = new CMultiLangGrammar();
+	if(GetLength(m_pSingleLangGrammar->m_singleComment.m_szTag) > 0)
+	{
+		m_pMultiLangGrammar->m_singleCommentArray.Add(m_pSingleLangGrammar->m_singleComment);
+	}
+	if(GetLength(m_pSingleLangGrammar->m_escapeStr) > 0)
+	{
+		m_pMultiLangGrammar->m_escapeStrArray.Add(m_pSingleLangGrammar->m_escapeStr);
+	}
+	if(GetLength(m_pSingleLangGrammar->m_multiComment.m_szStart) > 0)
+	{
+		m_pMultiLangGrammar->m_multiCommentArray.Add(m_pSingleLangGrammar->m_multiComment);
+	}
+	if(GetLength(m_pSingleLangGrammar->m_stringMark.m_szStart) > 0)
+	{
+		m_pMultiLangGrammar->m_stringMarkArray.Add(m_pSingleLangGrammar->m_stringMark);
+	}
+	if(GetLength(m_pSingleLangGrammar->m_charMark.m_szStart) > 0)
+	{
+		m_pMultiLangGrammar->m_escapeStrArray.Add(m_pSingleLangGrammar->m_escapeStr);
+	}
+
+	//Change to multi
+	delete m_pSingleLangGrammar;
+	m_pSingleLangGrammar = NULL;
 }

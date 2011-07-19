@@ -326,41 +326,27 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 	{
 		testType = atoi(argv[2]);
 	}
-	
-	CTinyVector<xyz> vec;
-	xyz x1;
-	x1.sStr = "abc";
-	x1.nType = 2;
-
-	vec.Add(x1);
-	xyz x2;
-	x2.sStr = "123";
-	x2.nType = 1;
-	
-	vec.Add(x2);
-
-	xyz& r1 = vec.GetAt(1);
 
 	gIsBatchCount = false;
 	InitGrammar();
 
 	LOG4CPLUS_INFO(THE_LOGGER, "TestType="<<testType)
-// 	for(int i = 1; i <= 100; i++)
-// 	{
-// 		LOG4CPLUS_INFO(THE_LOGGER, "("<<i<<")")
-// 		if(testType == 1)
-// 		{
-// 			testWorkable();
-// 		}
-// 		else if(testType == 2)
-// 		{
-// 			testSingleFile();
-// 		}
-// 		else if(testType == 3)
-// 		{
-// 			testBatchFiles();
-// 		}
-// 	}
+	for(int i = 1; i <= 100; i++)
+	{
+		LOG4CPLUS_INFO(THE_LOGGER, "("<<i<<")")
+		if(testType == 1)
+		{
+			testWorkable();
+		}
+		else if(testType == 2)
+		{
+			testSingleFile();
+		}
+		else if(testType == 3)
+		{
+			testBatchFiles();
+		}
+	}
 
 	if(pGLangGrammar != NULL)
 	{

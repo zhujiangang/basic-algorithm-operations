@@ -113,8 +113,6 @@ UINT CTotalInfo::GetTotalMixedLines() const
 	return nResult;
 }
 
-DECLARE_THE_LOGGER_NAME("FileParser.cpp")
-
 static LPCTSTR lpBlank = "Blank";
 static LPCTSTR lpCode  = "Code";
 static LPCTSTR lpComment = "Comment";
@@ -147,7 +145,7 @@ void IFileParser::Increase(DWORD dwFlags)
 		return;
 	}
 
-	if(IS_LOG_ENABLED(THE_LOGGER, log4cplus::DEBUG_LOG_LEVEL))
+	if(IS_LOG_ENABLED(THE_LIB_LOGGER, log4cplus::DEBUG_LOG_LEVEL))
 	{
 		LPCTSTR lpStr = "";
 		if(dwFlags & MASK_BLANK_LINE)
@@ -175,7 +173,7 @@ void IFileParser::Increase(DWORD dwFlags)
 		CString sLogInfo;
 		sLogInfo.Format("%s(%d): F=%X, Info=%s", m_pFileInfo->m_sFileName, m_pFileInfo->m_nTotalLines, 
 			dwFlags, lpStr);
-		LOG4CPLUS_DEBUG_STR(GET_LOGGER("FileParser.cpp"), (LPCTSTR)sLogInfo)
+		LOG4CPLUS_DEBUG_STR(THE_LIB_LOGGER, (LPCTSTR)sLogInfo)
 	}
 }
 
@@ -225,7 +223,10 @@ void IFileParser::ParseFile()
 		CStdioExFile file;
 		if(!file.Open(m_pFileInfo->m_sFullFileName, CFile::modeRead))
 		{
-			AfxTrace("Failed to Open file %s\n", m_pFileInfo->m_sFullFileName);
+			TCHAR szLogBuf[1024];
+			_stprintf(szLogBuf, _T("Failed to Open file %s"), m_pFileInfo->m_sFullFileName);
+			LOG4CPLUS_INFO_STR(THE_LIB_LOGGER, szLogBuf);
+			//AfxTrace("Failed to Open file %s\n", m_pFileInfo->m_sFullFileName);
 			return;
 		}
 		
@@ -240,11 +241,11 @@ void IFileParser::ParseFile()
 			
 			if(state.m_nMajorState == STATE_STRING)
 			{
-				if(IS_LOG_ENABLED(THE_LOGGER, log4cplus::DEBUG_LOG_LEVEL))
+				if(IS_LOG_ENABLED(THE_LIB_LOGGER, log4cplus::DEBUG_LOG_LEVEL))
 				{
 					CString sLogInfo;
 					sLogInfo.Format("%s(%d): Multi String in line", m_pFileInfo->m_sFileName, m_pFileInfo->m_nTotalLines);
-					LOG4CPLUS_DEBUG_STR(GET_LOGGER("FileParser.cpp"), (LPCTSTR)sLogInfo)
+					LOG4CPLUS_DEBUG_STR(THE_LIB_LOGGER, (LPCTSTR)sLogInfo)
 				}
 				//Multi Line String is NOT allowed
 				if( (m_nMode & FP_MODE_STRING_IN_MULTI_LINE) == 0)
@@ -366,6 +367,7 @@ IFileParser* CFileParserFactory::GetFileParser(ELangType eLangType, CFileInfo* p
 	default:
 		{
 			AfxTrace("Unsupported language type: %d\n", eLangType);
+			LOG4CPLUS_INFO(THE_LIB_LOGGER, "Unsupported language type: "<<(int)eLangType)
 		}
 		break;
 
@@ -377,6 +379,5 @@ IFileParser* CFileParserFactory::GetGenericFileParser(ILangGrammar* pLangGrammar
 													  DWORD nMode)
 {
 	IFileParser* pFileParser = new CGenericFileParser(pLangGrammar, pFileInfo, nMode);
-
 	return pFileParser;
 }
