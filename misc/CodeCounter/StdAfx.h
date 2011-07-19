@@ -12,6 +12,8 @@
 
 #define VC_EXTRALEAN		// Exclude rarely-used stuff from Windows headers
 
+#pragma warning(disable : 4786)
+
 #include <afx.h>
 #include <afxwin.h>
 #include <afxtempl.h>
@@ -23,12 +25,14 @@
 #ifdef _DEBUG
 #ifndef ENABLE_LOG4CPLUS
 #define ENABLE_LOG4CPLUS
+#define SCC_LOGGER_NAME		"lib.SCC"
 #endif
 #else
 #undef ENABLE_LOG4CPLUS
+#define SCC_LOGGER_NAME
 #endif
 
-
 #include "log4cplus_config.h"
+#define THE_LIB_LOGGER		GET_LOGGER(SCC_LOGGER_NAME)
 
 #endif // !defined(AFX_STDAFX_H__61FBF82C_EB11_4D0A_8EEA_9638710D664A__INCLUDED_)

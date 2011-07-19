@@ -88,6 +88,7 @@ public:
 	void AddCharMark(const char* lpszStart, const char* lpszEnd);
 	void AddEscapeStr(const char* lpszEscapeStr);
 protected:
+	void ChangeToMultiLangGrammar();
 	CSingleLangGrammar* m_pSingleLangGrammar;
 	CMultiLangGrammar*  m_pMultiLangGrammar;
 };
