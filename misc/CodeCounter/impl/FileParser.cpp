@@ -64,8 +64,10 @@ void CFileInfo::SetFileName(LPCTSTR lpszFullFileName)
 
 UINT CFileInfo::GetMixedLines() const
 {
-	UINT nResult = (m_nCodeLines + m_nCommentLines) - (m_nTotalLines - m_nBlankLines);
-	ASSERT(nResult == m_nMixedLines);
+// 	UINT nResult = (m_nCodeLines + m_nCommentLines) - (m_nTotalLines - m_nBlankLines);
+// 	ASSERT(nResult == m_nMixedLines);
+	//Comment above lines to make sure the mixed lines can be treated either code or comment or none lines
+	UINT nResult = m_nMixedLines;
 	return nResult;
 }
 void CFileInfo::Increase(DWORD dwFlags)
