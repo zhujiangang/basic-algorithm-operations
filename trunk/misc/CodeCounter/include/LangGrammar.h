@@ -12,7 +12,7 @@
 
 
 int  GetLength(const LG_STRING& str);
-char GetAt(const LG_STRING& str, int nIndex);
+TCHAR GetAt(const LG_STRING& str, int nIndex);
 
 
 #define START_COLUMN_ANY	(-1)	//ANY -- Any Column of Line
@@ -39,6 +39,9 @@ public:
 };
 
 typedef CPair CMultiLineComment;
+
+BOOL IsStartsWith(const CString& sSrc, const LG_STRING& sPrefix, int nBeginIndex = 0);
+BOOL IsStartsWithNoCase(const CString& sSrc, const LG_STRING& sPrefix, int nBeginIndex = 0);
 
 class ILangGrammar
 {
@@ -67,7 +70,6 @@ public:
 	virtual BOOL IsCharEnd(int iStrIndex, const CString& sLine, int nBeginIndex = 0) = 0;
 	virtual int  GetCountOfCharMark() = 0;
 
-	static BOOL IsStartsWith(const CString& sSrc, const LG_STRING& sPrefix, int nBeginIndex = 0);
 	static BOOL IsSingleComment(const CSingleLineComment& sComment, const CString& sLine, int nBeginIndex = 0);
 };
 

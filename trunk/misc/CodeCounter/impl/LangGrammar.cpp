@@ -19,7 +19,7 @@ int GetLength(const LG_STRING& str)
 #endif
 }
 
-char GetAt(const LG_STRING& str, int nIndex)
+TCHAR GetAt(const LG_STRING& str, int nIndex)
 {
 #if defined(STRING_USE_STL)
 	return str.at(nIndex);
@@ -45,7 +45,7 @@ CPair::CPair(LPCTSTR lpszStart, LPCTSTR lpszEnd) : m_szStart(lpszStart), m_szEnd
 {
 }
 
-BOOL ILangGrammar::IsStartsWith(const CString& sSrc, const LG_STRING& sPrefix, int nBeginIndex)
+BOOL IsStartsWith(const CString& sSrc, const LG_STRING& sPrefix, int nBeginIndex)
 {
 	int nPrefixLen = GetLength(sPrefix);
 	if( (nPrefixLen <= 0) || ((nBeginIndex + nPrefixLen) > sSrc.GetLength()) )
@@ -63,6 +63,35 @@ BOOL ILangGrammar::IsStartsWith(const CString& sSrc, const LG_STRING& sPrefix, i
 
 	return TRUE;
 }
+BOOL IsStartsWithNoCase(const CString& sSrc, const LG_STRING& sPrefix, int nBeginIndex)
+{
+	int nPrefixLen = GetLength(sPrefix);
+	if( (nPrefixLen <= 0) || ((nBeginIndex + nPrefixLen) > sSrc.GetLength()) )
+	{
+		return FALSE;
+	}
+	TCHAR srcChar, prefixChar;
+	for(int i = 0; i < nPrefixLen; i++)
+	{
+		srcChar = sSrc.GetAt(nBeginIndex + i);
+		prefixChar = GetAt(sPrefix, i);
+		if(prefixChar != srcChar)
+		{
+            // normalize to lower case
+            if( (srcChar >= _T('A')) && (srcChar <= _T('Z')) )
+                srcChar += _T('a') - _T('A');
+            if( (prefixChar >= _T('A')) && (prefixChar <= _T('Z')) )
+                prefixChar += _T('a') - _T('A');
+			
+            // compare again
+			if(prefixChar != srcChar)
+			{
+				return FALSE;
+			}
+		}
+	}
+	return TRUE;
+}
 
 BOOL ILangGrammar::IsSingleComment(const CSingleLineComment& sComment, const CString& sLine, int nBeginIndex)
 {
@@ -76,11 +105,14 @@ BOOL ILangGrammar::IsSingleComment(const CSingleLineComment& sComment, const CSt
 		return FALSE;
 	}
 	//TODO: concern about the case "singleComment.m_nStartCol > 0"
-	if(IsStartsWith(sLine, sComment.m_szTag, nBeginIndex))
+	if(sComment.m_bCaseSensitive)
 	{
-		return TRUE;
+		return IsStartsWith(sLine, sComment.m_szTag, nBeginIndex);
 	}
-	return FALSE;
+	else
+	{
+		return IsStartsWithNoCase(sLine, sComment.m_szTag, nBeginIndex);
+	}
 }
 
 
