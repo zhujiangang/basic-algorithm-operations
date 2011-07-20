@@ -35,7 +35,7 @@ CSingleLineComment::CSingleLineComment(LPCTSTR lpszCommentStr, int nColumn, BOOL
 		m_szTag = lpszCommentStr;
 	}
 	m_nStartCol = nColumn;
-	m_bCaseSensitive = TRUE;
+	m_bCaseSensitive = bCaseSensitive;
 }
 
 CPair::CPair()
@@ -154,7 +154,7 @@ void CLangGrammarBuilder::AddSingleComment(const char* lpszCommentStr, int nColu
 		}
 		ChangeToMultiLangGrammar();
 	}
-	CSingleLineComment sComment(lpszCommentStr, nColumn);
+	CSingleLineComment sComment(lpszCommentStr, nColumn, bCaseSensitive);
 	m_pMultiLangGrammar->m_singleCommentArray.Add(sComment);
 }
 
