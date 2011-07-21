@@ -9,6 +9,7 @@
 #include <log4cplus/configurator.h>
 #include "gtb.h"
 #include "./impl/TinyVector.h"
+#include "BaseTypeArrayEx.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -296,11 +297,71 @@ void testBatchFiles()
 	printf("Plc Time Cost: %d, nCount = %d\n", timeCost.GetTimeCost(), nCount);
 }
 
-struct xyz
+void testArray(CByteArray& array)
 {
-	CString sStr;
-	int nType;
-};
+	CTimeCost timeCost;
+	typedef BYTE ElementType;
+	ElementType* pData = array.GetData();
+	int nCount = 750000;
+	int i, nSize;
+	CString sLogInfo;
+	ElementType nData;
+	for(i = 0; i < nCount; i++)
+	{
+		array.Add((ElementType)i);
+		nSize = array.GetSize();
+		nData = array.GetAt(i);
+// 		if(i > 256)
+// 		{
+// 			sLogInfo.Empty();
+// 		}
+// 		sLogInfo.Format("i = %d, size = %d, element(%d) = %x", i, nSize, i, nData);
+// 		LOG4CPLUS_INFO_STR(THE_LOGGER, (LPCTSTR)sLogInfo)
+// 			
+// 		if(pData != array.GetData())
+// 		{
+// 			pData = array.GetData();
+// 			sLogInfo.Format("===Data Reallacated===");
+// 			LOG4CPLUS_INFO_STR(THE_LOGGER, (LPCTSTR)sLogInfo)
+// 		}
+	}
+	timeCost.UpdateCurrClock();
+	LOG4CPLUS_INFO(THE_LOGGER, "void testArray(CByteArray& array) = "<<timeCost.GetTimeCost())
+}
+void testArrayEx(CByteArrayEx& array)
+{
+	CTimeCost timeCost;
+	typedef BYTE ElementType;
+	ElementType* pData = array.GetData();
+	int nCount = 750000;
+	int i, nSize;
+	CString sLogInfo;
+	ElementType nData;
+	for(i = 0; i < nCount; i++)
+	{
+		array.Add((ElementType)i);
+		nSize = array.GetSize();
+		nData = array.GetAt(i);
+// 		if(i > 256)
+// 		{
+// 			sLogInfo.Empty();
+// 		}
+// 		sLogInfo.Format("i = %d, size = %d, element(%d) = %x, max=%d, growby=%d", i, nSize, i, 
+// 			nData, array.GetMaxSize(), array.GetGrowBy());
+// 		LOG4CPLUS_INFO_STR(THE_LOGGER, (LPCTSTR)sLogInfo)
+// 			
+// 			if(pData != array.GetData())
+// 			{
+// 				pData = array.GetData();
+// 				sLogInfo.Format("===Data Reallacated===");
+// 				LOG4CPLUS_INFO_STR(THE_LOGGER, (LPCTSTR)sLogInfo)
+// 			}
+	}
+	timeCost.UpdateCurrClock();
+	LOG4CPLUS_INFO(THE_LOGGER, "void testArrayEx(CByteArrayEx& array) = "<<timeCost.GetTimeCost())
+}
+
+
 int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 {
 	int nRetCode = 0;
@@ -326,6 +387,16 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 	{
 		testType = atoi(argv[2]);
 	}
+	
+	/*
+	LOG4CPLUS_INFO_STR(THE_LOGGER, "=========CByteArray")
+	CByteArray byteArray;
+	testArray(byteArray);
+
+	LOG4CPLUS_INFO_STR(THE_LOGGER, "=========CByteArrayEx")
+	CByteArrayEx byteArrayEx;
+	testArrayEx(byteArrayEx);
+	*/
 
 	gIsBatchCount = false;
 	InitGrammar();
@@ -352,6 +423,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 	{
 		delete pGLangGrammar;
 	}
+	
 
 	return nRetCode;
 }

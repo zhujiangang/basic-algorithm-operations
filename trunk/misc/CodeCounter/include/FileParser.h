@@ -64,11 +64,17 @@ public:
 };
 typedef CFsmState ParseState;
 
+//The lowest 8 bits used for stat parameters
 #define FP_MODE_BLANK_IN_COMMENT_BLOCK_COMMENT			0x00000001
 #define FP_MODE_MIXED_LINE_CODE							0x00000002
 #define FP_MODE_MIXED_LINE_COMMENT						0x00000004
 #define FP_MODE_STRING_IN_MULTI_LINE					0x00000008
 #define FP_MODE_BLANK_IN_MULTI_LINE_STRING_AS_BLANK		0x00000010
+
+//The low 9-16 bits used for other parameters
+#define FP_MODE_LOG_RESULT								0x00000100
+#define FP_MODE_LOG_STRING_IN_MULTI_LINE				0x00000200
+#define FP_MODE_LOG_ALL									0x0000FF00
 
 #define FP_MODE_DEFAULT									0x000000FF
 
@@ -79,7 +85,9 @@ typedef CFsmState ParseState;
 #define REPORT_EXCEPTION_ERROR(e)
 #endif
 
-class CBaseLogger;
+class CByteArrayEx;
+class CUIntArrayEx;
+
 class IFileParser
 {
 public:
@@ -95,10 +103,7 @@ public:
 	{
 		return m_nMode;
 	}
-	void SetMode(DWORD nMode)
-	{
-		m_nMode = nMode;
-	}
+	void SetMode(DWORD nMode);
 protected:
 	virtual void ParseLine(const CString& sLine, ParseState& state, bool& bHasCode, bool& bHasComments);
 	virtual void Increase(DWORD dwFlags);
@@ -108,8 +113,11 @@ protected:
 protected:
 	CFileInfo* m_pFileInfo;
 	DWORD	m_nMode;
+	CByteArrayEx* m_pLogResult;
+	CUIntArrayEx* m_pLogStringInMultiLine;
 public:
 	static BOOL IsSpace(int ch);
+	static TCHAR ToChar(BYTE bInt);
 };
 
 enum ELangType
