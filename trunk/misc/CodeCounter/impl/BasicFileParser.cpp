@@ -47,17 +47,18 @@ void CBasicFileParser::ParseLine(const CString& sLine, ParseState& state, bool& 
 		}
 		else if(state.m_nMajorState == STATE_STRING)
 		{
-			//1. Escape Char Check
-			if( ch == '\\' )
-			{
-				bHasCode = true;
-				
-				// escape character - so skip next char
-				i++;
-				continue;
-			}
-			//2. String End Check
-			else if( ch == '"' )
+// 			//1. Escape Char Check
+// 			if( ch == '\\' )
+// 			{
+// 				bHasCode = true;
+// 				
+// 				// escape character - so skip next char
+// 				i++;
+// 				continue;
+// 			}
+// 			//2. String End Check
+// 			else 
+			if( ch == '"' )
 			{
 				bHasCode = true;
 				

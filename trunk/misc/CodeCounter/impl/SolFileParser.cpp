@@ -31,3 +31,14 @@ void CSolFileParser::ParseLine(const CString& sLine, ParseState& state, bool& bH
 	}
 	bHasComments = true;
 }
+
+CPlainTextFileParser::CPlainTextFileParser(CFileInfo* pFileInfo, DWORD nMode)
+ : IFileParser(pFileInfo, nMode)
+{
+}
+void CPlainTextFileParser::ParseLine(const CString& sLine, ParseState& state, bool& bHasCode, bool& bHasComments)
+{
+	bHasCode = true;
+	bHasComments = false;	
+}
+

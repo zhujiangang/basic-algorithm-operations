@@ -411,6 +411,11 @@ IFileParser* CFileParserFactory::GetFileParser(ELangType eLangType, CFileInfo* p
 			pFileParser = new CSolFileParser("#", pFileInfo, nMode);
 		}
 		break;
+	case LANG_TYPE_TXT:
+		{
+			pFileParser = new CPlainTextFileParser(pFileInfo, nMode);
+		}
+		break;
 	case LANG_TYPE_FSM:
 		{
 			pFileParser = new CCFileParser(pFileInfo);
