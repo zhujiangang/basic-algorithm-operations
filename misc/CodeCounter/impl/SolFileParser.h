@@ -14,4 +14,11 @@ protected:
 	CString m_sSingleLineComment;
 };
 
+class CPlainTextFileParser : public IFileParser
+{
+public:
+	CPlainTextFileParser(CFileInfo* pFileInfo = NULL, DWORD nMode = FP_MODE_DEFAULT);
+	void ParseLine(const CString& sLine, ParseState& state, bool& bHasCode, bool& bHasComments);
+};
+
 #endif
