@@ -1,12 +1,16 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "env_variable.h"
+#include "file_and_folder.h"
+#include "internet.h"
 
 void test_evn_variable();
 
 int main(int argc, char* argv[])
 {
-	test_evn_variable();
+//	test_evn_variable();
+//	show_shell_folders();
+	show_internet_options();
 	return 0;
 }
 
