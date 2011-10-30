@@ -10,7 +10,8 @@ int main(int argc, char* argv[])
 {
 //	test_evn_variable();
 //	show_shell_folders();
-	show_internet_options();
+//	show_internet_options();
+	test_create_folders();
 	return 0;
 }
 
