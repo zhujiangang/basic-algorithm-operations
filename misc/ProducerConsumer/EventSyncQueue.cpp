@@ -1,9 +1,9 @@
-// SynQueue.cpp: implementation of the CSynQueue class.
+// EventSyncQueue.cpp: implementation of the CEventSyncQueue class.
 //
 //////////////////////////////////////////////////////////////////////
 
 #include "stdafx.h"
-#include "SynQueue.h"
+#include "EventSyncQueue.h"
 
 #ifdef _DEBUG
 #undef THIS_FILE
@@ -15,62 +15,59 @@ static char THIS_FILE[]=__FILE__;
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-CSynQueue::CSynQueue()
+CEventSyncQueue::CEventSyncQueue(int nCapacity)
 {
-	m_nMax = -1;
-	m_bDrop = FALSE;
-
+	m_nCapacity = nCapacity;
+	
 	::InitializeCriticalSection(&m_lock);
-
 	m_hPutEvent = ::CreateEvent(NULL, FALSE, FALSE, NULL);
 	m_hGetEvent = ::CreateEvent(NULL, FALSE, FALSE, NULL);
 }
 
-CSynQueue::~CSynQueue()
+CEventSyncQueue::~CEventSyncQueue()
 {
 	m_list.RemoveAll();
-
+	
 	::CloseHandle(m_hGetEvent);
 	::CloseHandle(m_hPutEvent);
-
+	
 	::DeleteCriticalSection(&m_lock);
 }
 
-void CSynQueue::Put(void* ptr)
+void CEventSyncQueue::Put(void* ptr)
 {
 	::EnterCriticalSection(&m_lock);
-
-	if(m_nMax > 0 && m_list.GetCount() >= m_nMax)
+	
+	while(m_nCapacity > 0 && m_list.GetCount() >= m_nCapacity)
 	{
-		::ResetEvent(m_hPutEvent);
 		::LeaveCriticalSection(&m_lock);
-
-		if(m_bDrop)
-		{
-			return;
-		}
-
+		
+		//wait
 		if(::WaitForSingleObject(m_hPutEvent, INFINITE) != WAIT_OBJECT_0)
 		{
 			ASSERT(FALSE);
 		}
-
+		
 		::EnterCriticalSection(&m_lock);
 	}
-
+	if(m_nCapacity > 0)
+	{
+		ASSERT(m_list.GetCount() < m_nCapacity);
+	}
 	m_list.AddTail(ptr);
-	::SetEvent(m_hGetEvent);
+
+	::SetEvent(m_hGetEvent);	//notifyAll
 	::LeaveCriticalSection(&m_lock);
 }
-void* CSynQueue::Get()
+void* CEventSyncQueue::Get()
 {
 	::EnterCriticalSection(&m_lock);
-
-	if(m_list.IsEmpty())
+	
+	while(m_list.IsEmpty())
 	{
-		::ResetEvent(m_hGetEvent);
 		::LeaveCriticalSection(&m_lock);
 		
+		//wait
 		if(::WaitForSingleObject(m_hGetEvent, INFINITE) != WAIT_OBJECT_0)
 		{
 			ASSERT(FALSE);
@@ -80,26 +77,26 @@ void* CSynQueue::Get()
 	}
 	ASSERT(!m_list.IsEmpty());
 	void* ptr = m_list.RemoveHead();
-	::SetEvent(m_hPutEvent);
-	::LeaveCriticalSection(&m_lock);
 
+	::SetEvent(m_hPutEvent);	//notifyAll
+	::LeaveCriticalSection(&m_lock);
+	
 	return ptr;
 }
 
-int CSynQueue::GetCount()
+int CEventSyncQueue::GetCount()
 {
-	int nCount = 0;
-
 	::EnterCriticalSection(&m_lock);
-	nCount = m_list.GetCount();
+	int nCount = m_list.GetCount();
 	::LeaveCriticalSection(&m_lock);
 
 	return nCount;
 }
-void CSynQueue::SetMaxCount(int nMax, BOOL bDrop)
+BOOL CEventSyncQueue::IsEmpty()
 {
 	::EnterCriticalSection(&m_lock);
-	m_nMax = nMax;
-	m_bDrop = bDrop;
+	BOOL bEmpty = m_list.IsEmpty();
 	::LeaveCriticalSection(&m_lock);
+
+	return bEmpty;
 }

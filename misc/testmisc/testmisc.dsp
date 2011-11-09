@@ -99,6 +99,10 @@ SOURCE=.\internet.cpp
 
 SOURCE=.\main.cpp
 # End Source File
+# Begin Source File
+
+SOURCE=.\multi_thread.cpp
+# End Source File
 # End Group
 # Begin Group "Header Files"
 
@@ -114,6 +118,10 @@ SOURCE=.\file_and_folder.h
 # Begin Source File
 
 SOURCE=.\internet.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\multi_thread.h
 # End Source File
 # End Group
 # Begin Group "Resource Files"
