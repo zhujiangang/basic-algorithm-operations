@@ -1,24 +1,24 @@
-# Microsoft Developer Studio Project File - Name="ProducerConsumer" - Package Owner=<4>
+# Microsoft Developer Studio Project File - Name="SimpleThreadPool1" - Package Owner=<4>
 # Microsoft Developer Studio Generated Build File, Format Version 6.00
 # ** DO NOT EDIT **
 
 # TARGTYPE "Win32 (x86) Console Application" 0x0103
 
-CFG=ProducerConsumer - Win32 Debug
+CFG=SimpleThreadPool1 - Win32 Debug
 !MESSAGE This is not a valid makefile. To build this project using NMAKE,
 !MESSAGE use the Export Makefile command and run
 !MESSAGE 
-!MESSAGE NMAKE /f "ProducerConsumer.mak".
+!MESSAGE NMAKE /f "SimpleThreadPool1.mak".
 !MESSAGE 
 !MESSAGE You can specify a configuration when running NMAKE
 !MESSAGE by defining the macro CFG on the command line. For example:
 !MESSAGE 
-!MESSAGE NMAKE /f "ProducerConsumer.mak" CFG="ProducerConsumer - Win32 Debug"
+!MESSAGE NMAKE /f "SimpleThreadPool1.mak" CFG="SimpleThreadPool1 - Win32 Debug"
 !MESSAGE 
 !MESSAGE Possible choices for configuration are:
 !MESSAGE 
-!MESSAGE "ProducerConsumer - Win32 Release" (based on "Win32 (x86) Console Application")
-!MESSAGE "ProducerConsumer - Win32 Debug" (based on "Win32 (x86) Console Application")
+!MESSAGE "SimpleThreadPool1 - Win32 Release" (based on "Win32 (x86) Console Application")
+!MESSAGE "SimpleThreadPool1 - Win32 Debug" (based on "Win32 (x86) Console Application")
 !MESSAGE 
 
 # Begin Project
@@ -28,7 +28,7 @@ CFG=ProducerConsumer - Win32 Debug
 CPP=cl.exe
 RSC=rc.exe
 
-!IF  "$(CFG)" == "ProducerConsumer - Win32 Release"
+!IF  "$(CFG)" == "SimpleThreadPool1 - Win32 Release"
 
 # PROP BASE Use_MFC 2
 # PROP BASE Use_Debug_Libraries 0
@@ -42,8 +42,8 @@ RSC=rc.exe
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MD /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /D "_AFXDLL" /Yu"stdafx.h" /FD /c
 # ADD CPP /nologo /MD /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /D "_AFXDLL" /Yu"stdafx.h" /FD /c
-# ADD BASE RSC /l 0x804 /d "NDEBUG" /d "_AFXDLL"
-# ADD RSC /l 0x804 /d "NDEBUG" /d "_AFXDLL"
+# ADD BASE RSC /l 0x409 /d "NDEBUG" /d "_AFXDLL"
+# ADD RSC /l 0x409 /d "NDEBUG" /d "_AFXDLL"
 BSC32=bscmake.exe
 # ADD BASE BSC32 /nologo
 # ADD BSC32 /nologo
@@ -51,7 +51,7 @@ LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:console /machine:I386
 # ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:console /machine:I386
 
-!ELSEIF  "$(CFG)" == "ProducerConsumer - Win32 Debug"
+!ELSEIF  "$(CFG)" == "SimpleThreadPool1 - Win32 Debug"
 
 # PROP BASE Use_MFC 2
 # PROP BASE Use_Debug_Libraries 1
@@ -63,10 +63,10 @@ LINK32=link.exe
 # PROP Output_Dir "Debug"
 # PROP Intermediate_Dir "Debug"
 # PROP Target_Dir ""
-# ADD BASE CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /D "_AFXDLL" /Yu"stdafx.h" /FD /GZ /c
-# ADD CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /D "_AFXDLL" /Yu"stdafx.h" /FD /GZ /c
-# ADD BASE RSC /l 0x804 /d "_DEBUG" /d "_AFXDLL"
-# ADD RSC /l 0x804 /d "_DEBUG" /d "_AFXDLL"
+# ADD BASE CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /D "_AFXDLL" /Yu"stdafx.h" /FD /GZ    /c
+# ADD CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /D "_AFXDLL" /Yu"stdafx.h" /FD /GZ    /c
+# ADD BASE RSC /l 0x409 /d "_DEBUG" /d "_AFXDLL"
+# ADD RSC /l 0x409 /d "_DEBUG" /d "_AFXDLL"
 BSC32=bscmake.exe
 # ADD BASE BSC32 /nologo
 # ADD BSC32 /nologo
@@ -78,35 +78,27 @@ LINK32=link.exe
 
 # Begin Target
 
-# Name "ProducerConsumer - Win32 Release"
-# Name "ProducerConsumer - Win32 Debug"
+# Name "SimpleThreadPool1 - Win32 Release"
+# Name "SimpleThreadPool1 - Win32 Debug"
 # Begin Group "Source Files"
 
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 # Begin Source File
 
-SOURCE=.\EventSyncQueue.cpp
+SOURCE=.\SimpleThreadPool.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\ProducerConsumer.cpp
+SOURCE=.\SimpleThreadPool1.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\ProducerConsumer.rc
-# End Source File
-# Begin Source File
-
-SOURCE=.\SemaphoreSyncQueue.cpp
+SOURCE=.\SimpleThreadPool1.rc
 # End Source File
 # Begin Source File
 
 SOURCE=.\StdAfx.cpp
 # ADD CPP /Yc"stdafx.h"
-# End Source File
-# Begin Source File
-
-SOURCE=.\SyncQueue.cpp
 # End Source File
 # End Group
 # Begin Group "Header Files"
@@ -114,27 +106,19 @@ SOURCE=.\SyncQueue.cpp
 # PROP Default_Filter "h;hpp;hxx;hm;inl"
 # Begin Source File
 
-SOURCE=.\EventSyncQueue.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\ProducerConsumer.h
-# End Source File
-# Begin Source File
-
 SOURCE=.\Resource.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\SemaphoreSyncQueue.h
+SOURCE=.\SimpleThreadPool.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SimpleThreadPool1.h
 # End Source File
 # Begin Source File
 
 SOURCE=.\StdAfx.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\SyncQueue.h
 # End Source File
 # End Group
 # Begin Group "Resource Files"

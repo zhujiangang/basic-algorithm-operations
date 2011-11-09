@@ -3,6 +3,7 @@
 #include "env_variable.h"
 #include "file_and_folder.h"
 #include "internet.h"
+#include "multi_thread.h"
 
 void test_evn_variable();
 
@@ -11,7 +12,8 @@ int main(int argc, char* argv[])
 //	test_evn_variable();
 //	show_shell_folders();
 //	show_internet_options();
-	test_create_folders();
+//	test_create_folders();
+	test_sys_thread_pool();
 	return 0;
 }
 
