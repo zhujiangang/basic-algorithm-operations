@@ -11,14 +11,17 @@
 #define INDEX_OF_QUIT_EVENT			0
 #define INDEX_OF_CHANGE_EVENT		1
 
+#define RC_EXIT_NO_MONITEE			1
+#define RC_EXIT_ALL_MONITEE_EXITED	2
+
 DWORD WINAPI CThreadMonitor::MonitorThreadProc(LPVOID lpParameter)
 {
 	CThreadMonitor* pMonitor = (CThreadMonitor*)lpParameter;
 	
-	return pMonitor->Monitor();
+	return pMonitor->DoMonitor();
 }
 
-CThreadMonitor::CThreadMonitor() : m_bAllowed(FALSE)
+CThreadMonitor::CThreadMonitor() : m_bMonitoring(FALSE), m_hMonitor(NULL)
 {
 	//AutoReset event, no signal
 	m_hQuitEvent = ::CreateEvent(NULL, FALSE, FALSE, NULL);
@@ -43,188 +46,229 @@ void CThreadMonitor::StartMonitor()
 {
 	DWORD dwThreadId = 0;
 
-	HANDLE hMonitor = ::CreateThread(NULL, 0,  CThreadMonitor::MonitorThreadProc, this, 0, &dwThreadId);
-
-	::CloseHandle(hMonitor);
+	m_bMonitoring = TRUE;
+	m_hMonitor = ::CreateThread(NULL, 0,  CThreadMonitor::MonitorThreadProc, this, 0, &dwThreadId);
 }
 
-void CThreadMonitor::EndMonitor()
+void CThreadMonitor::StopMonitor(BOOL bWaitUtilEnd)
 {
 	::SetEvent(m_hQuitEvent);
-}
 
-void CThreadMonitor::AddThread(HANDLE handle, CPostAction* pPostAction)
-{
-	m_criticalSection.Lock();
-	CPostAction* pTemp;
-	ASSERT(m_mapAction.Lookup(handle, pTemp) == FALSE);
-	m_mapAction.SetAt(handle, pPostAction);
-	if(m_bAllowed)
+	if(bWaitUtilEnd)
 	{
-		::SetEvent(m_hChangeEvent);
+		::WaitForSingleObject(m_hMonitor, INFINITE);
 	}
-	m_criticalSection.Unlock();	
+
+	if(m_hMonitor)
+	{
+		::CloseHandle(m_hMonitor);
+		m_hMonitor = NULL;
+	}
 }
 
-DWORD CThreadMonitor::Monitor()
+BOOL CThreadMonitor::AddMonitee(HANDLE handle, CPostAction* pPostAction)
 {
-	int nCount = 0;
-	
-	m_criticalSection.Lock();
-	m_bAllowed = TRUE;
-	m_criticalSection.Unlock();
-
-	RefreshWaitObjects(&nCount);
-
-	int nSingaledCount = 0;
-	int pSingaledIndex[MAX_WAIT_COUNT];
-
-	int i, nStartIndex;
-	CPostAction* pPostAction = NULL;
 	BOOL bResult = FALSE;
 
-	DWORD dwRet = 0;
+	m_criticalSection.Lock();
+
+	if(m_bMonitoring)
+	{
+		CPostAction* pTemp;
+		ASSERT(m_mapAction.Lookup(handle, pTemp) == FALSE);
+
+		m_mapAction.SetAt(handle, pPostAction);
+
+		::SetEvent(m_hChangeEvent);
+	}
+	bResult = m_bMonitoring;
+
+	m_criticalSection.Unlock();
+
+	return bResult;
+}
+
+DWORD CThreadMonitor::DoMonitor()
+{
+	DWORD dwResult = 0, dwWaitResult = 0;
+
+	int nCount = 0;
+	RefreshWaitObjects(&nCount);
+	ASSERT(nCount > 0);
+
 	while(TRUE)
 	{
-		ASSERT(nCount >= 1);
-
-		if(nCount == 1)
+		AfxTrace("WaitForMultipleObjects count = %d\n", nCount);
+		if(nCount == 0)
 		{
-			ASSERT(m_bAllowed == FALSE);
-			ASSERT(m_hWaitObjects[0] == m_hChangeEvent);
-			AfxTrace("Monitor Thread Exit 1\n");
-			return 1;
+			ASSERT(m_bMonitoring == FALSE);
+
+			dwResult = RC_EXIT_ALL_MONITEE_EXITED;
+			AfxTrace("Stopped monitorring. Result code=%d\n", dwResult);
+
+			return dwResult;
 		}
 
-		dwRet = WaitForMultipleObjects(nCount, m_hWaitObjects, FALSE, INFINITE);
+		dwWaitResult = WaitForMultipleObjects(nCount, m_hWaitObjects, FALSE, INFINITE);
 
-		//Something happens
-		if(dwRet >= WAIT_OBJECT_0 && dwRet < (WAIT_OBJECT_0 + nCount))
+		//Objects signaled
+		if(dwWaitResult >= WAIT_OBJECT_0 && dwWaitResult < (WAIT_OBJECT_0 + nCount))
 		{
-			GetSignaledObjects(dwRet, nCount, pSingaledIndex, &nSingaledCount);
-			if(nSingaledCount > 0 && nSingaledCount <= nCount)
+			dwResult = ProcessSignaled(dwWaitResult, nCount);
+			if(dwResult != 0)
 			{
-
-			}
-			else
-			{
-				AfxTrace("%d\n", nSingaledCount);
-				ASSERT(nSingaledCount > 0 && nSingaledCount <= nCount);
-			}
-
-			nStartIndex = FindFirstMonitee(pSingaledIndex, nSingaledCount);
-
-			if(nStartIndex >= 0)
-			{
-				for(i = nStartIndex; i < nSingaledCount; i++)
-				{
-					bResult = GetPostAction(m_hWaitObjects[pSingaledIndex[i]], &pPostAction);
-					ASSERT(bResult);
-					
-					if(pPostAction->DoAction() < 0)
-					{
-						delete pPostAction;
-					}
-					
-					RemovePostAction(m_hWaitObjects[pSingaledIndex[i]]);
-				}
-			}
-			else
-			{
-				ASSERT(nSingaledCount <= MAX_CONTROL_EVENT_COUNT);
-				nStartIndex = nSingaledCount;
-			}
-
-			//Control event check
-			for(i = 0; i < nStartIndex; i++)
-			{
-				ASSERT(pSingaledIndex[i] >=0 && pSingaledIndex[i] < MAX_CONTROL_EVENT_COUNT);
-				
-				//Quit event
-				if(pSingaledIndex[i] == INDEX_OF_QUIT_EVENT)
-				{
-					m_criticalSection.Lock();
-					ASSERT(m_bAllowed);
-					m_bAllowed = FALSE;
-
-					if(m_mapAction.GetCount() <= 0)
-					{
-						AfxTrace("Monitor Thread Exit 2\n");
-						//TODO: quit
-						m_criticalSection.Unlock();
-						return 2;
-					}
-					else
-					{
-						//TODO: Wait all the left threads to quit. Remove Quit event from wait objects
-					}
-					m_criticalSection.Unlock();
-				}
-				//Change event
-				else if(pSingaledIndex[i] == INDEX_OF_CHANGE_EVENT)
-				{
-					//nothing here, this event is used to refresh wait objects...
-				}
-				else
-				{
-					ASSERT(FALSE);
-				}
+				AfxTrace("Stopped monitorring. Result code=%d\n", dwResult);
+				return dwResult;
 			}
 
 			RefreshWaitObjects(&nCount);
-			AfxTrace("Wait Count = %d\n", nCount);
 		}
 		else
 		{
-			AfxTrace("Error happens. dwRet = %d\n", dwRet);
+			dwResult = ProcessAbnormal(nCount, dwWaitResult);
+			if(dwResult != 0)
+			{
+				return dwResult;
+			}
 		}
 	}
 
 	return 0;
 }
 
-BOOL CThreadMonitor::RefreshWaitObjects(int* pCount)
+DWORD CThreadMonitor::ProcessSignaled(DWORD dwRet, int nCount)
+{
+	ASSERT(dwRet >= WAIT_OBJECT_0 && dwRet < (WAIT_OBJECT_0 + nCount));
+
+	int nSingaledCount = 0;
+	int pSingaledIndex[MAX_WAIT_COUNT];
+	
+	int nFirstMonitee, nControlEventEnd;	
+
+	GetSignaledObjects(dwRet, nCount, pSingaledIndex, &nSingaledCount);
+	ASSERT(nSingaledCount > 0 && nSingaledCount <= nCount);
+	
+	nFirstMonitee = FindFirstMonitee(pSingaledIndex, nSingaledCount);
+	if(nFirstMonitee >= 0)
+	{
+		ProcessSignaledMonitees(pSingaledIndex, nSingaledCount, nFirstMonitee);
+		nControlEventEnd = nFirstMonitee;
+	}
+	else
+	{
+		ASSERT(nSingaledCount <= MAX_CONTROL_EVENT_COUNT);
+		nControlEventEnd = nSingaledCount;
+	}
+	
+	DWORD dwResult = ProcessSignaledControlEvents(pSingaledIndex, nControlEventEnd);
+	
+	return dwResult;
+}
+
+void CThreadMonitor::ProcessSignaledMonitees(int pSingaledIndex[], int nSingaledCount, int nFirstMonitee)
+{
+	ASSERT(nFirstMonitee >= 0 && nFirstMonitee < nSingaledCount);
+
+	CPostAction* pPostAction = NULL;
+	BOOL bResult;
+	int i;
+	
+	for(i = nFirstMonitee; i < nSingaledCount; i++)
+	{
+		bResult = GetPostAction(m_hWaitObjects[pSingaledIndex[i]], &pPostAction);
+		ASSERT(bResult);
+		
+		if(pPostAction->DoAction() < 0)
+		{
+			delete pPostAction;
+		}
+		
+		RemovePostAction(m_hWaitObjects[pSingaledIndex[i]]);
+	}
+}
+
+DWORD CThreadMonitor::ProcessSignaledControlEvents(int pSingaledIndex[], int nControlEventEnd)
+{
+	//Control event check
+	for(int i = 0; i < nControlEventEnd; i++)
+	{
+		ASSERT(pSingaledIndex[i] >= 0 && pSingaledIndex[i] < MAX_CONTROL_EVENT_COUNT);
+		
+		//Quit event
+		if(pSingaledIndex[i] == INDEX_OF_QUIT_EVENT)
+		{
+			m_criticalSection.Lock();
+
+			ASSERT(m_bMonitoring);
+			m_bMonitoring = FALSE;
+			if(m_mapAction.GetCount() <= 0)
+			{
+				//No monitored threads now, and we received Quit command
+				m_criticalSection.Unlock();
+
+				return RC_EXIT_NO_MONITEE;
+			}
+			else
+			{
+				//Wait all the left threads to quit. Remove Quit event from wait objects
+				//Nothing need to do here
+			}
+
+			m_criticalSection.Unlock();
+		}
+		//Change event
+		else if(pSingaledIndex[i] == INDEX_OF_CHANGE_EVENT)
+		{
+			//nothing here, this event is used to refresh wait objects...
+		}
+		else
+		{
+			ASSERT(FALSE);
+		}
+	}
+
+	return 0;
+}
+
+void CThreadMonitor::RefreshWaitObjects(int* pCount)
 {
 	ASSERT(pCount != NULL);
 
 	int nCount = 0;
-
 	HANDLE handle;
 	CPostAction* pAction;
 	
 	m_criticalSection.Lock();
 
-	if(m_bAllowed)
+	//Only wait for the 2 control events when it's monitoring.
+	if(m_bMonitoring)
 	{
 		m_hWaitObjects[nCount++] = m_hQuitEvent;
+		m_hWaitObjects[nCount++] = m_hChangeEvent;
 	}
-	m_hWaitObjects[nCount++] = m_hChangeEvent;
-
 
 	POSITION pos = m_mapAction.GetStartPosition();
 	while (pos != NULL)
 	{
 		m_mapAction.GetNextAssoc(pos, handle, pAction);
-
 		m_hWaitObjects[nCount++] = handle;
 	}
+
 	*pCount = nCount;
 	
 	m_criticalSection.Unlock();
-
-	return TRUE;
 }
 
-BOOL CThreadMonitor::GetSignaledObjects(DWORD dwRet, int nCount, int* pSignaledIndex, int* pSignaledCount)
+void CThreadMonitor::GetSignaledObjects(DWORD dwRet, int nCount, int lpSignaledIndex[], int* lpSignaledCount)
 {
-	ASSERT(pSignaledIndex != NULL && pSignaledCount != NULL);
+	ASSERT(lpSignaledIndex != NULL && lpSignaledCount != NULL);
 	ASSERT(dwRet >= WAIT_OBJECT_0 && dwRet < (WAIT_OBJECT_0 + nCount));
 	
 	int nSignaledCount = 0;
 	int nIndex = (dwRet - WAIT_OBJECT_0);
-	pSignaledIndex[nSignaledCount++] = nIndex++;
+	lpSignaledIndex[nSignaledCount++] = nIndex++;
 
-
+	//Check if there are more than 1 handles become signaled
 	while(nIndex < nCount) //nCount
 	{
 		dwRet = WaitForMultipleObjects(nCount - nIndex, &m_hWaitObjects[nIndex], FALSE, 0);
@@ -233,24 +277,22 @@ BOOL CThreadMonitor::GetSignaledObjects(DWORD dwRet, int nCount, int* pSignaledI
 		if(dwRet >= WAIT_OBJECT_0 && dwRet < (WAIT_OBJECT_0 + nCount - nIndex))
 		{
 			nIndex = nIndex + dwRet - WAIT_OBJECT_0;
-			pSignaledIndex[nSignaledCount++] = nIndex++;
+			lpSignaledIndex[nSignaledCount++] = nIndex++;
 		}
 		//no other signaled handles
 		else if(dwRet == WAIT_TIMEOUT)
 		{
 			nIndex = nCount;
+			break;
 		}
 		else
 		{
-			AfxTrace("GetSignaledObjects::Error happens. dwRet = %d\n", dwRet);
+			ProcessAbnormal(nCount - nIndex, dwRet);
 		}
 	}
 
 	ASSERT(nSignaledCount > 0 && nSignaledCount <= nCount);
-
-	*pSignaledCount = nSignaledCount;
-
-	return TRUE;
+	*lpSignaledCount = nSignaledCount;
 }
 
 
@@ -272,6 +314,7 @@ BOOL CThreadMonitor::RemovePostAction(HANDLE handle)
 
 	m_criticalSection.Lock();
 	bResult = m_mapAction.RemoveKey(handle);
+	ASSERT(bResult);
 	m_criticalSection.Unlock();
 	
 	return bResult;
@@ -289,4 +332,29 @@ int  CThreadMonitor::FindFirstMonitee(int array[], int nLength)
 		}
 	}
 	return -1;
+}
+
+DWORD CThreadMonitor::ProcessAbnormal(int nCount, DWORD dwResult)
+{	
+	CString szErrorMsg;
+	if(dwResult >= WAIT_ABANDONED_0 && dwResult < (WAIT_ABANDONED_0 + nCount))
+	{
+		szErrorMsg.Format("WAIT_ABANDONED, index=%d", dwResult - WAIT_ABANDONED_0);
+	}
+	else if(dwResult == WAIT_TIMEOUT)
+	{
+		szErrorMsg.Format("WAIT_TIMEOUT");
+	}
+	else if(dwResult == WAIT_FAILED)
+	{
+		szErrorMsg.Format("WAIT_FAILED, Last Error=%d", GetLastError());
+	}
+	else
+	{
+		szErrorMsg.Format("Unkown result (%d)", dwResult);
+	}
+
+	AfxTrace("WaitForMultipleObjects return abnormal. Details: %s\n", szErrorMsg);
+
+	return 0;
 }

@@ -221,11 +221,11 @@ void CMultiThread2Dlg::OnTest4()
 
 	HANDLE h = CreateThread(NULL,0,ThreadFunc,(LPVOID)(integer),0,NULL);
 	CTestAction* pTestAction = new CTestAction(h, szThreadName);
-	m_monitor.AddThread(h, pTestAction);
+	m_monitor.AddMonitee(h, pTestAction);
 }
 void CMultiThread2Dlg::OnEnd()
 {
-	m_monitor.EndMonitor();
+	m_monitor.StopMonitor(TRUE);
 }
 void CMultiThread2Dlg::OnTest3()
 {
@@ -249,7 +249,7 @@ void CMultiThread2Dlg::OnTest3()
 		m_map.SetAt(handles[i], szThreadName);
 
 		CTestAction* pTestAction = new CTestAction(handles[i], szThreadName);
-		m_monitor.AddThread(handles[i], pTestAction);
+		m_monitor.AddMonitee(handles[i], pTestAction);
 	}
 	
 	for(i = 0; i < nMax; i++)
