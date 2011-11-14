@@ -98,6 +98,9 @@ BEGIN
                     IDC_STATIC,31,33,179,20
     LTEXT           "请输入线程循环的次数",IDC_STATIC,33,64,85,12
     PUSHBUTTON      "Test2",IDC_TEST2,205,120,50,14
+    PUSHBUTTON      "Test3",IDC_TEST3,197,77,50,14
+    PUSHBUTTON      "Test4",IDC_TEST4,211,155,50,14
+    PUSHBUTTON      "end",IDC_END,129,155,50,14
 END
 
 

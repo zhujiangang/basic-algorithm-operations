@@ -8,6 +8,8 @@
 #pragma once
 #endif // _MSC_VER > 1000
 
+#include "ThreadMonitor.h"
+
 /////////////////////////////////////////////////////////////////////////////
 // CMultiThread2Dlg dialog
 DWORD WINAPI ThreadFunc(LPVOID integer);
@@ -45,12 +47,17 @@ protected:
 	afx_msg HCURSOR OnQueryDragIcon();
 	afx_msg void OnStart();
 	afx_msg void OnTest2();
+	afx_msg void OnTest3();
+	afx_msg void OnTest4();
+	afx_msg void OnEnd();
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 private:
 	CString GetThreadName(HANDLE nIndex);
 	void ProcessHanlde(HANDLE nIndex);
 	int WaitForChildThreads(HANDLE* handles, const int nMax);
+
+	CThreadMonitor m_monitor;
 
 	CMap<HANDLE, HANDLE, CString, LPCTSTR> m_map;
 };
