@@ -4,6 +4,8 @@
 #include "stdafx.h"
 #include "MultiThread2.h"
 #include "MultiThread2Dlg.h"
+#include "ThreadMonitor.h"
+#include "TestAction.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -84,6 +86,9 @@ ON_WM_PAINT()
 ON_WM_QUERYDRAGICON()
 ON_BN_CLICKED(IDC_START, OnStart)
 ON_BN_CLICKED(IDC_TEST2, OnTest2)
+ON_BN_CLICKED(IDC_TEST3, OnTest3)
+ON_BN_CLICKED(IDC_TEST4, OnTest4)
+ON_BN_CLICKED(IDC_END, OnEnd)
 //}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -203,6 +208,58 @@ void showstr(DWORD dwResult)
 		break;
 	}
 	AfxTrace("%s\n", szLog);
+}
+void CMultiThread2Dlg::OnTest4()
+{
+	static int count = 10;
+	count++;
+
+	CString szThreadName;
+	szThreadName.Format("Thread-%02d", count);
+
+	int integer = m_nCount;
+
+	HANDLE h = CreateThread(NULL,0,ThreadFunc,(LPVOID)(integer),0,NULL);
+	CTestAction* pTestAction = new CTestAction(h, szThreadName);
+	m_monitor.AddThread(h, pTestAction);
+}
+void CMultiThread2Dlg::OnEnd()
+{
+	m_monitor.EndMonitor();
+}
+void CMultiThread2Dlg::OnTest3()
+{
+	const int nMax = 10;
+	
+	HANDLE handles[nMax];
+	int integer[nMax];
+	
+	UpdateData(TRUE);
+
+	m_monitor.StartMonitor();
+	
+	CString szThreadName;
+	int i;
+	for(i = 0; i < nMax; i++)
+	{
+		integer[i] = m_nCount + (i / 5);
+		handles[i]=CreateThread(NULL,0,ThreadFunc,(LPVOID)(integer[i]),CREATE_SUSPENDED,&ThreadID);
+
+		szThreadName.Format("Thread-%02d", i + 1);
+		m_map.SetAt(handles[i], szThreadName);
+
+		CTestAction* pTestAction = new CTestAction(handles[i], szThreadName);
+		m_monitor.AddThread(handles[i], pTestAction);
+	}
+	
+	for(i = 0; i < nMax; i++)
+	{
+		ResumeThread(handles[i]);
+	}
+	
+	GetDlgItem(IDC_START)->EnableWindow(FALSE);
+	
+//	WaitForChildThreads(handles, nMax);
 }
 void CMultiThread2Dlg::OnTest2()
 {
