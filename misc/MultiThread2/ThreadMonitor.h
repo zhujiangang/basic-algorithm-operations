@@ -25,8 +25,8 @@ public:
 	virtual ~CThreadMonitor();
 
 	void StartMonitor();
-	void EndMonitor();
-	void AddThread(HANDLE handle, CPostAction* pPostAction);
+	void StopMonitor(BOOL bWaitUtilEnd = FALSE);
+	BOOL AddMonitee(HANDLE handle, CPostAction* pPostAction);
 private:
 	enum
 	{
@@ -35,18 +35,24 @@ private:
 		MAX_WAIT_COUNT = MAX_MONITEE_COUNT + MAX_CONTROL_EVENT_COUNT
 	};
 	static DWORD WINAPI MonitorThreadProc(LPVOID lpParameter);
-	DWORD Monitor();
-	BOOL RefreshWaitObjects(int* pCount);
-	BOOL GetSignaledObjects(DWORD dwRet, int nCount, int* pSignaledIndex, int* pSignaledCount);
+	DWORD DoMonitor();
+	DWORD ProcessSignaled(DWORD dwRet, int nCount);
+	void  ProcessSignaledMonitees(int pSingaledIndex[], int nSingaledCount, int nFirstMonitee);
+	DWORD ProcessSignaledControlEvents(int pSingaledIndex[], int nControlEventEnd);
+	void RefreshWaitObjects(int* pCount);
+	void GetSignaledObjects(DWORD dwRet, int nCount, int pSignaledIndex[], int* pSignaledCount);
 	BOOL GetPostAction(HANDLE handle, CPostAction** pPostAction);
 	BOOL RemovePostAction(HANDLE handle);
 	int  FindFirstMonitee(int array[], int nLength);
+	DWORD ProcessAbnormal(int nCount, DWORD dwResult);
 private:
 	HANDLE m_hQuitEvent;
 	HANDLE m_hChangeEvent;
 	HANDLE m_hWaitObjects[MAX_WAIT_COUNT];
 
-	BOOL m_bAllowed;
+	HANDLE m_hMonitor;
+
+	BOOL m_bMonitoring;
 
 	CMapHandle2Action m_mapAction;
 	CCriticalSection m_criticalSection;

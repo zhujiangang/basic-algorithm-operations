@@ -34,5 +34,5 @@ int CTestAction::DoAction()
 	}
 	
 
-	return 0;
+	return -1;
 }
