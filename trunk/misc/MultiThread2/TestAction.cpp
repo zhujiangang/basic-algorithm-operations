@@ -32,7 +32,9 @@ int CTestAction::DoAction()
 			AfxTrace("Failed to Close Handle. %d\n", GetLastError());
 		}
 	}
+
+//	Sleep(2000);
 	
 
-	return -1;
+	return DELETE_BY_EXTERNAL;
 }
