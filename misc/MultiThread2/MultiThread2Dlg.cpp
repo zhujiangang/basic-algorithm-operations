@@ -89,6 +89,7 @@ ON_BN_CLICKED(IDC_TEST2, OnTest2)
 ON_BN_CLICKED(IDC_TEST3, OnTest3)
 ON_BN_CLICKED(IDC_TEST4, OnTest4)
 ON_BN_CLICKED(IDC_END, OnEnd)
+	ON_WM_CLOSE()
 //}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -221,7 +222,35 @@ void CMultiThread2Dlg::OnTest4()
 
 	HANDLE h = CreateThread(NULL,0,ThreadFunc,(LPVOID)(integer),0,NULL);
 	CTestAction* pTestAction = new CTestAction(h, szThreadName);
-	m_monitor.AddMonitee(h, pTestAction);
+	if(m_monitor.AddMoniteeWaitForExist(h, pTestAction) == RC_ADD_EXIST)
+	{
+		ASSERT(FALSE);
+	}
+}
+
+void CMultiThread2Dlg::OnCancel()
+{
+// 	ASSERT(AfxGetMainWnd());
+// 	AfxGetMainWnd()->SendMessage(WM_CLOSE);
+
+	ASSERT(AfxGetMainWnd());
+	AfxGetMainWnd()->ShowWindow(SW_HIDE);
+	AfxTrace("Hided \n");
+	m_monitor.StopMonitor(TRUE);
+	AfxTrace("Stopped \n");
+
+	CDialog::OnCancel();
+}
+
+void CMultiThread2Dlg::OnClose() 
+{
+	ASSERT(AfxGetMainWnd());
+	AfxGetMainWnd()->ShowWindow(SW_HIDE);
+	AfxTrace("Hided \n");
+	m_monitor.StopMonitor(TRUE);
+	AfxTrace("Stopped \n");
+
+	CDialog::OnClose();
 }
 void CMultiThread2Dlg::OnEnd()
 {

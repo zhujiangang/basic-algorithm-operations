@@ -30,6 +30,7 @@ public:
 	//{{AFX_VIRTUAL(CMultiThread2Dlg)
 	protected:
 	virtual void DoDataExchange(CDataExchange* pDX);	// DDX/DDV support
+	virtual void OnCancel();
 	//}}AFX_VIRTUAL
 
 // Implementation
@@ -50,6 +51,7 @@ protected:
 	afx_msg void OnTest3();
 	afx_msg void OnTest4();
 	afx_msg void OnEnd();
+	afx_msg void OnClose();
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 private:

@@ -11,8 +11,6 @@
 #define INDEX_OF_QUIT_EVENT			0
 #define INDEX_OF_CHANGE_EVENT		1
 
-#define RC_EXIT_NO_MONITEE			1
-#define RC_EXIT_ALL_MONITEE_EXITED	2
 
 DWORD WINAPI CThreadMonitor::MonitorThreadProc(LPVOID lpParameter)
 {
@@ -27,19 +25,38 @@ CThreadMonitor::CThreadMonitor() : m_bMonitoring(FALSE), m_hMonitor(NULL)
 	m_hQuitEvent = ::CreateEvent(NULL, FALSE, FALSE, NULL);
 
 	//AutoReset event, no signal
-	m_hChangeEvent = ::CreateEvent(NULL, FALSE, FALSE, NULL);
+	m_hAddEvent = ::CreateEvent(NULL, FALSE, FALSE, NULL);
+
+	m_hRemoveEvent = ::CreateEvent(NULL, FALSE, FALSE, NULL);
+
+	ZeroMemory(m_hWaitObjects, sizeof(m_hWaitObjects));
 }
 
 CThreadMonitor::~CThreadMonitor()
 {
-	if(m_hChangeEvent)
+	if(IsRunning())
 	{
-		::CloseHandle(m_hChangeEvent);
+		StopMonitor(TRUE);
+	}
+
+	if(m_hRemoveEvent)
+	{
+		::CloseHandle(m_hRemoveEvent);
+		m_hRemoveEvent = NULL;
+	}
+	if(m_hAddEvent)
+	{
+		::CloseHandle(m_hAddEvent);
+		m_hAddEvent = NULL;
 	}
 	if(m_hQuitEvent)
 	{
 		::CloseHandle(m_hQuitEvent);
+		m_hQuitEvent = NULL;
 	}
+
+	//Let the other thread to delete the left post-action
+	m_mapAction.RemoveAll();
 }
 
 void CThreadMonitor::StartMonitor()
@@ -50,42 +67,91 @@ void CThreadMonitor::StartMonitor()
 	m_hMonitor = ::CreateThread(NULL, 0,  CThreadMonitor::MonitorThreadProc, this, 0, &dwThreadId);
 }
 
-void CThreadMonitor::StopMonitor(BOOL bWaitUtilEnd)
+void CThreadMonitor::StopMonitor(BOOL bWait, DWORD dwTimeOut)
 {
 	::SetEvent(m_hQuitEvent);
 
-	if(bWaitUtilEnd)
-	{
-		::WaitForSingleObject(m_hMonitor, INFINITE);
-	}
-
 	if(m_hMonitor)
 	{
+		//Should we wait?
+		if(bWait)
+		{
+			DWORD dwResult = ::WaitForSingleObject(m_hMonitor, dwTimeOut);
+			
+			//abnormal case, here try to terminate thread
+			if(dwResult == WAIT_ABANDONED || dwResult == WAIT_TIMEOUT)
+			{
+				BOOL bResult = TerminateThread(m_hMonitor, RC_EXIT_TERMINATED);
+				AfxTrace("TerminateThread result = %d, dwResult = %d\n", bResult, dwResult);
+			}
+			//There's nothing to do with WAIT_OBJECT_0 and WAIT_FAILED
+		}
+
+		//Finally close the monitor thread
 		::CloseHandle(m_hMonitor);
 		m_hMonitor = NULL;
 	}
 }
 
-BOOL CThreadMonitor::AddMonitee(HANDLE handle, CPostAction* pPostAction)
+BOOL CThreadMonitor::IsRunning()
 {
-	BOOL bResult = FALSE;
+	if(m_hMonitor)
+	{
+		BOOL bResult;
+		DWORD dwExitCode;
+
+		bResult = GetExitCodeThread(m_hMonitor, &dwExitCode);
+		if(bResult && (dwExitCode == STILL_ACTIVE))
+		{
+			return TRUE;
+		}
+	}
+
+	return FALSE;
+}
+
+DWORD CThreadMonitor::AddMonitee(HANDLE handle, CPostAction* pPostAction)
+{
+	DWORD dwResult = RC_ADD_OK;
 
 	m_criticalSection.Lock();
-
 	if(m_bMonitoring)
 	{
 		CPostAction* pTemp;
-		ASSERT(m_mapAction.Lookup(handle, pTemp) == FALSE);
-
-		m_mapAction.SetAt(handle, pPostAction);
-
-		::SetEvent(m_hChangeEvent);
+		if(m_mapAction.Lookup(handle, pTemp))
+		{
+			dwResult = RC_ADD_EXIST;
+		}
+		else
+		{
+			m_mapAction.SetAt(handle, pPostAction);
+			::SetEvent(m_hAddEvent);
+		}
 	}
-	bResult = m_bMonitoring;
-
+	else
+	{
+		dwResult = RC_ADD_NOT_MONITORING;
+	}
 	m_criticalSection.Unlock();
 
-	return bResult;
+	return dwResult;
+}
+
+DWORD CThreadMonitor::AddMoniteeWaitForExist(HANDLE handle, CPostAction* pPostAction)
+{
+	DWORD dwResult;
+	
+	do 
+	{
+		dwResult = AddMonitee(handle, pPostAction);
+		if(dwResult != RC_ADD_EXIST)
+		{
+			break;
+		}
+		::WaitForSingleObject(m_hRemoveEvent, INFINITE);
+	} while (TRUE);
+
+	return dwResult;
 }
 
 DWORD CThreadMonitor::DoMonitor()
@@ -147,6 +213,15 @@ DWORD CThreadMonitor::ProcessSignaled(DWORD dwRet, int nCount)
 
 	GetSignaledObjects(dwRet, nCount, pSingaledIndex, &nSingaledCount);
 	ASSERT(nSingaledCount > 0 && nSingaledCount <= nCount);
+	//Debug Code
+	CString szLog, szTemp;
+	szLog.Format("[Signaled Objects]: count=%d, ", nSingaledCount);
+	for(int i = 0; i < nSingaledCount; i++)
+	{
+		szTemp.Format("%d ", pSingaledIndex[i]);
+		szLog += szTemp;
+	}
+	AfxTrace("%s\n", szLog);
 	
 	nFirstMonitee = FindFirstMonitee(pSingaledIndex, nSingaledCount);
 	if(nFirstMonitee >= 0)
@@ -178,7 +253,7 @@ void CThreadMonitor::ProcessSignaledMonitees(int pSingaledIndex[], int nSingaled
 		bResult = GetPostAction(m_hWaitObjects[pSingaledIndex[i]], &pPostAction);
 		ASSERT(bResult);
 		
-		if(pPostAction->DoAction() < 0)
+		if(pPostAction->DoAction() == CPostAction::DELETE_BY_EXTERNAL)
 		{
 			delete pPostAction;
 		}
@@ -244,7 +319,7 @@ void CThreadMonitor::RefreshWaitObjects(int* pCount)
 	if(m_bMonitoring)
 	{
 		m_hWaitObjects[nCount++] = m_hQuitEvent;
-		m_hWaitObjects[nCount++] = m_hChangeEvent;
+		m_hWaitObjects[nCount++] = m_hAddEvent;
 	}
 
 	POSITION pos = m_mapAction.GetStartPosition();
@@ -315,6 +390,11 @@ BOOL CThreadMonitor::RemovePostAction(HANDLE handle)
 	m_criticalSection.Lock();
 	bResult = m_mapAction.RemoveKey(handle);
 	ASSERT(bResult);
+
+	if(bResult)
+	{
+		::SetEvent(m_hRemoveEvent);
+	}
 	m_criticalSection.Unlock();
 	
 	return bResult;
@@ -326,7 +406,7 @@ int  CThreadMonitor::FindFirstMonitee(int array[], int nLength)
 	for(int i = 0; i < nLength; i++)
 	{
 		handle = m_hWaitObjects[array[i]];
-		if(handle != m_hQuitEvent && handle != m_hChangeEvent)
+		if(handle != m_hQuitEvent && handle != m_hAddEvent)
 		{
 			return i;
 		}
