@@ -39,6 +39,7 @@ terminated by force*/
 #define RC_ADD_OK					0
 #define RC_ADD_EXIST				1
 #define RC_ADD_NOT_MONITORING		2
+#define RC_MAX_CAPACITY_REACHED		3
 
 class CThreadMonitor  
 {

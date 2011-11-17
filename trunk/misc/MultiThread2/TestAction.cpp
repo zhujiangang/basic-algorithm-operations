@@ -33,7 +33,7 @@ int CTestAction::DoAction()
 		}
 	}
 
-//	Sleep(2000);
+	Sleep(2000);
 	
 
 	return DELETE_BY_EXTERNAL;

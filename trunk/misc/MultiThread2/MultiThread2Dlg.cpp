@@ -222,7 +222,9 @@ void CMultiThread2Dlg::OnTest4()
 
 	HANDLE h = CreateThread(NULL,0,ThreadFunc,(LPVOID)(integer),0,NULL);
 	CTestAction* pTestAction = new CTestAction(h, szThreadName);
-	if(m_monitor.AddMoniteeWaitForExist(h, pTestAction) == RC_ADD_EXIST)
+//	if(m_monitor.AddMoniteeWaitForExist(h, pTestAction) == RC_ADD_EXIST)
+	DWORD dwResult = m_monitor.AddMonitee(h, pTestAction);
+	if(dwResult == RC_ADD_EXIST || dwResult == RC_MAX_CAPACITY_REACHED)
 	{
 		ASSERT(FALSE);
 	}
