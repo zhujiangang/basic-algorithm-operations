@@ -115,22 +115,29 @@ DWORD CThreadMonitor::AddMonitee(HANDLE handle, CPostAction* pPostAction)
 	DWORD dwResult = RC_ADD_OK;
 
 	m_criticalSection.Lock();
-	if(m_bMonitoring)
+	if(m_mapAction.GetCount() >= MAX_MONITEE_COUNT)
 	{
-		CPostAction* pTemp;
-		if(m_mapAction.Lookup(handle, pTemp))
-		{
-			dwResult = RC_ADD_EXIST;
-		}
-		else
-		{
-			m_mapAction.SetAt(handle, pPostAction);
-			::SetEvent(m_hAddEvent);
-		}
+		dwResult = RC_MAX_CAPACITY_REACHED;
 	}
 	else
 	{
-		dwResult = RC_ADD_NOT_MONITORING;
+		if(m_bMonitoring)
+		{
+			CPostAction* pTemp;
+			if(m_mapAction.Lookup(handle, pTemp))
+			{
+				dwResult = RC_ADD_EXIST;
+			}
+			else
+			{
+				m_mapAction.SetAt(handle, pPostAction);
+				::SetEvent(m_hAddEvent);
+			}
+		}
+		else
+		{
+			dwResult = RC_ADD_NOT_MONITORING;
+		}
 	}
 	m_criticalSection.Unlock();
 
@@ -144,7 +151,7 @@ DWORD CThreadMonitor::AddMoniteeWaitForExist(HANDLE handle, CPostAction* pPostAc
 	do 
 	{
 		dwResult = AddMonitee(handle, pPostAction);
-		if(dwResult != RC_ADD_EXIST)
+		if(dwResult != RC_ADD_EXIST && dwResult != RC_MAX_CAPACITY_REACHED)
 		{
 			break;
 		}
@@ -253,12 +260,18 @@ void CThreadMonitor::ProcessSignaledMonitees(int pSingaledIndex[], int nSingaled
 		bResult = GetPostAction(m_hWaitObjects[pSingaledIndex[i]], &pPostAction);
 		ASSERT(bResult);
 		
+		//IMPORTANT: 
+		//MUST first delete the handle from map. Why?
+		//Because DoAction always will CloseHandle of the thread, if a thread handle was closed,
+		//System can re-assign the handle value to a new created thread. When the new created thread
+		//try to add it to be monitored, if we don't remove the closed handle, AddMonitee will give 
+		//the caller a RC_ADD_EXIST return value. This prevents the normal cases not accepted by Monitor
+		RemovePostAction(m_hWaitObjects[pSingaledIndex[i]]);
+
 		if(pPostAction->DoAction() == CPostAction::DELETE_BY_EXTERNAL)
 		{
 			delete pPostAction;
 		}
-		
-		RemovePostAction(m_hWaitObjects[pSingaledIndex[i]]);
 	}
 }
 
