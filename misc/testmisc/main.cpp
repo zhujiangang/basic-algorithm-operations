@@ -4,6 +4,7 @@
 #include "file_and_folder.h"
 #include "internet.h"
 #include "multi_thread.h"
+#include "time_get.h"
 
 void test_evn_variable();
 
@@ -13,7 +14,8 @@ int main(int argc, char* argv[])
 //	show_shell_folders();
 //	show_internet_options();
 //	test_create_folders();
-	test_sys_thread_pool();
+//	test_sys_thread_pool();
+	test_time_get();
 	return 0;
 }
 
