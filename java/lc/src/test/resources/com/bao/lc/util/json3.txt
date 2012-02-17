@@ -1,0 +1,1 @@
+{"RpsResponse":{"Status":{"@state":"failed","@timestamp":"Thu Feb 09 07:47:55 GMT 2012","Error":{"@code":"400","@applicationCode":"login_error.email_password","ErrorMessage":{"$":"Bad request. Invalid email address and password combination supplied."}}}}}
