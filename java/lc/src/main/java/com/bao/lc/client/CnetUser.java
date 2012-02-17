@@ -104,7 +104,7 @@ public class CnetUser
 		{
 			params.put("COUNTRY", "US");
 			params.put("DATEOFBIRTH", birthday);
-			params.put("EMAILADDR", "colinconger77@yahoo.com");
+			params.put("EMAILADDR", "aaaa");
 			params.put("FIRSTNAME", firstName);
 			params.put("LASTNAME", lastName);
 			params.put("GENDER", gender);
