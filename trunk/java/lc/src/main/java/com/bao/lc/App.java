@@ -24,6 +24,6 @@ public class App
 		log.info("Hello World!");
 		
 		CnetUser cnetUser = new CnetUser();
-		cnetUser.login("colinconger77@yahoo.com", "3562835");
+		cnetUser.login("test1", "123");
 	}
 }
