@@ -1,9 +1,9 @@
 package com.bao.lc.common;
 
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Arrays;
-
-import org.apache.commons.io.HexDump;
 
 public class UTF8BufferedInputStream extends BufferedInputStream
 {
@@ -18,7 +18,6 @@ public class UTF8BufferedInputStream extends BufferedInputStream
 	public UTF8BufferedInputStream(InputStream in, int size) 
 	{
 		super(in, size);
-		
 		if(size < 3)
 		{
 			buf = new byte[3];
@@ -33,52 +32,28 @@ public class UTF8BufferedInputStream extends BufferedInputStream
 		
 		try
 		{
-			int readCount = read(bytes);
+			int nread = read(bytes, 0, bytes.length);
 			
-			if(readCount < 0)
+			//EOF
+			if(nread < 0)
 			{
 				return;
 			}
 			
-			super.count = readCount;
-			
-			if(readCount < 3)
+			/**
+			 * Reset the cursor to the start position if meets ONE of the below 2 condition:
+			 * 
+			 * 1. There's less than 3 bytes read from input stream
+			 * 2. The first 3 bytes of the input stream is NOT UTF-8 BOM
+			 */
+			if( nread < 3 || ((nread == 3) && !Arrays.equals(bytes, UTF8_BOM)) )
 			{
 				super.pos = 0;
-			}
-			else if(readCount == 3)
-			{
-				if(Arrays.equals(bytes, UTF8_BOM))
-				{
-					System.out.println(super.pos);
-				}
-				else
-				{
-					super.pos = 0;
-				}
 			}
 		}
 		catch(IOException e)
 		{
 			e.printStackTrace();
-		}
-	}
-	
-	public static void main(String[] args) throws Exception
-	{
-		UTF8BufferedInputStream bis = new UTF8BufferedInputStream(new FileInputStream("a.txt"));
-		
-		BufferedReader reader = new BufferedReader(new InputStreamReader(bis, "UTF-8"));
-		
-		int lineCount = 0;
-		String line = null;
-		
-		while((line = reader.readLine()) != null)
-		{
-			lineCount++;
-			
-			System.out.println("[" + lineCount + "]: [" + line + "]");
-			HexDump.dump(line.getBytes("UTF-8"), 0, System.out, 0);
 		}
 	}
 }
