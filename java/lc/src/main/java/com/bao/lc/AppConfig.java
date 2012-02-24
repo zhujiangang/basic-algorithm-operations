@@ -2,13 +2,15 @@ package com.bao.lc;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Properties;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.bao.lc.util.CommonUtil;
+import com.bao.lc.common.UTF8BufferedInputStream;
 
 public class AppConfig
 {
@@ -115,18 +117,30 @@ public class AppConfig
 	private boolean loadFile(String file, String charsetName, Properties prop)
 	{
 		boolean result = false;
+		
+		InputStream is = null;
+		InputStreamReader reader = null;
 		try
 		{
-			InputStreamReader reader = new InputStreamReader(getClass().getResourceAsStream(file), charsetName);
-			prop.load(reader);
+			is = getClass().getResourceAsStream(file);
+			if("UTF-8".equalsIgnoreCase(charsetName))
+			{
+				is = new UTF8BufferedInputStream(is);
+			}
 			
-			CommonUtil.trimUtf8Bom(prop);
+			reader = new InputStreamReader(is, charsetName);
+			prop.load(reader);
 			
 			result = true;
 		}
 		catch(Exception e)
 		{
 			log.error("Failed to load file [" + file + "]", e);
+		}
+		finally
+		{
+			IOUtils.closeQuietly(reader);
+			IOUtils.closeQuietly(is);
 		}
 		
 		return result;
