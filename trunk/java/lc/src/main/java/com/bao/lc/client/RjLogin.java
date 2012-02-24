@@ -46,11 +46,18 @@ public class RjLogin
 
 		try
 		{
-			// 1. login
-			login(user, password);
-
-			// 2. query reglist
-			queryRegList();
+			do
+			{
+				// 1. login
+				if(!login(user, password))
+				{
+					break;
+				}
+				
+				// 2. query reglist
+				queryRegList();
+			}
+			while(false);
 		}
 		catch(Exception e)
 		{
