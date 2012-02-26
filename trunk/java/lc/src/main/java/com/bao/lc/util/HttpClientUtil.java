@@ -3,19 +3,24 @@ package com.bao.lc.util;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.Closeable;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
+import org.apache.http.ParseException;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.message.BasicHeader;
+import org.apache.http.util.EntityUtils;
+
 
 public class HttpClientUtil
-{
-
+{	
+	private static boolean isDebug = true;
 	/**
 	 * Assembly Cookies
 	 * 
@@ -115,5 +120,21 @@ public class HttpClientUtil
 			closeStream(bis);
 			closeStream(bos);
 		}
+	}
+	
+	public static String saveToString(HttpEntity entity, String charsetName)  throws IOException, ParseException
+	{
+		String result = null;
+		if(isDebug)
+		{
+			String tempFile = AppUtils.getTempFilePath("TempDebugFile.html");
+			saveToFile(entity, tempFile);
+			result = IOUtils.toString(new FileInputStream(tempFile), charsetName);
+		}
+		else
+		{
+			result = EntityUtils.toString(entity, charsetName);
+		}
+		return result;
 	}
 }

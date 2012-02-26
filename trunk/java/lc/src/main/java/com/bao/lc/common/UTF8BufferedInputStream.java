@@ -22,7 +22,6 @@ public class UTF8BufferedInputStream extends BufferedInputStream
 		{
 			buf = new byte[3];
 		}
-		
 		checkBom();
 	}
 	
@@ -35,13 +34,18 @@ public class UTF8BufferedInputStream extends BufferedInputStream
 			int nread = read(bytes, 0, bytes.length);
 			
 			//EOF
-			if(nread < 0)
+			if(nread <= 0)
 			{
 				return;
 			}
+			//assert super.pos == nread
+			if(super.pos != nread)
+			{
+				throw new RuntimeException("assert failure: nread=" + nread + ", super.pos=" + super.pos);
+			}
 			
 			/**
-			 * Reset the cursor to the start position if meets ONE of the below 2 condition:
+			 * Reset the cursor to the start position if meets ONE of the below 2 conditions:
 			 * 
 			 * 1. There's less than 3 bytes read from input stream
 			 * 2. The first 3 bytes of the input stream is NOT UTF-8 BOM
