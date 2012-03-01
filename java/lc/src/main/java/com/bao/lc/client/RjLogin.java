@@ -2,7 +2,10 @@ package com.bao.lc.client;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -26,6 +29,8 @@ import com.bao.lc.util.HttpClientUtil;
 public class RjLogin
 {
 	private static Log log = LogFactory.getLog(RjLogin.class);
+	
+	private static final DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS"); 
 
 	private BrowserClient session = null;
 	private boolean isLogin = false;
@@ -36,6 +41,9 @@ public class RjLogin
 	private String doc = null;
 	private int week = 5;
 	private int dayOfWeek = 5;
+	
+	private Calendar startTime = null;
+	private Calendar expectedTime = null;
 
 	public RjLogin(String user, String password, String department, String doc, int week, int dayOfWeek)
 	{
@@ -48,6 +56,7 @@ public class RjLogin
 		this.doc = doc;
 		this.week = week;
 		this.dayOfWeek = dayOfWeek;
+
 	}
 
 	public int get()
@@ -63,13 +72,16 @@ public class RjLogin
 				{
 					break;
 				}
+				startTime = Calendar.getInstance();
+				expectedTime = (Calendar)startTime.clone();
+				CommonUtil.updateCalendar(expectedTime, week, dayOfWeek);
 				
 				// 2. query reglist
 				queryRegList(false);
 				
 				//3. 
-				boolean bRegResult = register(department, doc, week, dayOfWeek);
-				if(bRegResult)
+				ResultCode regResult = register(department, doc, week, dayOfWeek);
+				if(regResult == ResultCode.RC_OK)
 				{
 					log.info("Register Successfully!");
 				}
@@ -94,6 +106,82 @@ public class RjLogin
 			session.getConnectionManager().shutdown();
 		}
 		return rc;
+	}
+	
+	public ResultCode get1()
+	{
+		ResultCode rc = ResultCode.RC_UNKOWN;
+
+		try
+		{
+			do
+			{
+				// 1. login
+				if(!login(user, password))
+				{
+					rc = ResultCode.RC_LOGIN_FAILED;
+					break;
+				}
+				
+				startTime = Calendar.getInstance();
+				expectedTime = (Calendar)startTime.clone();
+				CommonUtil.updateCalendar(expectedTime, week, dayOfWeek);
+				
+				// 2. query reglist
+				if(queryRegList(true))
+				{
+					rc = ResultCode.RC_ALREADY_REGISTERED;
+					break;
+				}
+				
+				// Wait until we can start to work
+				if(waitToRegister() != 0)
+				{
+					break;
+				}
+				
+				//3. 
+				int tryTime = 0;
+				do
+				{
+					rc = register(department, doc, week, dayOfWeek);
+					tryTime++;
+					log.info("Try to register for " + tryTime + " times. Result: " + rc.name());
+				}
+				while( isRetry(rc, tryTime) );
+			}
+			while(false);
+		}
+		catch(Exception e)
+		{
+			rc = ResultCode.RC_UNKOWN;
+			log.error(e.toString(), e);
+		}
+		finally
+		{
+			try
+			{
+				logout();
+			}
+			catch(Exception e2)
+			{
+				log.error("failed to logout", e2);
+			}
+			
+			session.getConnectionManager().shutdown();
+		}
+		
+		log.info("Final Result: " + rc.name());
+		return rc;
+	}
+	
+	private boolean isRetry(ResultCode rc, int tryTime)
+	{
+		if( (rc != ResultCode.RC_OK) && (rc != ResultCode.RC_DOCTOR_REG_LIST_FULL) )
+		{
+			return tryTime < 1;
+		}
+		return false;
 	}
 
 	public boolean login(String user, String password) throws ClientProtocolException, IOException,
@@ -203,6 +291,14 @@ public class RjLogin
 					continue;
 				}
 				
+				Calendar regTime = CommonUtil.toCalendar(regInfo.regTime);
+				if(!CommonUtil.isSameDay(regTime, expectedTime))
+				{
+					continue;
+				}
+				
+				log.info("Successfully register: " + regInfo);
+				
 				return true;
 			}
 			return false;
@@ -211,8 +307,83 @@ public class RjLogin
 		return true;
 	}
 	
-	public boolean register(String department, String name, int week, int dayOfWeek) throws ClientProtocolException, IOException, ParseException
+	public ResultCode queryRegList1(boolean check) throws ClientProtocolException, IOException, ParseException
 	{
+		String url = null, content = null;
+		HttpResponse rsp = null;
+
+		ResultCode rc = ResultCode.RC_OK;
+		
+		do
+		{
+			// 1. open query page
+			url = AppConfig.getInstance().getPropInternal("rjh.url.query_reg_page");
+			session.addReferer(AppConfig.getInstance().getPropInternal("rjh.url.user_panel"));
+			rsp = session.get(url);
+			content = HttpClientUtil.saveToString(rsp.getEntity(), "GB2312");
+			if(rsp.getStatusLine().getStatusCode() != 200)
+			{
+				rc = ResultCode.RC_HTTP_ERROR;
+				break;
+			}
+			
+			// 2. do query
+			Map<String, String> paramMap = new HashMap<String, String>();
+			parseQueryRegListPage(content, paramMap);
+			
+			rsp = session.post(url, paramMap, "GB2312");
+			HttpClientUtil.saveToFile(rsp.getEntity(), AppUtils.getTempFilePath("reg_result.html"));
+			if(rsp.getStatusLine().getStatusCode() != 200)
+			{
+				rc = ResultCode.RC_HTTP_ERROR;
+				break;
+			}
+
+			List<RegInfo> regList = new ArrayList<RegInfo>();
+			parseRegListResult(AppUtils.getTempFilePath("reg_result.html"), regList);
+			log.info(regList);
+			
+			if(check)
+			{
+				String mark = AppConfig.getInstance().getPropInternal("rjh.mark.reg_valid");
+				for(int i = 0, size = regList.size(); i < size; i++)
+				{
+					RegInfo regInfo = regList.get(i);
+					
+					if(!regInfo.flagName.equals(mark))
+					{
+						continue;
+					}
+					if(!regInfo.department.contains(department))
+					{
+						continue;
+					}
+					if(!regInfo.doctorName.equals(doc))
+					{
+						continue;
+					}
+					
+					Calendar regTime = CommonUtil.toCalendar(regInfo.regTime);
+					if(!CommonUtil.isSameDay(regTime, expectedTime))
+					{
+						continue;
+					}
+					
+					log.info("Successfully register: " + regInfo);
+					
+					return ResultCode.RC_OK;
+				}
+				return ResultCode.RC_NO_MATCHED_RECORD;
+			}
+		}
+		while(false);
+		
+		return rc;
+	}
+	
+	public ResultCode register(String department, String name, int week, int dayOfWeek) throws ClientProtocolException, IOException, ParseException
+	{
+		ResultCode rc = ResultCode.RC_UNKOWN;
 		boolean bResult = false;
 		
 		String url = null, content = null;
@@ -227,6 +398,7 @@ public class RjLogin
 			rsp = session.get(url);
 			if(rsp.getStatusLine().getStatusCode() != 200)
 			{
+				rc = ResultCode.RC_HTTP_ERROR;
 				break;
 			}			
 			content = HttpClientUtil.saveToString(rsp.getEntity(), "GB2312");
@@ -236,6 +408,7 @@ public class RjLogin
 			rsp = session.post(url, paramMap, "GB2312");
 			if(rsp.getStatusLine().getStatusCode() != 200)
 			{
+				rc = ResultCode.RC_HTTP_ERROR;
 				break;
 			}
 			content = HttpClientUtil.saveToString(rsp.getEntity(), "GB2312");
@@ -247,6 +420,7 @@ public class RjLogin
 			List<RegDoctorInfo> regDoctorInfoList = availMap.get(dayOfWeek);
 			if(regDoctorInfoList == null || regDoctorInfoList.isEmpty())
 			{
+				rc = ResultCode.RC_REG_LIST_EMPTY;
 				log.info("No available register doctors.");
 				break;
 			}
@@ -261,6 +435,7 @@ public class RjLogin
 			}
 			if(regDoctorInfo == null)
 			{
+				rc = ResultCode.RC_DOCTOR_NOT_EXIST;
 				log.info("No specified doctor, doctor=" + name);
 				break;
 			}
@@ -272,6 +447,7 @@ public class RjLogin
 			rsp = session.get(url);
 			if(rsp.getStatusLine().getStatusCode() != 200)
 			{
+				rc = ResultCode.RC_HTTP_ERROR;
 				break;
 			}
 			content = HttpClientUtil.saveToString(rsp.getEntity(), "GB2312");
@@ -281,6 +457,7 @@ public class RjLogin
 			
 			if(parseResult.viewState == null || parseResult.regDoctorInfoDetailList.isEmpty())
 			{
+				rc = ResultCode.RC_DOCTOR_DETAIL_LIST_EMPTY;
 				break;
 			}
 			
@@ -289,6 +466,7 @@ public class RjLogin
 			
 			if(!bHasAvailable)
 			{
+				rc = ResultCode.RC_DOCTOR_REG_LIST_FULL;
 				log.info("There's no available doctor to register!");
 				break;
 			}
@@ -299,6 +477,7 @@ public class RjLogin
 			rsp = session.post(url, paramMap, "GB2312");
 			if(rsp.getStatusLine().getStatusCode() != 200)
 			{
+				rc = ResultCode.RC_HTTP_ERROR;
 				break;
 			}
 			content = HttpClientUtil.saveToString(rsp.getEntity(), "GB2312");
@@ -308,6 +487,7 @@ public class RjLogin
 			rsp = session.post(url, paramMap, "GB2312");
 			if(rsp.getStatusLine().getStatusCode() != 200)
 			{
+				rc = ResultCode.RC_HTTP_ERROR;
 				break;
 			}
 			content = HttpClientUtil.saveToString(rsp.getEntity(), "GB2312");
@@ -316,18 +496,24 @@ public class RjLogin
 			
 			if(result.contains(AppConfig.getInstance().getPropInternal("rjh.mark.reg_result_ok")))
 			{
+				rc = ResultCode.RC_REG_MESSAGE_SUCCESS;
 				bResult = queryRegList(true);
+				if(bResult)
+				{
+					rc = ResultCode.RC_OK;
+				}
 			}
 			else
 			{
+				rc = ResultCode.RC_REG_MESSAGE_FAIL;
 				bResult = false;
 			}
 		}
 		while(false);
 		
-		if(!bResult)
+		if(rc == ResultCode.RC_HTTP_ERROR)
 		{
-			String resultFile = AppUtils.getOutputFilePath("RegResultError.html");
+			String resultFile = AppUtils.getOutputFilePath("HttpResultError.html");
 			HttpClientUtil.saveToFile(rsp.getEntity(), resultFile);
 			
 			String logInfo = String.format("[Fail] register: StatusCode=%d,URL=%s,ResultFile=%s",
@@ -335,7 +521,7 @@ public class RjLogin
 			log.info(logInfo);
 		}
 		
-		return bResult;
+		return rc;
 	}
 
 	public void logout() throws ClientProtocolException, IOException
@@ -354,6 +540,67 @@ public class RjLogin
 
 		isLogin = false;
 		log.info("User [" + user + "] logout succeeded.");
+	}
+	
+	private int waitToRegister()
+	{
+		int result = 0;
+		
+		Calendar expectedRegTime = (Calendar)expectedTime.clone();
+		
+		expectedRegTime.add(Calendar.WEEK_OF_YEAR, -4);
+		expectedRegTime.set(Calendar.HOUR_OF_DAY, 7);
+		expectedRegTime.set(Calendar.MINUTE, 26);
+		expectedRegTime.set(Calendar.SECOND, 0);
+		
+		Calendar now = Calendar.getInstance();
+		
+		long diff = expectedRegTime.getTimeInMillis() - now.getTimeInMillis();
+		int minute = 17;
+		while( diff > 0 )
+		{
+			long sleepTime = (minute * 60 + 55) * 1000;
+			if(sleepTime > diff)
+			{
+				sleepTime = diff;
+			}
+
+			log.debug("Time is not reached yet, wait (" + sleepTime + ") ms. now="
+				+ dateFormat.format(now.getTime()) + ", expectedRegTime="
+				+ dateFormat.format(expectedRegTime.getTime()));
+
+			try
+			{
+				Thread.sleep(sleepTime);
+			}
+			catch(Exception e)
+			{
+				log.error("sleep exception.", e);
+			}
+						
+			try
+			{
+				ResultCode rc = queryRegList1(false);
+				if(rc == ResultCode.RC_HTTP_ERROR)
+				{
+					result = minute;
+					log.info("Time out at minute: " + result);
+					
+					return result;
+				}
+			}
+			catch(Exception e)
+			{
+				log.error("queryRegList1 error.", e);
+			}
+			
+			now = Calendar.getInstance();
+			diff = expectedRegTime.getTimeInMillis() - now.getTimeInMillis();
+		}
+		
+		log.info("Time up! Start to work now!");
+		
+		return result;
 	}
 
 	private String parseLoginErrorReason(String fileName) throws IOException, ParseException
@@ -532,27 +779,38 @@ public class RjLogin
 	{
 		int flags = Pattern.DOTALL | Pattern.MULTILINE | Pattern.CASE_INSENSITIVE;
 		
-		StringBuilder sb = new StringBuilder();
-		sb.append("<TR align=\"center\">");
-		String columnRegex = "(\\s*?)<TD valign=\"top\">(.*?)<table (.+?) id=\"dg_%d\" (.+?)\">(.+?)</table>(.*?)</TD>";
-		for(int i = 1; i <= 6; i++)
-		{
-			sb.append(String.format(columnRegex, i));
-		}
-		sb.append("(\\s*?)</TR>");
-		String regex = sb.toString();
+		List<String> valueList = new ArrayList<String>();
+		int matchCount = 0;
+		String regex = null;
 		
 		//1.
-		List<String> valueList = new ArrayList<String>();
-		int matchCount = CommonUtil.getRegexValue(content, regex, valueList, true, flags);
-		log.info("Found matchCount=" + matchCount);
-		if(matchCount <= 0)
+		String columnRegex = "<table (.+?) id=\"dg_%d\" (.+?)\">(.+?)</table>";
+		List<String> tableContentList = new ArrayList<String>();
+		for(int i = 1; i <= 6; i++)
 		{
-			return;
+			tableContentList.clear();
+			
+			regex = String.format(columnRegex, i);
+			
+			matchCount = CommonUtil.getRegexValue(content, regex, tableContentList, true, flags);
+			
+			if(matchCount < 1)
+			{
+				log.debug("Can't find any matched available register list at day: [" + i + "]");
+				valueList.add("");
+				continue;
+			}
+			if(matchCount > 1)
+			{
+				log.warn("Found more than 1 matched available register list at day: [" + i + "], matchCount=" + matchCount);
+			}
+			
+			valueList.add(tableContentList.get(3));
 		}
+		tableContentList.clear();
 
 		//2.
-		sb.setLength(0);
+		StringBuilder sb = new StringBuilder();
 		sb.append("<tr style=\"(.+?)\">");
 		sb.append("(\\s*?)<td style=\"(.+?)\">(.+?)</td>");
 		sb.append("(\\s*?)<td>(.+?)</td>");
@@ -564,7 +822,7 @@ public class RjLogin
 
 		List<String> rawRegInfoList = new ArrayList<String>();
 		List<String> validRegInfoList = new ArrayList<String>();
-		for(int i = 5, week = 1, size = valueList.size(); i < size; i += 6, week++)
+		for(int i = 0, week = 1, size = valueList.size(); i < size; i++, week++)
 		{
 			rawRegInfoList.clear();
 			validRegInfoList.clear();
@@ -587,6 +845,8 @@ public class RjLogin
 			
 			availMap.put(week, regDoctorInfoList);
 		}
+		rawRegInfoList.clear();
+		validRegInfoList.clear();
 		
 		if(log.isDebugEnabled())
 		{
@@ -901,7 +1161,7 @@ public class RjLogin
 			password, department, docName, week, dayOfWeek));
 
 		RjLogin rjlogin = new RjLogin(user, password, department, docName, week, dayOfWeek);
-		rjlogin.get();
+		rjlogin.get1();
 		
 		System.exit(0);
 	}

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<project name="maven-deploy" basedir="." default="mvn.deploy">  
+	<property environment="env"/>
+	<property file="input.properties"/>
+	<property name="artifact.id" value="hello-world" />
+	<property name="group.id" value="com.example.test" />
+	<property name="artifact.version" value="2.0" />
+	<property name="artifact.file" value="${artifact.id}-${artifact.version}.jar" />
+  <property name="artifact.sources" value="${artifact.id}-${artifact.version}-sources.jar" />
+
+  <condition property="mvn.enable">
+    <and>
+      <isset property="env.M2_LOCALHOST"/>
+      <isset property="env.M2_HOME"/>
+    </and>
+	</condition>
+	
+	<!-- target mvn.deploy -->
+  <target name="mvn.deploy" if="mvn.enable">
+    <echo message="M2_HOME=${env.M2_HOME}"/>
+    <echo message="Deploy artifact to local repository: ${env.M2_LOCALHOST}"/>
+    
+    <property name="executable.mvn" value="${env.M2_HOME}/bin/mvn.bat"/>
+    <property name="arg.deploy.base" value="--quiet deploy:deploy-file -DgroupId=${group.id} -DartifactId=${artifact.id} -Dversion=${artifact.version} -Dpackaging=jar -Durl=file:///${env.M2_LOCALHOST}"/>
+    <property name="arg.deploy.bin" value="${arg.deploy.base} -Dfile=${basedir}/${artifact.file}"/>
+    <property name="arg.deploy.src" value="${arg.deploy.base} -Dfile=${basedir}/${artifact.sources} -Dclassifier=sources"/>
+
+		<!-- deploy binary -->
+    <echo message="${executable.mvn} ${arg.deploy.bin}"/>
+    <exec executable="${executable.mvn}" failonerror="true">
+  		<arg line="${arg.deploy.bin}"/>
+    </exec>
+    
+    <!-- deploy source -->
+    <echo message="${executable.mvn} ${arg.deploy.src}"/>
+    <exec executable="${executable.mvn}" failonerror="true">
+      <arg line="${arg.deploy.src}"/>
+    </exec>
+  </target>
+
+</project>  
