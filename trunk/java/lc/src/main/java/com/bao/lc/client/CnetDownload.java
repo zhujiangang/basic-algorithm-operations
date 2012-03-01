@@ -1,13 +1,15 @@
 package com.bao.lc.client;
 
 import java.io.FileInputStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpResponse;
 import org.apache.http.params.HttpProtocolParams;
-import org.apache.http.util.EntityUtils;
 
 import com.bao.lc.AppConfig;
 import com.bao.lc.common.exception.ParseException;
@@ -42,13 +44,13 @@ public class CnetDownload
 		{
 			// 1. Get url user page content
 			rsp = session.get(url);
-			content = EntityUtils.toString(rsp.getEntity(), "UTF-8");
+			content = HttpClientUtil.saveToString(rsp.getEntity(), "UTF-8");
 			
 			nextUrl = extractDirectLink(content);
 
 			// 2. Get direct download link page
 			rsp = session.get(nextUrl);
-			content = EntityUtils.toString(rsp.getEntity(), "UTF-8");
+			content = HttpClientUtil.saveToString(rsp.getEntity(), "UTF-8");
 			nextUrl = extraceSrcFileURL(content);
 			log.info(nextUrl);
 
@@ -74,8 +76,29 @@ public class CnetDownload
 	private String extractDirectLink(String content) throws ParseException
 	{
 		String regex = "<div class=\"dlLinkWrapper\"> <a href=\"(.+?)\" id=(.+?)>Direct Download Link</a>";
-		String url = CommonUtil.getRegexValueOnce(content, regex, 1);
-		return url;
+		
+		List<String> valueList = new ArrayList<String>();
+		int matchCount = CommonUtil.getRegexValue(content, regex, valueList, true, 0);
+		if(matchCount < 1)
+		{
+			throw new ParseException("Failed to find direct download link. matchCount = " + matchCount);
+		}
+		
+		for(int i = 0; i < matchCount; i++)
+		{
+			String dlUrl = valueList.get(i * 2 + 1);
+			String id = valueList.get(i * 2 + 2);
+			
+			if(id.contains("loggedInUserDlLink"))
+			{
+				return dlUrl;
+			}
+		}
+		
+		valueList.remove(0);
+		log.error("Failed to find Direct Download Link. Match Result: " + valueList);
+		
+		return null;
 	}
 
 	private String extraceSrcFileURL(String content) throws ParseException
@@ -104,6 +127,7 @@ public class CnetDownload
 	
 	public static void grab(String url, int count, int interval)
 	{
+		Random rand = new Random(System.currentTimeMillis());
 		int nSucc = 0, nFail = 0;
 
 		int rc = 0;
@@ -124,25 +148,7 @@ public class CnetDownload
 			//Sleep if needed
 			if(i < (count - 1) && interval != 0)
 			{
-				long sleepTime = 0;
-				if(interval < 0)
-				{
-					sleepTime = (int)(Math.random() * 1000);
-					sleepTime *= 1000;
-				}
-				else
-				{
-					sleepTime = interval * 1000;
-				}
-				
-				try
-				{
-					Thread.sleep(sleepTime);
-				}
-				catch(Exception e)
-				{
-					//ignore
-				}
+				sleep(interval, rand);
 			}
 		}
 
@@ -150,6 +156,37 @@ public class CnetDownload
 				"Result of grab:\n\turl=[%s]\n\tcount=[%d]\n\tinterval=[%d]\n\n\tOK=[%02d], Fail=[%02d]\n",
 				url, count, interval, nSucc, nFail);
 		log.info(result);
+	}
+	
+	private static void sleep(int interval, Random rand)
+	{
+		if(interval == 0)
+		{
+			return;
+		}
+		
+		long sleepTime = 0;
+		if(interval < 0)
+		{
+			sleepTime = rand.nextInt(Math.abs(interval));
+		}
+		else
+		{
+			sleepTime = interval;
+		}
+		
+		log.debug("Sleep " + sleepTime + " minuets.");
+		
+		sleepTime *= 60000;
+		
+		try
+		{
+			Thread.sleep(sleepTime);
+		}
+		catch(Exception e)
+		{
+			//ignore
+		}
 	}
 	
 	@SuppressWarnings("unused")

@@ -6,6 +6,7 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
@@ -222,5 +223,71 @@ public class CommonUtil
 		while(false);
 
 		return result;
+	}
+	
+	public static int convertDayOfWeek(int x)
+	{
+		if(x < 1 || x > 7)
+		{
+			throw new IllegalArgumentException("Out of range 1-7");
+		}
+		if(x == 7)
+		{
+			return Calendar.SUNDAY;
+		}
+		return x + 1;
+	}
+	
+	public static void updateCalendar(Calendar cal, int week, int dayOfWeek)
+	{		
+		cal.add(Calendar.WEEK_OF_YEAR, week - 1);
+		cal.set(Calendar.DAY_OF_WEEK, convertDayOfWeek(dayOfWeek));
+	}
+	
+	/**
+	 * 
+	 * @param dateStr: examples, 2012-3-8 8:00:00, 2012-3-27 10:59:00
+	 * @return
+	 */
+	public static Calendar toCalendar(String dateStr)
+	{
+		String regex = "(\\d+?)-(\\d+?)-(\\d+?) (\\d+?):(\\d+?):(\\d+?)";
+		List<String> valueList = new ArrayList<String>();
+		
+		int matchCount = getRegexValue(dateStr, regex, valueList, true, 0);
+		if(matchCount != 1)
+		{
+			log.error("Failed to format str to date: " + dateStr);
+			return null;
+		}
+		Calendar cal = Calendar.getInstance();
+		cal.set(Calendar.MILLISECOND, 0);
+		
+		int index = 1;
+		cal.set(Calendar.YEAR, toInt(valueList.get(index++)));
+		cal.set(Calendar.MONTH, toInt(valueList.get(index++)) - 1);
+		cal.set(Calendar.DAY_OF_MONTH, toInt(valueList.get(index++)));
+		cal.set(Calendar.HOUR_OF_DAY, toInt(valueList.get(index++)));
+		cal.set(Calendar.MINUTE, toInt(valueList.get(index++)));
+		cal.set(Calendar.SECOND, toInt(valueList.get(index++)));
+		
+		return cal;
+	}
+	
+	public static boolean isSameDay(Calendar cal1, Calendar cal2)
+	{
+		if(cal1.get(Calendar.YEAR) != cal2.get(Calendar.YEAR))
+		{
+			return false;
+		}
+		if(cal1.get(Calendar.MONTH) != cal2.get(Calendar.MONTH))
+		{
+			return false;
+		}
+		if(cal1.get(Calendar.DAY_OF_MONTH) != cal2.get(Calendar.DAY_OF_MONTH))
+		{
+			return false;
+		}
+		return true;
 	}
 }
