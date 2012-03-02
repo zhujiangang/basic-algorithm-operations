@@ -25,15 +25,22 @@ import com.bao.lc.common.exception.ParseException;
 import com.bao.lc.util.AppUtils;
 import com.bao.lc.util.CommonUtil;
 import com.bao.lc.util.HttpClientUtil;
+import com.bao.lc.common.*;
 
 public class RjLogin
 {
 	private static Log log = LogFactory.getLog(RjLogin.class);
 	
 	private static final DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS"); 
+	
+	private static long MAX_TIME_DIFF = 1000 * 60 * 8;
+	private static int MAX_TRY_TIMES = 10;
+	
+	private static final boolean isDebug = false;
 
 	private BrowserClient session = null;
 	private boolean isLogin = false;
+	private boolean isDestroyed = false;
 	
 	private String user = null;
 	private String password = null;
@@ -42,13 +49,23 @@ public class RjLogin
 	private int week = 5;
 	private int dayOfWeek = 5;
 	
+	//System start time
 	private Calendar startTime = null;
-	private Calendar expectedTime = null;
+	
+	//Expected register time
+	private Calendar registerTime = null;
+	
+	//Expected time when we can start to register
+	private Calendar startRegTime = null;
+	
+	//When we start
+	private Calendar ourStartRegTime = null;
 
 	public RjLogin(String user, String password, String department, String doc, int week, int dayOfWeek)
 	{
 		session = new BrowserClient();
 		isLogin = false;
+		isDestroyed = false;
 		
 		this.user = user;
 		this.password = password;
@@ -57,60 +74,12 @@ public class RjLogin
 		this.week = week;
 		this.dayOfWeek = dayOfWeek;
 
-	}
-
-	public int get()
-	{
-		int rc = 0;
-
-		try
-		{
-			do
-			{
-				// 1. login
-				if(!login(user, password))
-				{
-					break;
-				}
-				startTime = Calendar.getInstance();
-				expectedTime = (Calendar)startTime.clone();
-				CommonUtil.updateCalendar(expectedTime, week, dayOfWeek);
-				
-				// 2. query reglist
-				queryRegList(false);
-				
-				//3. 
-				ResultCode regResult = register(department, doc, week, dayOfWeek);
-				if(regResult == ResultCode.RC_OK)
-				{
-					log.info("Register Successfully!");
-				}
-			}
-			while(false);
-		}
-		catch(Exception e)
-		{
-			log.error(e.toString(), e);
-		}
-		finally
-		{
-			try
-			{
-				logout();
-			}
-			catch(Exception e2)
-			{
-				log.error("failed to logout", e2);
-			}
-			
-			session.getConnectionManager().shutdown();
-		}
-		return rc;
+		Runtime.getRuntime().addShutdownHook(new ExitThread());
 	}
 	
-	public ResultCode get1()
+	public IDValuePair get()
 	{
-		ResultCode rc = ResultCode.RC_UNKOWN;
+		IDValuePair rc = ResultCode.RC_OK;
 
 		try
 		{
@@ -123,65 +92,63 @@ public class RjLogin
 					break;
 				}
 				
-				startTime = Calendar.getInstance();
-				expectedTime = (Calendar)startTime.clone();
-				CommonUtil.updateCalendar(expectedTime, week, dayOfWeek);
-				
 				// 2. query reglist
-				if(queryRegList(true))
+				if(queryRegList(true) == ResultCode.RC_ALREADY_REGISTERED)
 				{
 					rc = ResultCode.RC_ALREADY_REGISTERED;
 					break;
 				}
 				
+				updateTimes();
+				
 				// Wait until we can start to work
-				if(waitToRegister() != 0)
-				{
-					break;
-				}
+				waitToRegister();
 				
 				//3. 
-				int tryTime = 0;
+				int tryTime = 0, validTryTime = 0;
 				do
-				{
+				{					
 					rc = register(department, doc, week, dayOfWeek);
+					if(rc == ResultCode.RC_OK || rc == ResultCode.RC_DOCTOR_REG_LIST_FULL)
+					{
+						break;
+					}
+					if(CommonUtil.diffWithNow(startRegTime) >= 0)
+					{
+						validTryTime++;
+					}
 					tryTime++;
-					log.info("Try to register for " + tryTime + " times. Result: " + rc.name());
+					String info = String.format("Try to register for %d, %d times. Result: %s.", tryTime, validTryTime, rc);
+					log.info(info);
+					
+					if(CommonUtil.diffWithNow(startRegTime) >= MAX_TIME_DIFF)
+					{
+						rc = ResultCode.RC_TIMEOUT;
+						break;
+					}
+					
+					if(validTryTime >= MAX_TRY_TIMES)
+					{
+						rc = ResultCode.RC_EXCEED_MAX_TRY_TIMES;
+						break;
+					}
 				}
-				while( isRetry(rc, tryTime) );
+				while( true );
 			}
 			while(false);
 		}
 		catch(Exception e)
 		{
-			rc = ResultCode.RC_UNKOWN;
+			rc = ResultCode.RC_EXCEPTION_CAUGHT;
 			log.error(e.toString(), e);
 		}
 		finally
 		{
-			try
-			{
-				logout();
-			}
-			catch(Exception e2)
-			{
-				log.error("failed to logout", e2);
-			}
-			
-			session.getConnectionManager().shutdown();
+			dispose();
 		}
 		
-		log.info("Final Result: " + rc.name());
+		log.info("Final Result: " + rc);
 		return rc;
-	}
-	
-	private boolean isRetry(ResultCode rc, int tryTime)
-	{
-		if( (rc != ResultCode.RC_OK) && (rc != ResultCode.RC_DOCTOR_REG_LIST_FULL) )
-		{
-			return tryTime < 1;
-		}
-		return false;
 	}
 
 	public boolean login(String user, String password) throws ClientProtocolException, IOException,
@@ -249,70 +216,12 @@ public class RjLogin
 		return isLogin;
 	}
 
-	public boolean queryRegList(boolean check) throws ClientProtocolException, IOException, ParseException
+	public IDValuePair queryRegList(boolean check) throws ClientProtocolException, IOException, ParseException
 	{
 		String url = null, content = null;
 		HttpResponse rsp = null;
 
-		// 1. open query page
-		url = AppConfig.getInstance().getPropInternal("rjh.url.query_reg_page");
-		session.addReferer(AppConfig.getInstance().getPropInternal("rjh.url.user_panel"));
-		rsp = session.get(url);
-		content = EntityUtils.toString(rsp.getEntity(), "GB2312");
-
-		Map<String, String> paramMap = new HashMap<String, String>();
-		parseQueryRegListPage(content, paramMap);
-
-		// 2. do query
-		rsp = session.post(url, paramMap, "GB2312");
-		HttpClientUtil.saveToFile(rsp.getEntity(), AppUtils.getTempFilePath("reg_result.html"));
-
-		List<RegInfo> regList = new ArrayList<RegInfo>();
-		parseRegListResult(AppUtils.getTempFilePath("reg_result.html"), regList);
-		log.info(regList);
-		
-		if(check)
-		{
-			String mark = AppConfig.getInstance().getPropInternal("rjh.mark.reg_valid");
-			for(int i = 0, size = regList.size(); i < size; i++)
-			{
-				RegInfo regInfo = regList.get(i);
-				
-				if(!regInfo.flagName.equals(mark))
-				{
-					continue;
-				}
-				if(!regInfo.department.contains(department))
-				{
-					continue;
-				}
-				if(!regInfo.doctorName.equals(doc))
-				{
-					continue;
-				}
-				
-				Calendar regTime = CommonUtil.toCalendar(regInfo.regTime);
-				if(!CommonUtil.isSameDay(regTime, expectedTime))
-				{
-					continue;
-				}
-				
-				log.info("Successfully register: " + regInfo);
-				
-				return true;
-			}
-			return false;
-		}
-		
-		return true;
-	}
-	
-	public ResultCode queryRegList1(boolean check) throws ClientProtocolException, IOException, ParseException
-	{
-		String url = null, content = null;
-		HttpResponse rsp = null;
-
-		ResultCode rc = ResultCode.RC_OK;
+		IDValuePair rc = ResultCode.RC_OK;
 		
 		do
 		{
@@ -323,7 +232,7 @@ public class RjLogin
 			content = HttpClientUtil.saveToString(rsp.getEntity(), "GB2312");
 			if(rsp.getStatusLine().getStatusCode() != 200)
 			{
-				rc = ResultCode.RC_HTTP_ERROR;
+				rc = new HttpResult(rsp.getStatusLine().getStatusCode(), url);
 				break;
 			}
 			
@@ -335,7 +244,7 @@ public class RjLogin
 			HttpClientUtil.saveToFile(rsp.getEntity(), AppUtils.getTempFilePath("reg_result.html"));
 			if(rsp.getStatusLine().getStatusCode() != 200)
 			{
-				rc = ResultCode.RC_HTTP_ERROR;
+				rc = new HttpResult(rsp.getStatusLine().getStatusCode(), url);
 				break;
 			}
 
@@ -364,14 +273,14 @@ public class RjLogin
 					}
 					
 					Calendar regTime = CommonUtil.toCalendar(regInfo.regTime);
-					if(!CommonUtil.isSameDay(regTime, expectedTime))
+					if(!CommonUtil.isSameDay(regTime, registerTime))
 					{
 						continue;
 					}
 					
 					log.info("Successfully register: " + regInfo);
 					
-					return ResultCode.RC_OK;
+					return ResultCode.RC_ALREADY_REGISTERED;
 				}
 				return ResultCode.RC_NO_MATCHED_RECORD;
 			}
@@ -381,10 +290,9 @@ public class RjLogin
 		return rc;
 	}
 	
-	public ResultCode register(String department, String name, int week, int dayOfWeek) throws ClientProtocolException, IOException, ParseException
+	public IDValuePair register(String department, String name, int week, int dayOfWeek) throws ClientProtocolException, IOException, ParseException
 	{
-		ResultCode rc = ResultCode.RC_UNKOWN;
-		boolean bResult = false;
+		IDValuePair rc = ResultCode.RC_OK;
 		
 		String url = null, content = null;
 		HttpResponse rsp = null;
@@ -398,7 +306,7 @@ public class RjLogin
 			rsp = session.get(url);
 			if(rsp.getStatusLine().getStatusCode() != 200)
 			{
-				rc = ResultCode.RC_HTTP_ERROR;
+				rc = new HttpResult(rsp.getStatusLine().getStatusCode(), url);
 				break;
 			}			
 			content = HttpClientUtil.saveToString(rsp.getEntity(), "GB2312");
@@ -408,7 +316,8 @@ public class RjLogin
 			rsp = session.post(url, paramMap, "GB2312");
 			if(rsp.getStatusLine().getStatusCode() != 200)
 			{
-				rc = ResultCode.RC_HTTP_ERROR;
+				rc = new HttpResult(rsp.getStatusLine().getStatusCode(), url,
+					HttpResult.HttpMethod.POST);
 				break;
 			}
 			content = HttpClientUtil.saveToString(rsp.getEntity(), "GB2312");
@@ -447,7 +356,7 @@ public class RjLogin
 			rsp = session.get(url);
 			if(rsp.getStatusLine().getStatusCode() != 200)
 			{
-				rc = ResultCode.RC_HTTP_ERROR;
+				rc = new HttpResult(rsp.getStatusLine().getStatusCode(), url);
 				break;
 			}
 			content = HttpClientUtil.saveToString(rsp.getEntity(), "GB2312");
@@ -467,7 +376,6 @@ public class RjLogin
 			if(!bHasAvailable)
 			{
 				rc = ResultCode.RC_DOCTOR_REG_LIST_FULL;
-				log.info("There's no available doctor to register!");
 				break;
 			}
 			paramMap.clear();
@@ -477,7 +385,8 @@ public class RjLogin
 			rsp = session.post(url, paramMap, "GB2312");
 			if(rsp.getStatusLine().getStatusCode() != 200)
 			{
-				rc = ResultCode.RC_HTTP_ERROR;
+				rc = new HttpResult(rsp.getStatusLine().getStatusCode(), url,
+					HttpResult.HttpMethod.POST);
 				break;
 			}
 			content = HttpClientUtil.saveToString(rsp.getEntity(), "GB2312");
@@ -487,37 +396,34 @@ public class RjLogin
 			rsp = session.post(url, paramMap, "GB2312");
 			if(rsp.getStatusLine().getStatusCode() != 200)
 			{
-				rc = ResultCode.RC_HTTP_ERROR;
+				rc = new HttpResult(rsp.getStatusLine().getStatusCode(), url,
+					HttpResult.HttpMethod.POST);
 				break;
 			}
 			content = HttpClientUtil.saveToString(rsp.getEntity(), "GB2312");
 			String result = parseDoRegisterResult(content);
 			log.info("[RESULT]: " + result);
 			
-			if(result.contains(AppConfig.getInstance().getPropInternal("rjh.mark.reg_result_ok")))
-			{
-				rc = ResultCode.RC_REG_MESSAGE_SUCCESS;
-				bResult = queryRegList(true);
-				if(bResult)
-				{
-					rc = ResultCode.RC_OK;
-				}
-			}
-			else
+			if(!result.contains(AppConfig.getInstance().getPropInternal("rjh.mark.reg_result_ok")))
 			{
 				rc = ResultCode.RC_REG_MESSAGE_FAIL;
-				bResult = false;
+				break;				
+			}
+			
+			rc = queryRegList(true);
+			if(ResultCode.RC_ALREADY_REGISTERED == rc)
+			{
+				rc = ResultCode.RC_OK;
 			}
 		}
 		while(false);
 		
-		if(rc == ResultCode.RC_HTTP_ERROR)
+		if(rc.getID() == ResultCode.RC_HTTP_ERROR.getID())
 		{
 			String resultFile = AppUtils.getOutputFilePath("HttpResultError.html");
 			HttpClientUtil.saveToFile(rsp.getEntity(), resultFile);
 			
-			String logInfo = String.format("[Fail] register: StatusCode=%d,URL=%s,ResultFile=%s",
-				rsp.getStatusLine().getStatusCode(), url, resultFile);
+			String logInfo = String.format("[Fail] register: ResultFile=%s, %s", resultFile, rc.toString());
 			log.info(logInfo);
 		}
 		
@@ -542,20 +448,74 @@ public class RjLogin
 		log.info("User [" + user + "] logout succeeded.");
 	}
 	
-	private int waitToRegister()
+	public void dispose()
 	{
-		int result = 0;
+		if(isDestroyed)
+		{
+			return;
+		}
+		try
+		{
+			logout();
+		}
+		catch(Exception e2)
+		{
+			log.error("failed to logout", e2);
+		}
 		
-		Calendar expectedRegTime = (Calendar)expectedTime.clone();
+		session.getConnectionManager().shutdown();
 		
-		expectedRegTime.add(Calendar.WEEK_OF_YEAR, -4);
-		expectedRegTime.set(Calendar.HOUR_OF_DAY, 7);
-		expectedRegTime.set(Calendar.MINUTE, 26);
-		expectedRegTime.set(Calendar.SECOND, 0);
+		isDestroyed = true;
+	}
+	
+	private void updateTimes()
+	{
+		//1.
+		startTime = Calendar.getInstance();
 		
+		//2.
+		registerTime = (Calendar)startTime.clone();
+		CommonUtil.updateCalendar(registerTime, week, dayOfWeek);
+		
+		//3
+		startRegTime = (Calendar)registerTime.clone();
+		startRegTime.add(Calendar.WEEK_OF_YEAR, -4);
+		startRegTime.set(Calendar.HOUR_OF_DAY, 7);
+		startRegTime.set(Calendar.MINUTE, 30);
+		startRegTime.set(Calendar.SECOND, 0);
+		startRegTime.set(Calendar.MILLISECOND, 0);
+		
+		//4.
+		ourStartRegTime = (Calendar)startRegTime.clone();
+		ourStartRegTime.add(Calendar.MINUTE, -4);
+		
+		if(isDebug)
+		{
+			//3
+			startRegTime = (Calendar)startTime.clone();
+			startRegTime.add(Calendar.SECOND, 20);
+			
+			//4.
+			ourStartRegTime = (Calendar)startRegTime.clone();
+			ourStartRegTime.add(Calendar.SECOND, -17);
+			
+			MAX_TRY_TIMES = 3;
+		}
+		
+		String timeInfo = String
+			.format("startTime=%s, registerTime=%s, startRegTime=%s, ourStartRegTime=%s.",
+				dateFormat.format(startTime.getTime()), dateFormat.format(registerTime.getTime()),
+				dateFormat.format(startRegTime.getTime()),
+				dateFormat.format(ourStartRegTime.getTime()));
+
+		log.info(timeInfo);
+	}
+	
+	private void waitToRegister()
+	{		
 		Calendar now = Calendar.getInstance();
 		
-		long diff = expectedRegTime.getTimeInMillis() - now.getTimeInMillis();
+		long diff = ourStartRegTime.getTimeInMillis() - now.getTimeInMillis();
 		int minute = 17;
 		while( diff > 0 )
 		{
@@ -566,8 +526,8 @@ public class RjLogin
 			}
 
 			log.debug("Time is not reached yet, wait (" + sleepTime + ") ms. now="
-				+ dateFormat.format(now.getTime()) + ", expectedRegTime="
-				+ dateFormat.format(expectedRegTime.getTime()));
+				+ dateFormat.format(now.getTime()) + ", ourStartRegTime="
+				+ dateFormat.format(ourStartRegTime.getTime()));
 
 			try
 			{
@@ -580,27 +540,22 @@ public class RjLogin
 						
 			try
 			{
-				ResultCode rc = queryRegList1(false);
-				if(rc == ResultCode.RC_HTTP_ERROR)
+				IDValuePair rc = queryRegList(false);
+				if(rc != ResultCode.RC_OK)
 				{
-					result = minute;
-					log.info("Time out at minute: " + result);
-					
-					return result;
+					log.warn("Keep session failed. " + rc);
 				}
 			}
 			catch(Exception e)
 			{
-				log.error("queryRegList1 error.", e);
+				log.error("queryRegList error.", e);
 			}
 			
 			now = Calendar.getInstance();
-			diff = expectedRegTime.getTimeInMillis() - now.getTimeInMillis();
+			diff = ourStartRegTime.getTimeInMillis() - now.getTimeInMillis();
 		}
 		
 		log.info("Time up! Start to work now!");
-		
-		return result;
 	}
 
 	private String parseLoginErrorReason(String fileName) throws IOException, ParseException
@@ -932,6 +887,16 @@ public class RjLogin
 		return CommonUtil.getRegexValueOnce(content, regex, 1);
 	}
 	
+	private class ExitThread extends Thread
+	{
+		public void run() 
+		{
+			dispose();
+			
+			log.info("ExitThread run over.");
+		}
+	}
+	
 	private static class RegDoctorInfoDetailResult
 	{
 		public String viewState = null;
@@ -1161,7 +1126,7 @@ public class RjLogin
 			password, department, docName, week, dayOfWeek));
 
 		RjLogin rjlogin = new RjLogin(user, password, department, docName, week, dayOfWeek);
-		rjlogin.get1();
+		rjlogin.get();
 		
 		System.exit(0);
 	}
