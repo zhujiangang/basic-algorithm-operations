@@ -290,4 +290,14 @@ public class CommonUtil
 		}
 		return true;
 	}
+	
+	public static long diff(Calendar cal1, Calendar cal2)
+	{
+		return cal1.getTimeInMillis() - cal2.getTimeInMillis();
+	}
+	
+	public static long diffWithNow(Calendar cal)
+	{
+		return diff(Calendar.getInstance(), cal);
+	}
 }
