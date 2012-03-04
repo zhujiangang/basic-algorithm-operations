@@ -1,5 +1,13 @@
 package com.bao.lc.client;
 
+import java.util.Random;
+
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.GnuParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.OptionBuilder;
+import org.apache.commons.cli.Options;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpResponse;
@@ -53,6 +61,21 @@ public class SPDownload
 		return rc;
 	}
 	
+	@SuppressWarnings("static-access")
+	private static Options buildOptions()
+	{
+		Options options = new Options();
+
+		options.addOption("u", "url", true, "URL address");
+		options.addOption("r", "referer", true, "referer");
+		options.addOption("c", "count", true, "times to get");
+		options.addOption("h", "help", false, "print this help message");
+		options.addOption(OptionBuilder.withLongOpt("interval")
+			.withDescription("how much time to rest between 2 actions").hasArg()
+			.withArgName("time in seconds").create("i"));
+		return options;
+	}
+	
 	/**
 	 * @param args
 	 */
@@ -61,28 +84,52 @@ public class SPDownload
 		String url = AppConfig.getInstance().getPropInput("sp.dl.url");
 		String referer = AppConfig.getInstance().getPropInput("sp.dl.referer");
 		int count = CommonUtil.toInt(AppConfig.getInstance().getPropInput("sp.dl.count"));
+		int interval = CommonUtil.toInt(AppConfig.getInstance().getPropInput("sp.dl.interval"));
 		
-		String value = null;
-		for(int i = 0; args != null && i < args.length; i++)
+		Options options = buildOptions();
+		CommandLineParser parser = new GnuParser();
+		try
 		{
-			if(args[i].startsWith("-url="))
+			// parse the command line arguments
+			CommandLine line = parser.parse(options, args);
+			
+			if(line.hasOption('u'))
 			{
-				value = args[i].substring("-url=".length());
-				url = value;
+				url = line.getOptionValue('u');
 			}
-			else if(args[i].startsWith("-count="))
+			if(line.hasOption('r'))
 			{
-				value = args[i].substring("-count=".length());
-				count = Integer.parseInt(value);
+				referer = line.getOptionValue('r');
 			}
-			else if(args[i].startsWith("-referer="))
+			if(line.hasOption('c'))
 			{
-				value = args[i].substring("-referer=".length());
-				referer = value;
+				count = CommonUtil.toInt(line.getOptionValue('c'));
+			}
+			if(line.hasOption('i'))
+			{
+				interval = CommonUtil.toInt(line.getOptionValue('i'));
+			}
+			if(line.hasOption('h'))
+			{
+				HelpFormatter formatter = new HelpFormatter();
+				formatter.printHelp("SPDownload", options, true);
+				
+				System.exit(0);
 			}
 		}
-		log.info(String.format("url=%s, referer=%s, count=%d", url, referer, count));
+		catch(Exception e)
+		{
+			System.err.println("ommand line options error:" + e.getMessage());
+			
+			HelpFormatter formatter = new HelpFormatter();
+			formatter.printHelp("SPDownload", options, true);
+			
+			log.error("Command line options error.", e);
+			System.exit(-1);
+		}
+		log.info(String.format("url=%s, referer=%s, count=%d, interval=%d", url, referer, count, interval));
 		
+		Random rand = new Random();
 		int fail = 0;
 		for(int i = 0; i < count; i++)
 		{
@@ -92,17 +139,7 @@ public class SPDownload
 				fail++;
 			}
 			
-			long sleepTime = (long)(Math.random() * 100);
-			sleepTime *= 1000;
-			
-			try
-			{
-				Thread.sleep(sleepTime);
-			}
-			catch(Exception e)
-			{
-				log.error("sleep interrupted.", e);
-			}
+			CommonUtil.sleep(interval, rand);
 		}
 		
 		String result = String.format(
