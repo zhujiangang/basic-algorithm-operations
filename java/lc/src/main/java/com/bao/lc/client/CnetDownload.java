@@ -148,7 +148,7 @@ public class CnetDownload
 			//Sleep if needed
 			if(i < (count - 1) && interval != 0)
 			{
-				sleep(interval, rand);
+				CommonUtil.sleep(interval, rand);
 			}
 		}
 
@@ -156,37 +156,6 @@ public class CnetDownload
 				"Result of grab:\n\turl=[%s]\n\tcount=[%d]\n\tinterval=[%d]\n\n\tOK=[%02d], Fail=[%02d]\n",
 				url, count, interval, nSucc, nFail);
 		log.info(result);
-	}
-	
-	private static void sleep(int interval, Random rand)
-	{
-		if(interval == 0)
-		{
-			return;
-		}
-		
-		long sleepTime = 0;
-		if(interval < 0)
-		{
-			sleepTime = rand.nextInt(Math.abs(interval));
-		}
-		else
-		{
-			sleepTime = interval;
-		}
-		
-		log.debug("Sleep " + sleepTime + " minuets.");
-		
-		sleepTime *= 60000;
-		
-		try
-		{
-			Thread.sleep(sleepTime);
-		}
-		catch(Exception e)
-		{
-			//ignore
-		}
 	}
 	
 	@SuppressWarnings("unused")

@@ -10,6 +10,7 @@ import java.util.Calendar;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
+import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -299,5 +300,36 @@ public class CommonUtil
 	public static long diffWithNow(Calendar cal)
 	{
 		return diff(Calendar.getInstance(), cal);
+	}
+	
+	public static void sleep(int interval, Random rand)
+	{
+		if(interval == 0)
+		{
+			return;
+		}
+		
+		long sleepTime = 0;
+		if(interval < 0)
+		{
+			sleepTime = rand.nextInt(Math.abs(interval));
+		}
+		else
+		{
+			sleepTime = interval;
+		}
+		
+		log.debug("Sleep " + sleepTime + " seconds.");
+		
+		sleepTime *= 1000;
+		
+		try
+		{
+			Thread.sleep(sleepTime);
+		}
+		catch(Exception e)
+		{
+			//ignore
+		}
 	}
 }
