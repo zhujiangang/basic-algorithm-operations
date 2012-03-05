@@ -19,7 +19,7 @@ public class App
 	
 	private static void init()
 	{
-		PropertyConfigurator.configure(App.class.getResource("/commons-logging.properties"));
+		PropertyConfigurator.configure(App.class.getResource("/log4j.properties"));
 	}
 
 	public static void main(String[] args)
