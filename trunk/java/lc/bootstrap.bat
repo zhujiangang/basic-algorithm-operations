@@ -12,7 +12,7 @@ for %%i in (%WORK_DIR%\lib\*.jar) do call %WORK_DIR%\bin\lcp.bat %%~fi
 echo %LOCALCLASSPATH%
 
 
-java -cp %LOCALCLASSPATH% com.bao.examples.App
+java -cp %LOCALCLASSPATH% com.bao.lc.App
 
 
 :END

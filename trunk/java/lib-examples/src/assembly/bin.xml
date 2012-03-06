@@ -20,6 +20,13 @@
       <directory>${basedir}/conf</directory>
       <outputDirectory>/conf</outputDirectory>
     </fileSet>
+    <fileSet>
+      <directory>${basedir}/src/main/resources</directory>
+      <outputDirectory>/conf/default</outputDirectory>
+      <includes>
+        <include>log4j.properties</include>
+      </includes>
+    </fileSet>
     <!-- script files -->
     <fileSet>
       <directory>${basedir}/script</directory>
