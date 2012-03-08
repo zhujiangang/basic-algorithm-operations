@@ -45,6 +45,20 @@ public class URITest extends TestCase
 		}
 	}
 	
+	public void testURI1()
+	{
+		String uriStr = "docs/guide/collections/designfaq.html#28";
+		String baseUriStr = "http://java.sun.com/j2se/1.3/";
+		
+		URI baseURI = URI.create(baseUriStr);
+		URI resultURI = baseURI.resolve(uriStr);
+		System.out.println(resultURI);
+		
+		uriStr = "../../../demo/jfc/SwingSet2/src/SwingSet2.java";
+		resultURI = resultURI.resolve(uriStr);
+		System.out.println(resultURI);
+	}
+	
 	private URI toURI(String url, HttpHost host) throws Exception
 	{
 		URI uriOld = new URI(url);

@@ -1,4 +1,4 @@
-package com.bao.lc;
+package com.bao.examples.app;
 
 import java.io.File;
 import java.io.IOException;
@@ -9,11 +9,10 @@ import java.net.URL;
 import java.util.Properties;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.bao.lc.common.UTF8BufferedInputStream;
+import com.bao.examples.io.UTF8BufferedInputStream;
 
 public class AppConfig
 {
@@ -28,8 +27,6 @@ public class AppConfig
 	private String baseDir = null;
 	private String outputDir = null;
 	private String tmpDir = null;
-	
-	private boolean isDebug = false;
 
 	private static AppConfig instance = null;
 
@@ -68,7 +65,6 @@ public class AppConfig
 
 			outputDir = getFolderPath(getPropConfig("dir.output"), true);
 			tmpDir = getFolderPath(getPropConfig("dir.temp"), true);
-			isDebug = BooleanUtils.toBoolean(getPropConfig("debug"));
 
 			// everything is ok
 			result = true;
@@ -117,11 +113,6 @@ public class AppConfig
 	public String getTempDir()
 	{
 		return tmpDir;
-	}
-	
-	public boolean isDebug()
-	{
-		return isDebug;
 	}
 
 	public String getPropInternal(String propName)
@@ -253,4 +244,3 @@ public class AppConfig
 		return result;
 	}
 }
-

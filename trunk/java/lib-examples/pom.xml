@@ -63,6 +63,8 @@
 		<slf4j-version>1.6.0</slf4j-version>
 		<junit-version>4.8.2</junit-version>
 		<commons-email-version>1.2</commons-email-version>
+    <htmlparser-version>1.6</htmlparser-version>
+    <htmlunit-version>2.9</htmlunit-version>
   </properties>
 
   <dependencies>
@@ -103,5 +105,30 @@
 			<artifactId>commons-email</artifactId>
 			<version>${commons-email-version}</version>
 		</dependency>
+    <dependency>
+			<groupId>org.htmlparser</groupId>
+			<artifactId>htmlparser</artifactId>
+			<version>${htmlparser-version}</version>
+		</dependency>
+    <dependency>
+			<groupId>net.sourceforge.htmlunit</groupId>
+			<artifactId>htmlunit</artifactId>
+			<version>${htmlunit-version}</version>
+		</dependency>
   </dependencies>
+  
+  	<repositories>
+		<repository>
+			<id>geotools Repo</id>
+			<url>http://download.osgeo.org/webdav/geotools/</url>
+		</repository>
+		<repository>
+			<id>apache mirror</id>
+			<url>http://ftp.cica.es/mirrors/maven2/</url>
+		</repository>
+		<repository>
+			<id>local maven repository</id>
+			<url>file:///${env.M2_LOCALHOST}</url>
+		</repository>
+	</repositories>
 </project>

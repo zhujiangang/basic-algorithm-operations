@@ -48,7 +48,7 @@ public class RequestReferer implements HttpRequestInterceptor
 		if(refererInternal != null && !refererInternal.toString().isEmpty())
 		{
 			HttpHost host = getTargetHost(request, context);
-			String referer = CommonUtil.normalizeRelativeURL(refererInternal.toString(), host);
+			String referer = CommonUtil.getAbsoluteURI(refererInternal.toString(), host);
 			request.addHeader("Referer", referer);
 		}
 	}

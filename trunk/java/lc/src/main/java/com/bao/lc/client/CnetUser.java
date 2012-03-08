@@ -86,7 +86,7 @@ public class CnetUser
 				
 				getComminityProfile();
 				
-				modifyProfile("John", "Smith", "MALE", "01/01/1980");
+				modifyProfile("Colin", "Conger", "MALE", "09/17/1983");
 			}
 			while(false);
 		}
@@ -209,13 +209,15 @@ public class CnetUser
 	
 	public boolean modifyProfile(String firstName, String lastName, String gender, String birthday)
 		throws ClientProtocolException, IOException, ParseException
-	{		
+	{
+		URI uri = URI.create(AppConfig.getInstance().getPropInternal("cnet.url.main_profile"));
 		//1. First get update url
 		String regex = "<ul class=\"settings\"> <li><a href=\"(.+?)\">Update my e-mail address</a></li> <li>";
 		String url = CommonUtil.getRegexValueOnce(profileContent, regex, 1);
+		uri = uri.resolve(url);
 		
 		Map<String, String> params = new HashMap<String, String>();
-		HttpResponse rsp = session.get(url, null, params, host);
+		HttpResponse rsp = session.get(uri, null, params, host);
 		HttpClientUtil.saveToFile(rsp.getEntity(), AppUtils.getTempFilePath("modifyProfile.html"));
 		
 		String content = IOUtils.toString(
@@ -225,6 +227,7 @@ public class CnetUser
 		
 		regex = "<form onSubmit=\"(.+?)\" name=\"mainForm\" method=\"POST\" action=\"(.+?)\">";
 		url = CommonUtil.getRegexValueOnce(content, regex, 2);
+		uri = uri.resolve(url);
 		
 		//2. Post modify request
 		params.clear();
@@ -239,7 +242,7 @@ public class CnetUser
 		params.put("REMEMBERME", "1");
 		params.put("path", path);
 		
-		rsp = session.post(url, null, params, "UTF-8", host);
+		rsp = session.post(uri, null, params, "UTF-8", host);
 		HttpClientUtil.saveToFile(rsp.getEntity(), AppUtils.getTempFilePath("modifyProfileResult.html"));
 		
 		String location = null;
@@ -256,7 +259,8 @@ public class CnetUser
 		
 		if(location != null)
 		{
-			rsp = session.get(location, null, null, host);
+			uri = uri.resolve(location);
+			rsp = session.get(uri, null, null, host);
 			HttpClientUtil.saveToFile(rsp.getEntity(), AppUtils.getTempFilePath("modifyProfileRedir.html"));
 		}
 
