@@ -1,6 +1,7 @@
 package com.bao.lc.client;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -88,15 +89,21 @@ public class BrowserClient extends DefaultHttpClient
 
 		return httpproc;
 	}
-
-	public HttpResponse get(String url, Map<String, String> headers, Map<String, String> params,
+	
+	public HttpResponse get(URI uri, Map<String, String> headers, Map<String, String> params,
 		HttpHost targetHost) throws ClientProtocolException, IOException
 	{
-		url = CommonUtil.normalizeRelativeURL(url, targetHost);
+		uri = CommonUtil.getAbsoluteURI(uri, targetHost);
+		
+		String url = null;
 		// parameters
 		if(params != null && !params.isEmpty())
 		{
-			url = url + HttpClientUtil.assemblyParameter(params);
+			url = uri.toString() + HttpClientUtil.assemblyParameter(params);
+		}
+		else
+		{
+			url = uri.toString();
 		}
 
 		// Get
@@ -121,18 +128,24 @@ public class BrowserClient extends DefaultHttpClient
 
 		return rsp;
 	}
+	
+	public HttpResponse get(String url, Map<String, String> headers, Map<String, String> params,
+		HttpHost targetHost) throws ClientProtocolException, IOException
+	{
+		return get(URI.create(url), headers, params, targetHost);
+	}
 
 	public HttpResponse get(String url) throws ClientProtocolException, IOException
 	{
-		return get(url, null, null, null);
+		return get(URI.create(url), null, null, null);
 	}
 
-	public HttpResponse post(String url, Map<String, String> headers, Map<String, String> params,
+	public HttpResponse post(URI uri, Map<String, String> headers, Map<String, String> params,
 		String encoding, HttpHost targetHost) throws ClientProtocolException, IOException
 	{
-		url = CommonUtil.normalizeRelativeURL(url, targetHost);
+		uri = CommonUtil.getAbsoluteURI(uri, targetHost);
 		
-		HttpPost post = new HttpPost(url);
+		HttpPost post = new HttpPost(uri);
 
 		List<NameValuePair> list = new ArrayList<NameValuePair>();
 		for(String temp : params.keySet())
@@ -154,14 +167,19 @@ public class BrowserClient extends DefaultHttpClient
 			rsp = execute(post);
 		}
 
-		addReferer(url);
+		addReferer(uri.toString());
 
 		return rsp;
+	}
+	public HttpResponse post(String url, Map<String, String> headers, Map<String, String> params,
+		String encoding, HttpHost targetHost) throws ClientProtocolException, IOException
+	{
+		return post(URI.create(url), headers, params, encoding, targetHost);
 	}
 
 	public HttpResponse post(String url, Map<String, String> params, String encoding)
 		throws ClientProtocolException, IOException
 	{
-		return post(url, null, params, encoding, null);
+		return post(URI.create(url), null, params, encoding, null);
 	}
 }

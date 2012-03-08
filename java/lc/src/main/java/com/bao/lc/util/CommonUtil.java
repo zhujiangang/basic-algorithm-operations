@@ -187,43 +187,50 @@ public class CommonUtil
 		String result = JOptionPane.showInputDialog(null, message);
 		return result;
 	}
-	
-	public static String normalizeRelativeURL(String str, HttpHost host)
+	public static String getAbsoluteURI(String uri, HttpHost host)
 	{
-		String result = str;
+		URI resultURI = getAbsoluteURI(URI.create(uri), host, null);
+		
+		return (resultURI == null) ? null : resultURI.toString();
+	}
+	public static URI getAbsoluteURI(URI uri, HttpHost host)
+	{
+		return getAbsoluteURI(uri, host, null);
+	}
+	public static URI getAbsoluteURI(URI uri, HttpHost host, URI baseURI)
+	{
+		if(uri.isAbsolute())
+		{
+			return uri;
+		}
+
+		URI resultURI = null;
 		do
 		{
-			if(host == null)
+			if(baseURI != null)
 			{
+				resultURI = URIUtils.resolve(baseURI, uri);
 				break;
 			}
 
 			try
 			{
-				URI uri = new URI(str);
-				// Only process relative URI
-				if(!uri.isAbsolute())
-				{
-					URI newUri = URIUtils.rewriteURI(uri, host);
-					result = newUri.toString();
-
-					if(log.isDebugEnabled())
-					{
-						log.debug(String.format("normalizeRelativeURL from [%s] to [%s].", str,
-							result));
-					}
-				}
+				resultURI = URIUtils.rewriteURI(uri, host, false);
 			}
 			catch(URISyntaxException e)
 			{
-				log.error(
-					String.format("Failed to normalizeRelativeURL url=[%s], host=[%s]", str, host),
+				log.error(String.format("Failed to getAbsoluteURI uri=[%s], host=[%s]", uri, host),
 					e);
 			}
 		}
 		while(false);
 
-		return result;
+		if(log.isDebugEnabled())
+		{
+			log.debug(String.format("getAbsoluteURI from [%s] to [%s].", uri, resultURI));
+		}
+
+		return uri;
 	}
 	
 	public static int convertDayOfWeek(int x)
