@@ -17,6 +17,7 @@ public enum ResultCode implements IDValuePair
 	RC_EXCEPTION_CAUGHT,
 	RC_TIMEOUT,
 	RC_EXCEED_MAX_TRY_TIMES,
+	RC_EMPTY_URL,
 	RC_LAST;
 	
 	private final int id;

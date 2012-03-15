@@ -5,21 +5,35 @@ import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.script.ScriptContext;
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
+import javax.script.ScriptException;
+import javax.script.SimpleBindings;
 import javax.swing.JOptionPane;
 
+import org.apache.commons.lang.ObjectUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpHost;
 import org.apache.http.client.utils.URIUtils;
+import org.htmlparser.nodes.TextNode;
+import org.htmlparser.tags.TableColumn;
+import org.htmlparser.util.NodeList;
+import org.htmlparser.Node;
 
 import com.bao.lc.common.exception.ParseException;
 
@@ -338,5 +352,109 @@ public class CommonUtil
 		{
 			//ignore
 		}
+	}
+	
+	public static String escapeJS(String s)
+	{
+		ScriptEngineManager sem = new ScriptEngineManager();
+		ScriptEngine engine = sem.getEngineByExtension("js");
+		
+		SimpleBindings bindings = new SimpleBindings();
+		bindings.put("str", s);
+		
+		engine.setBindings(bindings, ScriptContext.ENGINE_SCOPE);
+		
+		try
+		{
+			Object res = engine.eval("escape(str)");
+			return ObjectUtils.toString(res);
+		}
+		catch(ScriptException e)
+		{
+			log.error("Failed to eval JS. s = " + s, e);
+		}
+		
+		return s;
+	}
+	
+	public static String encode(final String content, final String encoding)
+	{
+		if(encoding == null)
+		{
+			throw new IllegalArgumentException("Empty charset");
+		}
+		try
+		{
+			return URLEncoder.encode(content, encoding);
+		}
+		catch(UnsupportedEncodingException problem)
+		{
+			throw new IllegalArgumentException(problem);
+		}
+	}
+	
+	public static String decode(final String content, final String encoding)
+	{
+		if(encoding == null)
+		{
+			throw new IllegalArgumentException("Empty charset");
+		}
+		try
+		{
+			return URLDecoder.decode(content, encoding);
+		}
+		catch(UnsupportedEncodingException problem)
+		{
+			throw new IllegalArgumentException(problem);
+		}
+	}
+	
+	public static String getTableColumnText(TableColumn tableColumn)
+	{
+		String result = "";
+		
+		do
+		{
+			if(tableColumn == null)
+			{
+				break;
+			}
+			NodeList children = tableColumn.getChildren();
+			if(children == null || children.size() <= 0)
+			{
+				break;
+			}
+			
+			for(int i = 0, size = children.size(); i < size; i++)
+			{
+				Node node = children.elementAt(i);
+				if(node instanceof TextNode)
+				{
+					String text = StringUtils.strip(((TextNode)node).getText(), " \t\r\n");
+					if(!StringUtils.isEmpty(text))
+					{
+						return text;
+					}
+				}
+			}
+		}
+		while(false);
+		
+		return result;
+	}
+	
+	public static String toString(Map<?, ?> map)
+	{
+		if(map == null)
+		{
+			return null;
+		}
+		StringBuilder sb = new StringBuilder();
+		sb.append("size=[").append(map.size()).append("] ");
+		for(Map.Entry<?, ?> entry : map.entrySet())
+		{
+			sb.append(entry.getKey()).append("=[").append(entry.getValue()).append("] ");
+		}
+		return sb.toString();
 	}
 }
