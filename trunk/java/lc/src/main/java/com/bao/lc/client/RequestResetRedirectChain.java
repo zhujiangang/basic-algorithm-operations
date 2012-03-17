@@ -1,13 +1,14 @@
 package com.bao.lc.client;
 
 import java.io.IOException;
+import java.net.URI;
 
 import org.apache.http.HttpException;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpRequestInterceptor;
-import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.impl.client.RequestWrapper;
 import org.apache.http.protocol.HttpContext;
+
+import com.bao.lc.util.HttpClientUtil;
 
 public class RequestResetRedirectChain implements HttpRequestInterceptor
 {
@@ -37,24 +38,12 @@ public class RequestResetRedirectChain implements HttpRequestInterceptor
 			
 			if(!strategy.isRedirected())
 			{
-				strategy.resetChain();
 				return;
 			}
-			HttpUriRequest finalReq = strategy.getFinalRequest();
+			URI finalURI = strategy.getFinalRequest().getURI();
+			URI currentURI = HttpClientUtil.getRequestURI(request, context);
 			
-			HttpRequest theReq = request;
-			if(request instanceof RequestWrapper)
-			{
-				theReq = ((RequestWrapper)request).getOriginal();
-			}
-			
-			HttpUriRequest currReq = null;
-			if(theReq instanceof HttpUriRequest)
-			{
-				currReq = (HttpUriRequest)theReq;
-			}
-			
-			if(finalReq != null && currReq != null && !finalReq.getURI().equals(currReq.getURI()))
+			if(currentURI != null && finalURI != null && !currentURI.equals(finalURI))
 			{
 				strategy.resetChain();
 			}

@@ -6,15 +6,32 @@ import java.io.Closeable;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
+import org.apache.http.HttpHost;
+import org.apache.http.HttpRequest;
+import org.apache.http.NameValuePair;
 import org.apache.http.ParseException;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.client.utils.URIUtils;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.message.BasicHeader;
+import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.protocol.ExecutionContext;
+import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
 
 import com.bao.lc.AppConfig;
@@ -22,6 +39,7 @@ import com.bao.lc.AppConfig;
 
 public class HttpClientUtil
 {	
+	private static final Log log = LogFactory.getLog(HttpClientUtil.class); 
 	/**
 	 * Assembly Cookies
 	 * 
@@ -132,5 +150,107 @@ public class HttpClientUtil
 			FileUtils.writeStringToFile(new File(tempFile), result, charsetName);
 		}
 		return result;
+	}
+	
+	public static URI getRequestURI(final HttpRequest request, final HttpContext context)
+	{
+		URI uri = null;
+		if(request instanceof HttpUriRequest)
+		{
+			uri = ((HttpUriRequest)request).getURI();
+		}
+		else
+		{
+			uri = URI.create(request.getRequestLine().getUri());
+		}
+		
+		if(uri.isAbsolute())
+		{
+			return uri;
+		}
+		
+		HttpHost targetHost = (HttpHost)context.getAttribute(ExecutionContext.HTTP_TARGET_HOST);
+		if(targetHost == null)
+		{
+			log.error("Can't find the target host from URI: " + uri.toString());
+			return null;
+		}
+		
+		try
+		{
+			uri = URIUtils.rewriteURI(uri, targetHost);
+		}
+		catch(URISyntaxException e)
+		{
+			log.error("Failed to rewriteURI.", e);
+			return null;
+		}
+		return uri;
+	}
+	
+	public static HttpUriRequest createRequest(URI uri, String method, Map<String, String> params,
+		String encoding, Map<String, String> headers)
+	{
+		if(HttpPost.METHOD_NAME.equalsIgnoreCase(method))
+		{
+			return createHttpPost(uri, params, encoding, headers);
+		}
+		else
+		{
+			return createHttpGet(uri, params, headers);
+		}
+	}
+
+	public static HttpGet createHttpGet(URI uri, Map<String, String> params, Map<String, String> headers)
+	{
+		// Get
+		HttpGet get = null;
+		// parameters
+		if(params != null && !params.isEmpty())
+		{
+			get = new HttpGet(uri.toString() + HttpClientUtil.assemblyParameter(params));
+		}
+		else
+		{
+			get = new HttpGet(uri);
+		}
+
+		// Headers
+		if(null != headers)
+		{
+			get.setHeaders(HttpClientUtil.assemblyHeader(headers));
+		}
+		return get;
+	}
+
+	public static HttpPost createHttpPost(URI uri, Map<String, String> params, String encoding,
+		Map<String, String> headers)
+	{
+		HttpPost post = new HttpPost(uri);
+
+		// Post data
+		List<NameValuePair> list = new ArrayList<NameValuePair>();
+		for(String paramName : params.keySet())
+		{
+			list.add(new BasicNameValuePair(paramName, params.get(paramName)));
+		}
+		try
+		{
+			post.setEntity(new UrlEncodedFormEntity(list, encoding));
+		}
+		catch(UnsupportedEncodingException e)
+		{
+			IllegalArgumentException e2 = new IllegalArgumentException();
+			e2.initCause(e);
+			throw e2;
+		}
+
+		// Headers
+		if(null != headers)
+		{
+			post.setHeaders(HttpClientUtil.assemblyHeader(headers));
+		}
+
+		return post;
 	}
 }
