@@ -24,25 +24,35 @@ import javax.script.ScriptException;
 import javax.script.SimpleBindings;
 import javax.swing.JOptionPane;
 
+import org.apache.commons.chain.Context;
+import org.apache.commons.chain.impl.ContextBase;
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpHost;
+import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.utils.URIUtils;
+import org.apache.http.protocol.HttpContext;
+import org.htmlparser.lexer.Lexer;
+import org.htmlparser.lexer.Page;
 import org.htmlparser.nodes.TextNode;
 import org.htmlparser.tags.TableColumn;
 import org.htmlparser.util.NodeList;
+import org.htmlparser.util.ParserFeedback;
 import org.htmlparser.Node;
+import org.htmlparser.Parser;
 
+import com.bao.lc.client.BrowserClient;
+import com.bao.lc.common.LoggerFeedback;
 import com.bao.lc.common.exception.ParseException;
 
 public class CommonUtil
 {
-	private static Log log = LogFactory.getLog(CommonUtil.class); 
-	
-	public static int getRegexValue(String str, String regex,
-		List<String> valueList, boolean allGroup, int flags)
+	private static Log log = LogFactory.getLog(CommonUtil.class);
+
+	public static int getRegexValue(String str, String regex, List<String> valueList,
+		boolean allGroup, int flags)
 	{
 		Pattern pattern = Pattern.compile(regex, flags);
 		Matcher matcher = pattern.matcher(str);
@@ -68,14 +78,13 @@ public class CommonUtil
 		return matchCount;
 	}
 
-	public static void getRegexValueOnce(String str, String regex,
-		List<String> valueList, boolean allGroup, int flags) throws ParseException
+	public static void getRegexValueOnce(String str, String regex, List<String> valueList,
+		boolean allGroup, int flags) throws ParseException
 	{
 		int matchCount = getRegexValue(str, regex, valueList, allGroup, flags);
 		if(matchCount != 1)
 		{
-			throw new ParseException("Found match not 1. matchCount="
-				+ matchCount);
+			throw new ParseException("Found match not 1. matchCount=" + matchCount);
 		}
 	}
 
@@ -87,20 +96,19 @@ public class CommonUtil
 
 		if(valueList.size() <= index)
 		{
-			throw new ParseException(
-				"Can't find the specified group at index: " + index + " of "
-					+ valueList.size() + " groups");
+			throw new ParseException("Can't find the specified group at index: " + index + " of "
+				+ valueList.size() + " groups");
 		}
 
 		return valueList.get(index);
 	}
-	
+
 	public static String getRegexValueOnce(String str, String regex, int index)
 		throws ParseException
 	{
 		return getRegexValueOnce(str, regex, index, 0);
 	}
-	
+
 	public static int toInt(String str)
 	{
 		int result = 0;
@@ -112,21 +120,21 @@ public class CommonUtil
 		{
 			log.error("failed to convert string [" + str + "] to integer.", e);
 		}
-		
+
 		return result;
 	}
-	
+
 	public static void trimUtf8Bom(Properties prop)
 	{
 		String key = null;
 		byte[] bytes = null;
 		boolean found = false;
-		
-		byte[] UTF8_BOM = {(byte)0xEF, (byte)0xBB, (byte)0xBF};
-		
-		for(Iterator<Object> iter = prop.keySet().iterator(); iter.hasNext(); )
+
+		byte[] UTF8_BOM = { (byte) 0xEF, (byte) 0xBB, (byte) 0xBF };
+
+		for(Iterator<Object> iter = prop.keySet().iterator(); iter.hasNext();)
 		{
-			key = (String)iter.next();
+			key = (String) iter.next();
 			try
 			{
 				bytes = key.getBytes("UTF-8");
@@ -135,8 +143,7 @@ public class CommonUtil
 			{
 				bytes = key.getBytes();
 			}
-			
-			
+
 			if(bytes.length >= 3)
 			{
 				found = true;
@@ -154,7 +161,7 @@ public class CommonUtil
 				}
 			}
 		}
-		
+
 		if(found)
 		{
 			String newKey = null;
@@ -166,20 +173,20 @@ public class CommonUtil
 			{
 				newKey = key;
 			}
-			
+
 			String value = prop.getProperty(key);
-			
-			//update new key if needed
-			if( !newKey.isEmpty() && !newKey.startsWith("#"))
+
+			// update new key if needed
+			if(!newKey.isEmpty() && !newKey.startsWith("#"))
 			{
 				prop.setProperty(newKey, value);
 			}
-			
-			//Remove the old key
+
+			// Remove the old key
 			prop.remove(key);
 		}
 	}
-	
+
 	public static String getValidationCode(String filePath)
 	{
 		File file = new File(filePath);
@@ -197,20 +204,23 @@ public class CommonUtil
 		String message = String.format(
 			"<html><img src=\"%s\" width=\33\" height=\55\"><br><center>%s</center><br></html>",
 			fileURL, "Please input validation code:");
-		
+
 		String result = JOptionPane.showInputDialog(null, message);
 		return result;
 	}
+
 	public static String getAbsoluteURI(String uri, HttpHost host)
 	{
 		URI resultURI = getAbsoluteURI(URI.create(uri), host, null);
-		
+
 		return (resultURI == null) ? null : resultURI.toString();
 	}
+
 	public static URI getAbsoluteURI(URI uri, HttpHost host)
 	{
 		return getAbsoluteURI(uri, host, null);
 	}
+
 	public static URI getAbsoluteURI(URI uri, HttpHost host, URI baseURI)
 	{
 		if(uri.isAbsolute())
@@ -246,7 +256,7 @@ public class CommonUtil
 
 		return uri;
 	}
-	
+
 	public static int convertDayOfWeek(int x)
 	{
 		if(x < 1 || x > 7)
@@ -259,23 +269,24 @@ public class CommonUtil
 		}
 		return x + 1;
 	}
-	
+
 	public static void updateCalendar(Calendar cal, int week, int dayOfWeek)
-	{		
+	{
 		cal.add(Calendar.WEEK_OF_YEAR, week - 1);
 		cal.set(Calendar.DAY_OF_WEEK, convertDayOfWeek(dayOfWeek));
 	}
-	
+
 	/**
 	 * 
-	 * @param dateStr: examples, 2012-3-8 8:00:00, 2012-3-27 10:59:00
+	 * @param dateStr
+	 *            : examples, 2012-3-8 8:00:00, 2012-3-27 10:59:00
 	 * @return
 	 */
 	public static Calendar toCalendar(String dateStr)
 	{
 		String regex = "(\\d+?)-(\\d+?)-(\\d+?) (\\d+?):(\\d+?):(\\d+?)";
 		List<String> valueList = new ArrayList<String>();
-		
+
 		int matchCount = getRegexValue(dateStr, regex, valueList, true, 0);
 		if(matchCount != 1)
 		{
@@ -284,7 +295,7 @@ public class CommonUtil
 		}
 		Calendar cal = Calendar.getInstance();
 		cal.set(Calendar.MILLISECOND, 0);
-		
+
 		int index = 1;
 		cal.set(Calendar.YEAR, toInt(valueList.get(index++)));
 		cal.set(Calendar.MONTH, toInt(valueList.get(index++)) - 1);
@@ -292,10 +303,10 @@ public class CommonUtil
 		cal.set(Calendar.HOUR_OF_DAY, toInt(valueList.get(index++)));
 		cal.set(Calendar.MINUTE, toInt(valueList.get(index++)));
 		cal.set(Calendar.SECOND, toInt(valueList.get(index++)));
-		
+
 		return cal;
 	}
-	
+
 	public static boolean isSameDay(Calendar cal1, Calendar cal2)
 	{
 		if(cal1.get(Calendar.YEAR) != cal2.get(Calendar.YEAR))
@@ -312,24 +323,24 @@ public class CommonUtil
 		}
 		return true;
 	}
-	
+
 	public static long diff(Calendar cal1, Calendar cal2)
 	{
 		return cal1.getTimeInMillis() - cal2.getTimeInMillis();
 	}
-	
+
 	public static long diffWithNow(Calendar cal)
 	{
 		return diff(Calendar.getInstance(), cal);
 	}
-	
+
 	public static void sleep(int interval, Random rand)
 	{
 		if(interval == 0)
 		{
 			return;
 		}
-		
+
 		long sleepTime = 0;
 		if(interval < 0)
 		{
@@ -339,31 +350,31 @@ public class CommonUtil
 		{
 			sleepTime = interval;
 		}
-		
+
 		log.debug("Sleep " + sleepTime + " seconds.");
-		
+
 		sleepTime *= 1000;
-		
+
 		try
 		{
 			Thread.sleep(sleepTime);
 		}
 		catch(Exception e)
 		{
-			//ignore
+			// ignore
 		}
 	}
-	
+
 	public static String escapeJS(String s)
 	{
 		ScriptEngineManager sem = new ScriptEngineManager();
 		ScriptEngine engine = sem.getEngineByExtension("js");
-		
+
 		SimpleBindings bindings = new SimpleBindings();
 		bindings.put("str", s);
-		
+
 		engine.setBindings(bindings, ScriptContext.ENGINE_SCOPE);
-		
+
 		try
 		{
 			Object res = engine.eval("escape(str)");
@@ -373,10 +384,10 @@ public class CommonUtil
 		{
 			log.error("Failed to eval JS. s = " + s, e);
 		}
-		
+
 		return s;
 	}
-	
+
 	public static String encode(final String content, final String encoding)
 	{
 		if(encoding == null)
@@ -392,7 +403,7 @@ public class CommonUtil
 			throw new IllegalArgumentException(problem);
 		}
 	}
-	
+
 	public static String decode(final String content, final String encoding)
 	{
 		if(encoding == null)
@@ -408,11 +419,11 @@ public class CommonUtil
 			throw new IllegalArgumentException(problem);
 		}
 	}
-	
+
 	public static String getTableColumnText(TableColumn tableColumn)
 	{
 		String result = "";
-		
+
 		do
 		{
 			if(tableColumn == null)
@@ -424,13 +435,13 @@ public class CommonUtil
 			{
 				break;
 			}
-			
+
 			for(int i = 0, size = children.size(); i < size; i++)
 			{
 				Node node = children.elementAt(i);
 				if(node instanceof TextNode)
 				{
-					String text = StringUtils.strip(((TextNode)node).getText(), " \t\r\n");
+					String text = StringUtils.strip(((TextNode) node).getText(), " \t\r\n");
 					if(!StringUtils.isEmpty(text))
 					{
 						return text;
@@ -439,10 +450,10 @@ public class CommonUtil
 			}
 		}
 		while(false);
-		
+
 		return result;
 	}
-	
+
 	public static String toString(Map<?, ?> map)
 	{
 		if(map == null)
@@ -456,5 +467,14 @@ public class CommonUtil
 			sb.append(entry.getKey()).append("=[").append(entry.getValue()).append("] ");
 		}
 		return sb.toString();
+	}
+
+	public static Parser createParser(String text, String charset, Log logger)
+	{
+		Lexer lexer = new Lexer(new Page(text, charset));
+		ParserFeedback feedback = new LoggerFeedback(logger);
+
+		Parser parser = new Parser(lexer, feedback);
+		return parser;
 	}
 }

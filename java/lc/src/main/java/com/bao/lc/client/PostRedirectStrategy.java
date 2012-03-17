@@ -1,5 +1,6 @@
 package com.bao.lc.client;
 
+import java.net.URI;
 import java.util.List;
 import java.util.Vector;
 
@@ -10,12 +11,11 @@ import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.ProtocolException;
-import org.apache.http.RequestLine;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.impl.client.DefaultRedirectStrategy;
 import org.apache.http.protocol.HttpContext;
+
+import com.bao.lc.util.HttpClientUtil;
 
 public class PostRedirectStrategy extends DefaultRedirectStrategy
 {
@@ -42,9 +42,6 @@ public class PostRedirectStrategy extends DefaultRedirectStrategy
 				&& (statusCode == HttpStatus.SC_MOVED_TEMPORARILY || statusCode == HttpStatus.SC_MOVED_PERMANENTLY))
 			{
 				ret = true;
-
-				log.info("Redirect: statusCode=" + statusCode + ", location="
-					+ locationHeader.getValue());
 			}
 		}
 		return ret;
@@ -54,26 +51,40 @@ public class PostRedirectStrategy extends DefaultRedirectStrategy
 		final HttpContext context) throws ProtocolException
 	{
 		HttpUriRequest redirectReq = super.getRedirect(request, response, context);
-		if(redirectChain.isEmpty())
-		{
-			redirectChain.add(toUriRequest(request));
-		}
+		
+		//record the redirect request
 		redirectChain.add(redirectReq);
+		
+		//log if possible
+		if(log.isDebugEnabled())
+		{
+			String redirectLog = getRedirectLog(request, redirectReq, context);
+			if(redirectLog != null)
+			{
+				log.debug(redirectLog);
+			}
+		}
 		
 		return redirectReq;
 	}
 	
-	public static HttpUriRequest toUriRequest(final HttpRequest request)
+	private String getRedirectLog(final HttpRequest request, final HttpUriRequest redirectReq,
+		final HttpContext context)
 	{
-		RequestLine rawRequestLine = request.getRequestLine();
-		if(rawRequestLine.getMethod().equalsIgnoreCase(HttpPost.METHOD_NAME))
+		// 1. From URI
+		URI fromURI = HttpClientUtil.getRequestURI(request, context);
+		if(fromURI == null)
 		{
-			return new HttpPost(rawRequestLine.getUri());
+			return null;
 		}
-		else
-		{
-			return new HttpGet(rawRequestLine.getUri());
-		}
+
+		// 2. To URI
+		URI toURI = redirectReq.getURI();
+
+		StringBuilder sb = new StringBuilder();
+		sb.append("[Redirect]: count=").append(redirectChain.size());
+		sb.append(", ").append(fromURI.toString()).append("==>").append(toURI.toString());
+		return sb.toString();
 	}
 	
 	public List<HttpUriRequest> getRedirectChain()
@@ -83,7 +94,7 @@ public class PostRedirectStrategy extends DefaultRedirectStrategy
 	
 	public boolean isRedirected()
 	{
-		return this.redirectChain.size() >= 2;
+		return !redirectChain.isEmpty();
 	}
 	
 	public void resetChain()

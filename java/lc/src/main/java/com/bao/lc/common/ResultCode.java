@@ -18,6 +18,8 @@ public enum ResultCode implements IDValuePair
 	RC_TIMEOUT,
 	RC_EXCEED_MAX_TRY_TIMES,
 	RC_EMPTY_URL,
+	RC_NULL_TARGET_URI_REQUEST,
+	RC_USER_NOT_LOGIN,
 	RC_LAST;
 	
 	private final int id;

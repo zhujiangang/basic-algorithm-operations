@@ -1,26 +1,19 @@
 package com.bao.lc.client;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
-import org.apache.http.NameValuePair;
 import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.params.CookiePolicy;
 import org.apache.http.client.params.HttpClientParams;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
-import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.params.HttpParams;
 import org.apache.http.params.HttpProtocolParams;
 import org.apache.http.protocol.BasicHttpProcessor;
@@ -97,7 +90,7 @@ public class BrowserClient extends DefaultHttpClient
 	{
 		uri = CommonUtil.getAbsoluteURI(uri, targetHost);
 
-		HttpGet hp = createHttpGet(uri, params, headers);
+		HttpGet hp = HttpClientUtil.createHttpGet(uri, params, headers);
 
 		HttpResponse rsp = null;
 		if(targetHost != null)
@@ -130,7 +123,7 @@ public class BrowserClient extends DefaultHttpClient
 	{
 		uri = CommonUtil.getAbsoluteURI(uri, targetHost);
 
-		HttpPost post = createHttpPost(uri, params, encoding, headers);
+		HttpPost post = HttpClientUtil.createHttpPost(uri, params, encoding, headers);
 
 		HttpResponse rsp = null;
 		if(targetHost != null)
@@ -157,71 +150,5 @@ public class BrowserClient extends DefaultHttpClient
 		throws ClientProtocolException, IOException
 	{
 		return post(URI.create(url), null, params, encoding, null);
-	}
-
-	public HttpUriRequest createRequest(URI uri, String method, Map<String, String> params,
-		String encoding, Map<String, String> headers)
-	{
-		if(HttpPost.METHOD_NAME.equalsIgnoreCase(method))
-		{
-			return createHttpPost(uri, params, encoding, headers);
-		}
-		else
-		{
-			return createHttpGet(uri, params, headers);
-		}
-	}
-
-	public HttpGet createHttpGet(URI uri, Map<String, String> params, Map<String, String> headers)
-	{
-		// Get
-		HttpGet get = null;
-		// parameters
-		if(params != null && !params.isEmpty())
-		{
-			get = new HttpGet(uri.toString() + HttpClientUtil.assemblyParameter(params));
-		}
-		else
-		{
-			get = new HttpGet(uri);
-		}
-
-		// Headers
-		if(null != headers)
-		{
-			get.setHeaders(HttpClientUtil.assemblyHeader(headers));
-		}
-		return get;
-	}
-
-	public HttpPost createHttpPost(URI uri, Map<String, String> params, String encoding,
-		Map<String, String> headers)
-	{
-		HttpPost post = new HttpPost(uri);
-
-		// Post data
-		List<NameValuePair> list = new ArrayList<NameValuePair>();
-		for(String paramName : params.keySet())
-		{
-			list.add(new BasicNameValuePair(paramName, params.get(paramName)));
-		}
-		try
-		{
-			post.setEntity(new UrlEncodedFormEntity(list, encoding));
-		}
-		catch(UnsupportedEncodingException e)
-		{
-			IllegalArgumentException e2 = new IllegalArgumentException();
-			e2.initCause(e);
-			throw e2;
-		}
-
-		// Headers
-		if(null != headers)
-		{
-			post.setHeaders(HttpClientUtil.assemblyHeader(headers));
-		}
-
-		return post;
 	}
 }
