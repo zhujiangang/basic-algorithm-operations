@@ -1,7 +1,9 @@
-package com.bao.lc.client;
+package com.bao.lc.client.impl;
 
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 import org.apache.http.HttpConnection;
 import org.apache.http.HttpException;
@@ -11,15 +13,14 @@ import org.apache.http.HttpRequest;
 import org.apache.http.HttpRequestInterceptor;
 import org.apache.http.HttpVersion;
 import org.apache.http.ProtocolVersion;
+import org.apache.http.client.utils.URIUtils;
 import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpContext;
 
-import com.bao.lc.util.CommonUtil;
+import com.bao.lc.client.params.MiscParams;
 
 public class RequestReferer implements HttpRequestInterceptor
 {
-	public static final String REFERER_INTERNAL = "lc.referer";
-
 	public RequestReferer()
 	{
 		super();
@@ -44,12 +45,25 @@ public class RequestReferer implements HttpRequestInterceptor
 			return;
 		}
 
-		Object refererInternal = request.getParams().getParameter(REFERER_INTERNAL);
-		if(refererInternal != null && !refererInternal.toString().isEmpty())
+		String referer = MiscParams.getReferer(request.getParams());
+		if(referer != null && !referer.isEmpty())
 		{
-			HttpHost host = getTargetHost(request, context);
-			String referer = CommonUtil.getAbsoluteURI(refererInternal.toString(), host);
-			request.addHeader("Referer", referer);
+			URI refererURI = URI.create(referer);
+			if(!refererURI.isAbsolute())
+			{
+				HttpHost host = getTargetHost(request, context);
+				
+				try
+				{
+					refererURI = URIUtils.rewriteURI(refererURI, host, false);
+				}
+				catch(URISyntaxException e)
+				{
+					HttpException y = new HttpException(e.getMessage(), e);
+					throw y;
+				}
+			}
+			request.addHeader("Referer", refererURI.toString());
 		}
 	}
 

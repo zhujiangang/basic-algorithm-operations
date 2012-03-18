@@ -1,4 +1,4 @@
-package com.bao.lc.client;
+package com.bao.lc.site.sx;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -18,6 +18,7 @@ import org.apache.http.Header;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.utils.URIUtils;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.impl.cookie.BasicClientCookie;
@@ -25,10 +26,12 @@ import org.apache.http.params.HttpProtocolParams;
 import org.apache.http.util.EntityUtils;
 
 import com.bao.lc.AppConfig;
+import com.bao.lc.client.BrowserClient;
+import com.bao.lc.client.RequestBuilder;
+import com.bao.lc.client.utils.HttpClientUtils;
 import com.bao.lc.common.exception.ParseException;
 import com.bao.lc.util.AppUtils;
-import com.bao.lc.util.CommonUtil;
-import com.bao.lc.util.HttpClientUtil;
+import com.bao.lc.util.MiscUtils;
 
 public class CnetUser
 {
@@ -125,7 +128,7 @@ public class CnetUser
 
 		// 1. main page for referer
 		url = AppConfig.getInstance().getPropInternal("cnet.url.main");
-		rsp = session.get(url);
+		rsp = session.execute(url);
 
 		// 2. login page
 		url = AppConfig.getInstance().getPropInternal("cnet.url.login");
@@ -138,7 +141,9 @@ public class CnetUser
 		params.put("resource", "rps-authenticate");
 		params.put("viewType", "json");
 		
-		rsp = session.post(url, params, "UTF-8");
+		RequestBuilder rb = new RequestBuilder();
+		rb.method(HttpPost.METHOD_NAME).uriStr(url).parameters(params).encoding("UTF-8");
+		rsp = session.execute(rb);
 
 		// parse result
 		content = EntityUtils.toString(rsp.getEntity(), "UTF-8");
@@ -157,8 +162,8 @@ public class CnetUser
 		
 		params.clear();
 		params.put("tag", "hdr;brandnav");
-		rsp = session.get(url, null, null, host);
-		HttpClientUtil.saveToFile(rsp.getEntity(), AppUtils.getTempFilePath("profile.html"));
+		rsp = session.execute(url);
+		HttpClientUtils.saveToFile(rsp.getEntity(), AppUtils.getTempFilePath("profile.html"));
 		
 		profileContent = IOUtils.toString(
 			new FileInputStream(AppUtils.getTempFilePath("profile.html")), "UTF-8");
@@ -179,11 +184,11 @@ public class CnetUser
 	public boolean logout() throws ClientProtocolException, IOException, ParseException, URISyntaxException
 	{
 		String logoutPageRegex = "<a class=\"logOut\" href=\"(.+?)\">Log out</a>";
-		String logoutPage = CommonUtil.getRegexValueOnce(profileContent, logoutPageRegex, 1);
+		String logoutPage = MiscUtils.getRegexValueOnce(profileContent, logoutPageRegex, 1);
 
 		URI logoutURI = URIUtils.rewriteURI(URI.create(logoutPage), host);
-		HttpResponse rsp = session.get(logoutURI.toString());
-		HttpClientUtil.saveToFile(rsp.getEntity(), AppUtils.getTempFilePath("logout.html"));
+		HttpResponse rsp = session.execute(logoutURI.toString());
+		HttpClientUtils.saveToFile(rsp.getEntity(), AppUtils.getTempFilePath("logout.html"));
 		
 		boolean result = (rsp.getStatusLine().getStatusCode() == 200);
 		if(result)
@@ -198,14 +203,18 @@ public class CnetUser
 	public boolean getComminityProfile() throws ClientProtocolException, IOException, ParseException, URISyntaxException
 	{
 		String regex = "<a class=\"itemName\" href=\"(.+?)\">Community Profile</a>";
-		String url = CommonUtil.getRegexValueOnce(profileContent, regex, 1);
+		String url = MiscUtils.getRegexValueOnce(profileContent, regex, 1);
 		
 		Map<String, String> params = new HashMap<String, String>(1);
 		params.put("tag", "contentMain;contentBody");
 		
 		URI uri = URIUtils.rewriteURI(URI.create(url), host);
-		HttpResponse rsp = session.get(uri, null, params, host);
-		HttpClientUtil.saveToFile(rsp.getEntity(), AppUtils.getTempFilePath("community-profile.html"));
+		
+		RequestBuilder rb = new RequestBuilder();
+		rb.uri(uri).parameters(params);
+		HttpResponse rsp = session.execute(rb);
+		
+		HttpClientUtils.saveToFile(rsp.getEntity(), AppUtils.getTempFilePath("community-profile.html"));
 		
 		return (rsp.getStatusLine().getStatusCode() == 200);
 	}
@@ -216,24 +225,23 @@ public class CnetUser
 		URI uri = URI.create(AppConfig.getInstance().getPropInternal("cnet.url.main_profile"));
 		//1. First get update url
 		String regex = "<ul class=\"settings\"> <li><a href=\"(.+?)\">Update my e-mail address</a></li> <li>";
-		String url = CommonUtil.getRegexValueOnce(profileContent, regex, 1);
+		String url = MiscUtils.getRegexValueOnce(profileContent, regex, 1);
 		uri = uri.resolve(url);
-		
-		Map<String, String> params = new HashMap<String, String>();
-		HttpResponse rsp = session.get(uri, null, params, host);
-		HttpClientUtil.saveToFile(rsp.getEntity(), AppUtils.getTempFilePath("modifyProfile.html"));
+			
+		HttpResponse rsp = session.execute(new RequestBuilder().uri(uri));
+		HttpClientUtils.saveToFile(rsp.getEntity(), AppUtils.getTempFilePath("modifyProfile.html"));
 		
 		String content = IOUtils.toString(
 			new FileInputStream(AppUtils.getTempFilePath("modifyProfile.html")), "UTF-8");
 		regex = "<input type=\"hidden\" name=\"path\" value=\"(.+?)\"(.*?)/>";
-		String path = CommonUtil.getRegexValueOnce(content, regex, 1);
+		String path = MiscUtils.getRegexValueOnce(content, regex, 1);
 		
 		regex = "<form onSubmit=\"(.+?)\" name=\"mainForm\" method=\"POST\" action=\"(.+?)\">";
-		url = CommonUtil.getRegexValueOnce(content, regex, 2);
+		url = MiscUtils.getRegexValueOnce(content, regex, 2);
 		uri = uri.resolve(url);
 		
 		//2. Post modify request
-		params.clear();
+		Map<String, String> params = new HashMap<String, String>();
 		params.put("COUNTRY", "US");
 		params.put("DATEOFBIRTH", birthday);
 		params.put("EMAILADDR", user);
@@ -245,8 +253,10 @@ public class CnetUser
 		params.put("REMEMBERME", "1");
 		params.put("path", path);
 		
-		rsp = session.post(uri, null, params, "UTF-8", host);
-		HttpClientUtil.saveToFile(rsp.getEntity(), AppUtils.getTempFilePath("modifyProfileResult.html"));
+		RequestBuilder rb = new RequestBuilder();
+		rb.method(HttpPost.METHOD_NAME).uri(uri).parameters(params).encoding("UTF-8");
+		rsp = session.execute(rb);
+		HttpClientUtils.saveToFile(rsp.getEntity(), AppUtils.getTempFilePath("modifyProfileResult.html"));
 		
 		String location = null;
 		if(rsp.getStatusLine().getStatusCode() == 302)
@@ -263,8 +273,8 @@ public class CnetUser
 		if(location != null)
 		{
 			uri = uri.resolve(location);
-			rsp = session.get(uri, null, null, host);
-			HttpClientUtil.saveToFile(rsp.getEntity(), AppUtils.getTempFilePath("modifyProfileRedir.html"));
+			rsp = session.execute(new RequestBuilder().uri(uri));
+			HttpClientUtils.saveToFile(rsp.getEntity(), AppUtils.getTempFilePath("modifyProfileRedir.html"));
 		}
 
 		return (rsp.getStatusLine().getStatusCode() == 302) && (location != null);
@@ -273,7 +283,7 @@ public class CnetUser
 	private String getLoginUserName() throws IOException, ParseException
 	{
 		String userNameRegex = "userName: '(.*?)',";
-		String userName = CommonUtil.getRegexValueOnce(profileContent, userNameRegex, 1);
+		String userName = MiscUtils.getRegexValueOnce(profileContent, userNameRegex, 1);
 		if(userName.trim().isEmpty())
 		{
 			log.info("userName is empty");
@@ -281,7 +291,7 @@ public class CnetUser
 		}
 		
 		String loggedInRegex = "loggedIn: '(.*?)',";
-		String loggedIn = CommonUtil.getRegexValueOnce(profileContent, loggedInRegex, 1);
+		String loggedIn = MiscUtils.getRegexValueOnce(profileContent, loggedInRegex, 1);
 		if(loggedIn.trim().isEmpty())
 		{
 			log.info("loggedIn is empty");

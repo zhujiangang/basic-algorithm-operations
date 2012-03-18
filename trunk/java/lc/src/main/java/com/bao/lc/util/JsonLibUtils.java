@@ -9,7 +9,7 @@ import org.apache.commons.io.IOUtils;
 import net.sf.json.JSONObject;
 import net.sf.json.JSONSerializer;
 
-public class JsonLibUtil
+public class JsonLibUtils
 {
 	private static String toIndent(int indent)
 	{
@@ -50,7 +50,7 @@ public class JsonLibUtil
 	
 	public static void showJSONFile(String fileName)
 	{
-		InputStream is = JsonLibUtil.class.getResourceAsStream(fileName);
+		InputStream is = JsonLibUtils.class.getResourceAsStream(fileName);
 		
 		try
 		{

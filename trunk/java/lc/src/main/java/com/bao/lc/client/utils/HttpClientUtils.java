@@ -1,4 +1,4 @@
-package com.bao.lc.util;
+package com.bao.lc.client.utils;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -25,11 +25,12 @@ import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
 
 import com.bao.lc.AppConfig;
+import com.bao.lc.util.AppUtils;
 
 
-public class HttpClientUtil
+public class HttpClientUtils
 {	
-	private static final Log log = LogFactory.getLog(HttpClientUtil.class); 
+	private static final Log log = LogFactory.getLog(HttpClientUtils.class); 
 	/**
 	 * Assembly Cookies
 	 * 

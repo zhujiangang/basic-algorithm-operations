@@ -1,4 +1,4 @@
-package com.bao.lc.util;
+package com.bao.lc.client;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
@@ -133,7 +133,7 @@ public class RequestBuilder
 		this.reference = referrence;
 		return this;
 	}
-	public RequestBuilder uriString(String uriString)
+	public RequestBuilder uriStr(String uriString)
 	{
 		this.uriString = uriString;
 		return this;

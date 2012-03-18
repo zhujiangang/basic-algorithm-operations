@@ -1,4 +1,4 @@
-package com.bao.lc.client;
+package com.bao.lc.site.sx;
 
 import java.util.Random;
 
@@ -14,7 +14,9 @@ import org.apache.http.HttpResponse;
 import org.apache.http.util.EntityUtils;
 
 import com.bao.lc.AppConfig;
-import com.bao.lc.util.CommonUtil;
+import com.bao.lc.client.BrowserClient;
+import com.bao.lc.client.params.MiscParams;
+import com.bao.lc.util.MiscUtils;
 
 public class SPDownload
 {
@@ -34,12 +36,12 @@ public class SPDownload
 		int rc = 0;
 		
 		BrowserClient session = new BrowserClient();
-		session.addReferer(referer);
+		MiscParams.setReferer(session.getParams(), referer);
 		
 		HttpResponse rsp = null;
 		try
 		{
-			rsp = session.get(url);
+			rsp = session.execute(url);
 			
 			EntityUtils.consume(rsp.getEntity());
 			
@@ -83,8 +85,8 @@ public class SPDownload
 	{
 		String url = AppConfig.getInstance().getPropInput("sp.dl.url");
 		String referer = AppConfig.getInstance().getPropInput("sp.dl.referer");
-		int count = CommonUtil.toInt(AppConfig.getInstance().getPropInput("sp.dl.count"));
-		int interval = CommonUtil.toInt(AppConfig.getInstance().getPropInput("sp.dl.interval"));
+		int count = MiscUtils.toInt(AppConfig.getInstance().getPropInput("sp.dl.count"));
+		int interval = MiscUtils.toInt(AppConfig.getInstance().getPropInput("sp.dl.interval"));
 		
 		Options options = buildOptions();
 		CommandLineParser parser = new GnuParser();
@@ -103,11 +105,11 @@ public class SPDownload
 			}
 			if(line.hasOption('c'))
 			{
-				count = CommonUtil.toInt(line.getOptionValue('c'));
+				count = MiscUtils.toInt(line.getOptionValue('c'));
 			}
 			if(line.hasOption('i'))
 			{
-				interval = CommonUtil.toInt(line.getOptionValue('i'));
+				interval = MiscUtils.toInt(line.getOptionValue('i'));
 			}
 			if(line.hasOption('h'))
 			{
@@ -139,7 +141,7 @@ public class SPDownload
 				fail++;
 			}
 			
-			CommonUtil.sleep(interval, rand);
+			MiscUtils.sleep(interval, rand);
 		}
 		
 		String result = String.format(

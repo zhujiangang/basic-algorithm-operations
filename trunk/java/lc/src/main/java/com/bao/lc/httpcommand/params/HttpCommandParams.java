@@ -1,19 +1,18 @@
-package com.bao.lc.httpcommand;
+package com.bao.lc.httpcommand.params;
 
 import java.net.URI;
 
 import org.apache.commons.chain.Command;
 import org.apache.commons.chain.Context;
-import org.apache.commons.chain.impl.ContextBase;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.RedirectStrategy;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.protocol.HttpContext;
 
+import com.bao.lc.bean.IDValuePair;
 import com.bao.lc.client.BrowserClient;
-import com.bao.lc.client.PostRedirectStrategy;
-import com.bao.lc.common.IDValuePair;
+import com.bao.lc.client.impl.PostRedirectStrategy;
 
 public class HttpCommandParams
 {
@@ -98,37 +97,5 @@ public class HttpCommandParams
 	public static Command getExceptionCommand(Context context)
 	{
 		return (Command) context.get(HttpCommandPNames.EXCEPTION_COMMAND);
-	}
-
-	public static Context createContext(BrowserClient httpClient, HttpContext httpContext,
-		HttpUriRequest request)
-	{
-		Context context = new ContextBase();
-
-		context.put(HttpCommandPNames.TARGET_REQUEST, request);
-		context.put(HttpCommandPNames.HTTP_CLIENT, httpClient);
-		if(httpContext != null)
-		{
-			context.put(HttpCommandPNames.HTTP_CONTEXT, httpContext);
-		}
-
-		return context;
-	}
-
-	public static Context createContext(BrowserClient httpClient, HttpUriRequest request)
-	{
-		return createContext(httpClient, null, request);
-	}
-
-	public static String getCommandResultText(boolean result)
-	{
-		if(result == Command.PROCESSING_COMPLETE)
-		{
-			return "COMPLETE";
-		}
-		else
-		{
-			return "CONTINUE";
-		}
 	}
 }

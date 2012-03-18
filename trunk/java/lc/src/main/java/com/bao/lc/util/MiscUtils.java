@@ -3,8 +3,6 @@ package com.bao.lc.util;
 import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.ArrayList;
@@ -28,8 +26,6 @@ import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.http.HttpHost;
-import org.apache.http.client.utils.URIUtils;
 import org.htmlparser.lexer.Lexer;
 import org.htmlparser.lexer.Page;
 import org.htmlparser.nodes.TextNode;
@@ -42,9 +38,9 @@ import org.htmlparser.Parser;
 import com.bao.lc.common.LoggerFeedback;
 import com.bao.lc.common.exception.ParseException;
 
-public class CommonUtil
+public class MiscUtils
 {
-	private static Log log = LogFactory.getLog(CommonUtil.class);
+	private static Log log = LogFactory.getLog(MiscUtils.class);
 
 	public static int getRegexValue(String str, String regex, List<String> valueList,
 		boolean allGroup, int flags)
@@ -202,54 +198,6 @@ public class CommonUtil
 
 		String result = JOptionPane.showInputDialog(null, message);
 		return result;
-	}
-
-	public static String getAbsoluteURI(String uri, HttpHost host)
-	{
-		URI resultURI = getAbsoluteURI(URI.create(uri), host, null);
-
-		return (resultURI == null) ? null : resultURI.toString();
-	}
-
-	public static URI getAbsoluteURI(URI uri, HttpHost host)
-	{
-		return getAbsoluteURI(uri, host, null);
-	}
-
-	public static URI getAbsoluteURI(URI uri, HttpHost host, URI baseURI)
-	{
-		if(uri.isAbsolute())
-		{
-			return uri;
-		}
-
-		URI resultURI = null;
-		do
-		{
-			if(baseURI != null)
-			{
-				resultURI = URIUtils.resolve(baseURI, uri);
-				break;
-			}
-
-			try
-			{
-				resultURI = URIUtils.rewriteURI(uri, host, false);
-			}
-			catch(URISyntaxException e)
-			{
-				log.error(String.format("Failed to getAbsoluteURI uri=[%s], host=[%s]", uri, host),
-					e);
-			}
-		}
-		while(false);
-
-		if(log.isDebugEnabled())
-		{
-			log.debug(String.format("getAbsoluteURI from [%s] to [%s].", uri, resultURI));
-		}
-
-		return uri;
 	}
 
 	public static int convertDayOfWeek(int x)
