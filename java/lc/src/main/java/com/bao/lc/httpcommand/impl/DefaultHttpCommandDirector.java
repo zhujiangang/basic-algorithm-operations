@@ -5,7 +5,7 @@ import org.apache.commons.chain.Context;
 
 import com.bao.lc.httpcommand.CommandCompleteListener;
 import com.bao.lc.httpcommand.HttpCommandDirector;
-import com.bao.lc.httpcommand.HttpCommandParams;
+import com.bao.lc.httpcommand.params.HttpCommandParams;
 
 public class DefaultHttpCommandDirector implements HttpCommandDirector
 {

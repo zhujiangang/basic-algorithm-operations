@@ -1,14 +1,11 @@
 package com.bao.lc.client;
 
 import java.io.IOException;
-import java.net.URI;
-import java.util.Map;
 
-import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.RedirectStrategy;
+import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.params.CookiePolicy;
 import org.apache.http.client.params.HttpClientParams;
 import org.apache.http.conn.ClientConnectionManager;
@@ -17,9 +14,12 @@ import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 import org.apache.http.params.HttpParams;
 import org.apache.http.params.HttpProtocolParams;
 import org.apache.http.protocol.BasicHttpProcessor;
+import org.apache.http.protocol.HttpContext;
 
-import com.bao.lc.util.CommonUtil;
-import com.bao.lc.util.RequestBuilder;
+import com.bao.lc.client.impl.PostRedirectStrategy;
+import com.bao.lc.client.impl.RequestReferer;
+import com.bao.lc.client.impl.RequestResetRedirectChain;
+import com.bao.lc.client.params.MiscParams;
 
 public class BrowserClient extends DefaultHttpClient
 {
@@ -69,89 +69,52 @@ public class BrowserClient extends DefaultHttpClient
 
 		HttpProtocolParams.setUserAgent(params, AGENT_IE7);
 		HttpClientParams.setCookiePolicy(params, CookiePolicy.BROWSER_COMPATIBILITY);
+		
+		//Set redirect strategy
+		RedirectStrategy redirectStrategy = new PostRedirectStrategy();
+		setRedirectStrategy(redirectStrategy);
+		MiscParams.setRedirectStrategy(params, redirectStrategy);
+		
 		return params;
-	}
-
-	public void addReferer(String referer)
-	{
-		getParams().setParameter(RequestReferer.REFERER_INTERNAL, referer);
 	}
 
 	protected BasicHttpProcessor createHttpProcessor()
 	{
 		BasicHttpProcessor httpproc = super.createHttpProcessor();
 		httpproc.addInterceptor(new RequestReferer());
-
+		httpproc.addInterceptor(new RequestResetRedirectChain());
+		
 		return httpproc;
 	}
 
-	public HttpResponse get(URI uri, Map<String, String> headers, Map<String, String> params,
-		HttpHost targetHost) throws ClientProtocolException, IOException
-	{
-		uri = CommonUtil.getAbsoluteURI(uri, targetHost);
-
-		RequestBuilder rb = new RequestBuilder();
-		HttpGet hp = rb.uri(uri).parameters(params).headers(headers).createGet();
-
-		HttpResponse rsp = null;
-		if(targetHost != null)
-		{
-			rsp = execute(targetHost, hp);
-		}
-		else
-		{
-			rsp = execute(hp);
-		}
-
-		addReferer(uri.toString());
-
-		return rsp;
-	}
-
-	public HttpResponse get(String url, Map<String, String> headers, Map<String, String> params,
-		HttpHost targetHost) throws ClientProtocolException, IOException
-	{
-		return get(URI.create(url), headers, params, targetHost);
-	}
-
-	public HttpResponse get(String url) throws ClientProtocolException, IOException
-	{
-		return get(URI.create(url), null, null, null);
-	}
-
-	public HttpResponse post(URI uri, Map<String, String> headers, Map<String, String> params,
-		String encoding, HttpHost targetHost) throws ClientProtocolException, IOException
-	{
-		uri = CommonUtil.getAbsoluteURI(uri, targetHost);
-
-		RequestBuilder rb = new RequestBuilder();
-		rb.uri(uri).parameters(params).headers(headers).encoding(encoding);
-		HttpPost post = rb.createPost();
-
-		HttpResponse rsp = null;
-		if(targetHost != null)
-		{
-			rsp = execute(targetHost, post);
-		}
-		else
-		{
-			rsp = execute(post);
-		}
-
-		addReferer(uri.toString());
-
-		return rsp;
-	}
-
-	public HttpResponse post(String url, Map<String, String> headers, Map<String, String> params,
-		String encoding, HttpHost targetHost) throws ClientProtocolException, IOException
-	{
-		return post(URI.create(url), headers, params, encoding, targetHost);
-	}
-
-	public HttpResponse post(String url, Map<String, String> params, String encoding)
+	public HttpResponse execute(RequestBuilder builder, HttpContext context)
 		throws ClientProtocolException, IOException
 	{
-		return post(URI.create(url), null, params, encoding, null);
+		HttpUriRequest request = builder.create();
+
+		HttpResponse rsp = execute(request, context);
+
+		MiscParams.setReferer(getParams(), request.getURI().toString());
+
+		return rsp;
+	}
+
+	public HttpResponse execute(RequestBuilder builder) throws ClientProtocolException, IOException
+	{
+		return execute(builder, (HttpContext) null);
+	}
+
+	public HttpResponse execute(String uriString, HttpContext context)
+		throws ClientProtocolException, IOException
+	{
+		RequestBuilder builder = new RequestBuilder();
+		builder.uriStr(uriString);
+
+		return execute(builder, context);
+	}
+
+	public HttpResponse execute(String uriString) throws ClientProtocolException, IOException
+	{
+		return execute(uriString, (HttpContext) null);
 	}
 }

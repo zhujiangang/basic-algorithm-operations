@@ -20,17 +20,17 @@ import org.htmlparser.tags.InputTag;
 import org.htmlparser.util.NodeList;
 import org.htmlparser.util.ParserException;
 
-import com.bao.lc.common.IDValuePair;
-import com.bao.lc.common.ResultCode;
-import com.bao.lc.httpcommand.DefaultHttpCommand;
-import com.bao.lc.httpcommand.HttpCommandPNames;
-import com.bao.lc.httpcommand.HttpCommandParams;
+import com.bao.lc.bean.IDValuePair;
+import com.bao.lc.bean.ResultCode;
+import com.bao.lc.client.RequestBuilder;
+import com.bao.lc.client.utils.HttpClientUtils;
+import com.bao.lc.httpcommand.BasicHttpCommand;
+import com.bao.lc.httpcommand.params.HttpCommandPNames;
+import com.bao.lc.httpcommand.params.HttpCommandParams;
 import com.bao.lc.site.s2.ZyContants;
-import com.bao.lc.util.CommonUtil;
-import com.bao.lc.util.HttpClientUtil;
-import com.bao.lc.util.RequestBuilder;
+import com.bao.lc.util.MiscUtils;
 
-public class GetLoginPage extends DefaultHttpCommand
+public class GetLoginPage extends BasicHttpCommand
 {
 	private static Log log = LogFactory.getLog(GetLoginPage.class);
 
@@ -52,10 +52,10 @@ public class GetLoginPage extends DefaultHttpCommand
 	private void parse(Context context, HttpResponse rsp) throws Exception
 	{
 		String encoding = "UTF-8";
-		String text = HttpClientUtil.saveToString(rsp.getEntity(), encoding);
+		String text = HttpClientUtils.saveToString(rsp.getEntity(), encoding);
 
 		// Parse
-		Parser parser = CommonUtil.createParser(text, encoding, log);
+		Parser parser = MiscUtils.createParser(text, encoding, log);
 		// Set filters
 		NodeFilter[] predicates = { new HasAttributeFilter("id", "Form1"),
 			new HasAttributeFilter("name", "Form1"), new NodeClassFilter(FormTag.class) };
@@ -129,9 +129,9 @@ public class GetLoginPage extends DefaultHttpCommand
 	private String buildLocation(String type, String redirct)
 	{
 		StringBuilder sb = new StringBuilder("Login.aspx?flag=login&type=");
-		sb.append(CommonUtil.escapeJS(type));
+		sb.append(MiscUtils.escapeJS(type));
 		sb.append("&url-redirect-to=");
-		sb.append(CommonUtil.escapeJS(redirct));
+		sb.append(MiscUtils.escapeJS(redirct));
 		return sb.toString();
 	}
 }

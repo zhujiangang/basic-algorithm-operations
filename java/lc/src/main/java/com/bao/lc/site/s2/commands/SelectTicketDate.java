@@ -27,17 +27,17 @@ import org.htmlparser.tags.InputTag;
 import org.htmlparser.util.NodeList;
 import org.htmlparser.util.ParserException;
 
-import com.bao.lc.common.IDValuePair;
-import com.bao.lc.common.ResultCode;
-import com.bao.lc.httpcommand.DefaultHttpCommand;
-import com.bao.lc.httpcommand.HttpCommandPNames;
-import com.bao.lc.httpcommand.HttpCommandParams;
+import com.bao.lc.bean.IDValuePair;
+import com.bao.lc.bean.ResultCode;
+import com.bao.lc.client.RequestBuilder;
+import com.bao.lc.client.utils.HttpClientUtils;
+import com.bao.lc.httpcommand.BasicHttpCommand;
+import com.bao.lc.httpcommand.params.HttpCommandPNames;
+import com.bao.lc.httpcommand.params.HttpCommandParams;
 import com.bao.lc.site.s2.ZyContants;
-import com.bao.lc.util.CommonUtil;
-import com.bao.lc.util.HttpClientUtil;
-import com.bao.lc.util.RequestBuilder;
+import com.bao.lc.util.MiscUtils;
 
-public class SelectTicketDate extends DefaultHttpCommand
+public class SelectTicketDate extends BasicHttpCommand
 {
 	private static Log log = LogFactory.getLog(SelectTicketDate.class);
 
@@ -52,9 +52,9 @@ public class SelectTicketDate extends DefaultHttpCommand
 	{
 		HttpResponse rsp = HttpCommandParams.getResponse(context);
 		String encoding = MapUtils.getString(context, ZyContants.PARAM_RSP_ENCODING, "UTF-8");
-		String content = HttpClientUtil.saveToString(rsp.getEntity(), encoding);
+		String content = HttpClientUtils.saveToString(rsp.getEntity(), encoding);
 
-		Parser parser = CommonUtil.createParser(content, encoding, log);
+		Parser parser = MiscUtils.createParser(content, encoding, log);
 
 		// Set filters
 		List<NodeFilter> predicates = new ArrayList<NodeFilter>(2);
@@ -190,7 +190,7 @@ public class SelectTicketDate extends DefaultHttpCommand
 
 		if(log.isDebugEnabled())
 		{
-			log.debug("ParamMap: " + CommonUtil.toString(paramMap));
+			log.debug("ParamMap: " + MiscUtils.toString(paramMap));
 		}
 
 		String method = submitForm.getFormMethod();

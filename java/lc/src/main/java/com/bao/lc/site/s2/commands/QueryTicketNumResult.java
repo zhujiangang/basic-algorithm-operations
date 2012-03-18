@@ -30,16 +30,16 @@ import org.htmlparser.util.ParserException;
 import org.htmlparser.visitors.NodeVisitor;
 
 import com.bao.lc.AppConfig;
-import com.bao.lc.common.IDValuePair;
-import com.bao.lc.common.ResultCode;
-import com.bao.lc.httpcommand.DefaultHttpCommand;
-import com.bao.lc.httpcommand.HttpCommandPNames;
-import com.bao.lc.httpcommand.HttpCommandParams;
+import com.bao.lc.bean.IDValuePair;
+import com.bao.lc.bean.ResultCode;
+import com.bao.lc.client.utils.HttpClientUtils;
+import com.bao.lc.httpcommand.BasicHttpCommand;
+import com.bao.lc.httpcommand.params.HttpCommandPNames;
+import com.bao.lc.httpcommand.params.HttpCommandParams;
 import com.bao.lc.site.s2.ZyContants;
-import com.bao.lc.util.CommonUtil;
-import com.bao.lc.util.HttpClientUtil;
+import com.bao.lc.util.MiscUtils;
 
-public class QueryTicketNumResult extends DefaultHttpCommand
+public class QueryTicketNumResult extends BasicHttpCommand
 {
 	private static Log log = LogFactory.getLog(QueryTicketNumResult.class);
 
@@ -54,7 +54,7 @@ public class QueryTicketNumResult extends DefaultHttpCommand
 		String encoding = MapUtils.getString(context, ZyContants.PARAM_RSP_ENCODING, "UTF-8");
 		String doctor = MapUtils.getString(context, ZyContants.PARAM_DOCTOR);
 		
-		String escapedName = CommonUtil.encode(doctor, encoding);
+		String escapedName = MiscUtils.encode(doctor, encoding);
 		String url = AppConfig.getInstance().getPropInternal("zy.query.expert.url");
 		url = MessageFormat.format(url, escapedName);
 		
@@ -95,9 +95,9 @@ public class QueryTicketNumResult extends DefaultHttpCommand
 		IOException
 	{
 		String encoding = MapUtils.getString(context, ZyContants.PARAM_RSP_ENCODING, "UTF-8");
-		String queryResult = HttpClientUtil.saveToString(rsp.getEntity(), encoding);
+		String queryResult = HttpClientUtils.saveToString(rsp.getEntity(), encoding);
 
-		Parser parser = CommonUtil.createParser(queryResult, encoding, log);
+		Parser parser = MiscUtils.createParser(queryResult, encoding, log);
 
 		// Set filters
 		NodeFilter[] predicates = { new HasAttributeFilter("class", "datatable"),

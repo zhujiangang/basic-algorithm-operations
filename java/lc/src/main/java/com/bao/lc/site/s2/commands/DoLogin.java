@@ -16,18 +16,18 @@ import org.htmlparser.util.NodeList;
 import org.htmlparser.util.ParserException;
 
 import com.bao.lc.AppConfig;
-import com.bao.lc.client.PostRedirectStrategy;
-import com.bao.lc.common.IDValuePair;
+import com.bao.lc.bean.IDValuePair;
+import com.bao.lc.bean.ResultCode;
+import com.bao.lc.client.impl.PostRedirectStrategy;
+import com.bao.lc.client.utils.HttpClientUtils;
 import com.bao.lc.common.LinkTextRegexFilter;
-import com.bao.lc.common.ResultCode;
-import com.bao.lc.httpcommand.DefaultHttpCommand;
-import com.bao.lc.httpcommand.HttpCommandPNames;
-import com.bao.lc.httpcommand.HttpCommandParams;
+import com.bao.lc.httpcommand.BasicHttpCommand;
+import com.bao.lc.httpcommand.params.HttpCommandPNames;
+import com.bao.lc.httpcommand.params.HttpCommandParams;
 import com.bao.lc.site.s2.ZyContants;
-import com.bao.lc.util.CommonUtil;
-import com.bao.lc.util.HttpClientUtil;
+import com.bao.lc.util.MiscUtils;
 
-public class DoLogin extends DefaultHttpCommand
+public class DoLogin extends BasicHttpCommand
 {
 	private static Log log = LogFactory.getLog(DoLogin.class);
 
@@ -43,7 +43,7 @@ public class DoLogin extends DefaultHttpCommand
 		
 		String encoding = "UTF-8";
 		// save the member center page
-		String userPage = HttpClientUtil.saveToString(rsp.getEntity(), encoding);
+		String userPage = HttpClientUtils.saveToString(rsp.getEntity(), encoding);
 		context.put(ZyContants.USER_PAGE_CONTENT_KEY, userPage);
 		
 		PostRedirectStrategy redirectStrategy = HttpCommandParams.getRedirectStrategy(context);
@@ -51,7 +51,7 @@ public class DoLogin extends DefaultHttpCommand
 		{
 			throw new IllegalStateException("Can't find the redirectStrategy.");
 		}
-		if(!redirectStrategy.isRedirected())
+		if(!redirectStrategy.isPostRedirected())
 		{
 			throw new IllegalStateException("Login doesn't find any redirect.");
 		}
@@ -78,7 +78,7 @@ public class DoLogin extends DefaultHttpCommand
 	private void parseLogoutRequest(Context context, String userPage, URI userPageURI,
 		String encoding) throws ParserException
 	{
-		Parser parser = CommonUtil.createParser(userPage, encoding, log);
+		Parser parser = MiscUtils.createParser(userPage, encoding, log);
 
 		NodeList logoutList = parser.parse(new LinkTextRegexFilter(AppConfig.getInstance()
 			.getPropInternal("zy.logout.link.mark")));

@@ -3,7 +3,7 @@ package com.bao.lc.httpcommand;
 import org.apache.commons.chain.Command;
 import org.apache.commons.chain.Context;
 
-import com.bao.lc.common.IDValuePair;
+import com.bao.lc.bean.IDValuePair;
 
 public interface CommandCompleteListener
 {
