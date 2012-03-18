@@ -1,4 +1,4 @@
-package com.bao.lc.httpcommand;
+package com.bao.lc.httpcommand.params;
 
 public interface HttpCommandPNames
 {
@@ -21,7 +21,7 @@ public interface HttpCommandPNames
 	public static final String TARGET_REFERER = "lc.target.referer";
 
 	/**
-	 * Attribute name of a {@link com.bao.lc.common.IDValuePair} object that
+	 * Attribute name of a {@link com.bao.lc.bean.IDValuePair} object that
 	 * represents the actual result of the current command.
 	 */
 	public static final String HTTP_COMMAND_RESULT_CODE = "lc.http.command.result.code";

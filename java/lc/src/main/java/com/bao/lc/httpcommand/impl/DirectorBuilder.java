@@ -1,9 +1,10 @@
-package com.bao.lc.httpcommand;
+package com.bao.lc.httpcommand.impl;
 
 import org.apache.commons.chain.Command;
 import org.apache.commons.chain.Context;
 
-import com.bao.lc.httpcommand.impl.DefaultHttpCommandDirector;
+import com.bao.lc.httpcommand.CommandCompleteListener;
+import com.bao.lc.httpcommand.HttpCommandDirector;
 
 public class DirectorBuilder
 {

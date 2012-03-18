@@ -1,4 +1,4 @@
-package com.bao.lc.client;
+package com.bao.lc.client.impl;
 
 import java.io.IOException;
 import java.net.URI;
@@ -8,12 +8,11 @@ import org.apache.http.HttpRequest;
 import org.apache.http.HttpRequestInterceptor;
 import org.apache.http.protocol.HttpContext;
 
-import com.bao.lc.util.HttpClientUtil;
+import com.bao.lc.client.params.MiscParams;
+import com.bao.lc.client.utils.HttpClientUtils;
 
 public class RequestResetRedirectChain implements HttpRequestInterceptor
 {
-	public static final String REDIRECT_STRATEGY = "lc.redir.strategy";
-	
 	public RequestResetRedirectChain()
 	{
 		super();
@@ -31,17 +30,11 @@ public class RequestResetRedirectChain implements HttpRequestInterceptor
 			throw new IllegalArgumentException("HTTP context may not be null");
 		}
 		
-		Object obj = request.getParams().getParameter(REDIRECT_STRATEGY);
-		if(obj instanceof PostRedirectStrategy)
+		PostRedirectStrategy strategy = MiscParams.getPostRedirectStrategy(request.getParams());
+		if(strategy != null && strategy.isPostRedirected())
 		{
-			PostRedirectStrategy strategy = (PostRedirectStrategy)obj;
-			
-			if(!strategy.isRedirected())
-			{
-				return;
-			}
 			URI finalURI = strategy.getFinalRequest().getURI();
-			URI currentURI = HttpClientUtil.getRequestURI(request, context);
+			URI currentURI = HttpClientUtils.getRequestURI(request, context);
 			
 			if(currentURI != null && finalURI != null && !currentURI.equals(finalURI))
 			{

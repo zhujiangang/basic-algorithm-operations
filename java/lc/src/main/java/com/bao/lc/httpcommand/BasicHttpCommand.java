@@ -9,18 +9,21 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.protocol.HttpContext;
 
+import com.bao.lc.bean.HttpResult;
+import com.bao.lc.bean.IDValuePair;
+import com.bao.lc.bean.ResultCode;
 import com.bao.lc.client.BrowserClient;
-import com.bao.lc.common.HttpResult;
-import com.bao.lc.common.IDValuePair;
-import com.bao.lc.common.ResultCode;
+import com.bao.lc.client.params.MiscParams;
+import com.bao.lc.client.utils.HttpClientUtils;
+import com.bao.lc.httpcommand.params.HttpCommandPNames;
+import com.bao.lc.httpcommand.params.HttpCommandParams;
 import com.bao.lc.util.AppUtils;
-import com.bao.lc.util.HttpClientUtil;
 
-public class DefaultHttpCommand implements Filter
+public class BasicHttpCommand implements Filter
 {
 	private Log log = LogFactory.getLog(getClass());
 
-	public DefaultHttpCommand()
+	public BasicHttpCommand()
 	{
 	}
 
@@ -125,7 +128,7 @@ public class DefaultHttpCommand implements Filter
 			String referer = (String) context.get(HttpCommandPNames.TARGET_REFERER);
 			if(referer != null)
 			{
-				httpClient.addReferer(referer);
+				MiscParams.setReferer(httpClient.getParams(), referer);
 			}
 
 			// 3. Execute the URI request
@@ -137,7 +140,7 @@ public class DefaultHttpCommand implements Filter
 
 				// Save the result file so make the content to be consumed
 				String file = AppUtils.getTempFilePath("HttpErrorResult_" + statusCode + ".html");
-				HttpClientUtil.saveToFile(rsp.getEntity(), file);
+				HttpClientUtils.saveToFile(rsp.getEntity(), file);
 				break;
 			}
 
@@ -155,7 +158,7 @@ public class DefaultHttpCommand implements Filter
 
 		// Save the result file so make the content to be consumed
 		String file = AppUtils.getTempFilePath("HttpResult_200.html");
-		HttpClientUtil.saveToFile(rsp.getEntity(), file);
+		HttpClientUtils.saveToFile(rsp.getEntity(), file);
 
 		context.remove(HttpCommandPNames.TARGET_REQUEST);
 		context.remove(HttpCommandPNames.TARGET_REFERER);

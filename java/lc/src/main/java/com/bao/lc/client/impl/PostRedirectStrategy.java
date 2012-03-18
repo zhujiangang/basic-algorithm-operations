@@ -1,4 +1,4 @@
-package com.bao.lc.client;
+package com.bao.lc.client.impl;
 
 import java.net.URI;
 import java.util.List;
@@ -15,7 +15,7 @@ import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.impl.client.DefaultRedirectStrategy;
 import org.apache.http.protocol.HttpContext;
 
-import com.bao.lc.util.HttpClientUtil;
+import com.bao.lc.client.utils.HttpClientUtils;
 
 public class PostRedirectStrategy extends DefaultRedirectStrategy
 {
@@ -72,7 +72,7 @@ public class PostRedirectStrategy extends DefaultRedirectStrategy
 		final HttpContext context)
 	{
 		// 1. From URI
-		URI fromURI = HttpClientUtil.getRequestURI(request, context);
+		URI fromURI = HttpClientUtils.getRequestURI(request, context);
 		if(fromURI == null)
 		{
 			return null;
@@ -92,7 +92,7 @@ public class PostRedirectStrategy extends DefaultRedirectStrategy
 		return this.redirectChain;
 	}
 	
-	public boolean isRedirected()
+	public boolean isPostRedirected()
 	{
 		return !redirectChain.isEmpty();
 	}
@@ -104,7 +104,7 @@ public class PostRedirectStrategy extends DefaultRedirectStrategy
 	
 	public HttpUriRequest getFinalRequest()
 	{
-		if(!isRedirected())
+		if(!isPostRedirected())
 		{
 			return null;
 		}

@@ -1,4 +1,4 @@
-package com.bao.lc.client;
+package com.bao.lc.site.sx;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -18,14 +18,20 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.util.EntityUtils;
 
 import com.bao.lc.AppConfig;
+import com.bao.lc.bean.HttpResult;
+import com.bao.lc.bean.IDValuePair;
+import com.bao.lc.bean.ResultCode;
+import com.bao.lc.client.BrowserClient;
+import com.bao.lc.client.RequestBuilder;
+import com.bao.lc.client.params.MiscParams;
+import com.bao.lc.client.utils.HttpClientUtils;
 import com.bao.lc.common.exception.ParseException;
 import com.bao.lc.util.AppUtils;
-import com.bao.lc.util.CommonUtil;
-import com.bao.lc.util.HttpClientUtil;
-import com.bao.lc.common.*;
+import com.bao.lc.util.MiscUtils;
 
 public class RjLogin
 {
@@ -113,7 +119,7 @@ public class RjLogin
 					{
 						break;
 					}
-					if(CommonUtil.diffWithNow(startRegTime) >= 0)
+					if(MiscUtils.diffWithNow(startRegTime) >= 0)
 					{
 						validTryTime++;
 					}
@@ -121,7 +127,7 @@ public class RjLogin
 					String info = String.format("Try to register for %d, %d times. Result: %s.", tryTime, validTryTime, rc);
 					log.info(info);
 					
-					if(CommonUtil.diffWithNow(startRegTime) >= MAX_TIME_DIFF)
+					if(MiscUtils.diffWithNow(startRegTime) >= MAX_TIME_DIFF)
 					{
 						rc = ResultCode.RC_TIMEOUT;
 						break;
@@ -160,24 +166,24 @@ public class RjLogin
 
 		// 1. main page
 		url = AppConfig.getInstance().getPropInternal("rjh.url.main");
-		rsp = session.get(url);
+		rsp = session.execute(url);
 
 		// 2. login page
 		url = AppConfig.getInstance().getPropInternal("rjh.url.login");
-		rsp = session.get(url);
+		rsp = session.execute(url);
 		String content = EntityUtils.toString(rsp.getEntity(), "GB2312");
 		parseLoginParameters(content, paramMap);
 
 		// 3. validation code
 		String validateToken = paramMap.get("ValidateToken");
 		url = AppConfig.getInstance().getPropInternal("rjh.url.validation_code") + validateToken;
-		rsp = session.get(url);
+		rsp = session.execute(url);
 
 		String validationCodeImage = AppUtils.getTempFilePath("vcode.png");
-		HttpClientUtil.saveToFile(rsp.getEntity(), validationCodeImage);
+		HttpClientUtils.saveToFile(rsp.getEntity(), validationCodeImage);
 
 		// 4. show validation code
-		String validationCode = CommonUtil.getValidationCode(validationCodeImage);
+		String validationCode = MiscUtils.getValidationCode(validationCodeImage);
 		if(validationCode == null)
 		{
 			return false;
@@ -190,20 +196,23 @@ public class RjLogin
 		paramMap.remove("ValidateToken");
 
 		url = AppConfig.getInstance().getPropInternal("rjh.url.login");
-		session.addReferer(url);
-		rsp = session.post(url, paramMap, "GB2312");
+		MiscParams.setReferer(session.getParams(), url);
+		
+		RequestBuilder rb = new RequestBuilder();
+		rb.method(HttpPost.METHOD_NAME).uriStr(url).parameters(paramMap).encoding("GB2312");
+		rsp = session.execute(rb);
 
 		// Check login result
 		isLogin = (rsp.getStatusLine().getStatusCode() == 302);
 
 		log.info(String.format("User [%s] login %s.", user, (isLogin ? "succeeded" : "failed")));
-		HttpClientUtil.saveToFile(rsp.getEntity(), AppUtils.getTempFilePath("login_result.html"));
+		HttpClientUtils.saveToFile(rsp.getEntity(), AppUtils.getTempFilePath("login_result.html"));
 
 		if(isLogin)
 		{
 			url = AppConfig.getInstance().getPropInternal("rjh.url.user_panel");
-			rsp = session.get(url);
-			HttpClientUtil.saveToFile(rsp.getEntity(),
+			rsp = session.execute(url);
+			HttpClientUtils.saveToFile(rsp.getEntity(),
 				AppUtils.getTempFilePath("login_user_panel.html"));
 		}
 		else
@@ -227,9 +236,9 @@ public class RjLogin
 		{
 			// 1. open query page
 			url = AppConfig.getInstance().getPropInternal("rjh.url.query_reg_page");
-			session.addReferer(AppConfig.getInstance().getPropInternal("rjh.url.user_panel"));
-			rsp = session.get(url);
-			content = HttpClientUtil.saveToString(rsp.getEntity(), "GB2312");
+			MiscParams.setReferer(session.getParams(), AppConfig.getInstance().getPropInternal("rjh.url.user_panel"));
+			rsp = session.execute(url);
+			content = HttpClientUtils.saveToString(rsp.getEntity(), "GB2312");
 			if(rsp.getStatusLine().getStatusCode() != 200)
 			{
 				rc = new HttpResult(rsp.getStatusLine().getStatusCode(), url);
@@ -240,8 +249,11 @@ public class RjLogin
 			Map<String, String> paramMap = new HashMap<String, String>();
 			parseQueryRegListPage(content, paramMap);
 			
-			rsp = session.post(url, paramMap, "GB2312");
-			HttpClientUtil.saveToFile(rsp.getEntity(), AppUtils.getTempFilePath("reg_result.html"));
+			RequestBuilder rb = new RequestBuilder();
+			rb.method(HttpPost.METHOD_NAME).uriStr(url).parameters(paramMap).encoding("GB2312");
+			rsp = session.execute(rb);
+
+			HttpClientUtils.saveToFile(rsp.getEntity(), AppUtils.getTempFilePath("reg_result.html"));
 			if(rsp.getStatusLine().getStatusCode() != 200)
 			{
 				rc = new HttpResult(rsp.getStatusLine().getStatusCode(), url);
@@ -272,8 +284,8 @@ public class RjLogin
 						continue;
 					}
 					
-					Calendar regTime = CommonUtil.toCalendar(regInfo.regTime);
-					if(!CommonUtil.isSameDay(regTime, registerTime))
+					Calendar regTime = MiscUtils.toCalendar(regInfo.regTime);
+					if(!MiscUtils.isSameDay(regTime, registerTime))
 					{
 						continue;
 					}
@@ -302,25 +314,29 @@ public class RjLogin
 		{
 			//1. Get register page
 			url = AppConfig.getInstance().getPropInternal("rjh.url.reg_page");
-			session.addReferer(AppConfig.getInstance().getPropInternal("rjh.url.user_panel"));
-			rsp = session.get(url);
+			MiscParams.setReferer(session.getParams(), AppConfig.getInstance().getPropInternal("rjh.url.user_panel"));
+			rsp = session.execute(url);
 			if(rsp.getStatusLine().getStatusCode() != 200)
 			{
 				rc = new HttpResult(rsp.getStatusLine().getStatusCode(), url);
 				break;
 			}			
-			content = HttpClientUtil.saveToString(rsp.getEntity(), "GB2312");
+			content = HttpClientUtils.saveToString(rsp.getEntity(), "GB2312");
 
 			//2. Query available register list
 			parseRegPageParameter(content, department, week, paramMap);
-			rsp = session.post(url, paramMap, "GB2312");
+			
+			RequestBuilder rb = new RequestBuilder();
+			rb.method(HttpPost.METHOD_NAME).uriStr(url).parameters(paramMap).encoding("GB2312");
+			rsp = session.execute(rb);
+			
 			if(rsp.getStatusLine().getStatusCode() != 200)
 			{
 				rc = new HttpResult(rsp.getStatusLine().getStatusCode(), url,
 					HttpResult.HttpMethod.POST);
 				break;
 			}
-			content = HttpClientUtil.saveToString(rsp.getEntity(), "GB2312");
+			content = HttpClientUtils.saveToString(rsp.getEntity(), "GB2312");
 			
 			//3. Parse available register list
 			Map<Integer, List<RegDoctorInfo>> availMap = new HashMap<Integer, List<RegDoctorInfo>>();
@@ -353,13 +369,13 @@ public class RjLogin
 			url = AppConfig.getInstance().getPropInternal("rjh.url.reg_doctor_root") + url;
 			
 			
-			rsp = session.get(url);
+			rsp = session.execute(url);
 			if(rsp.getStatusLine().getStatusCode() != 200)
 			{
 				rc = new HttpResult(rsp.getStatusLine().getStatusCode(), url);
 				break;
 			}
-			content = HttpClientUtil.saveToString(rsp.getEntity(), "GB2312");
+			content = HttpClientUtils.saveToString(rsp.getEntity(), "GB2312");
 			
 			RegDoctorInfoDetailResult parseResult = new RegDoctorInfoDetailResult();
 			parseDoctorRegList(content, parseResult);
@@ -382,25 +398,31 @@ public class RjLogin
 			paramMap.put("__VIEWSTATE", parseResult.viewState);
 			paramMap.put("__EVENTTARGET", regDetail.eventTarget);
 			paramMap.put("__EVENTARGUMENT", regDetail.eventArgument);
-			rsp = session.post(url, paramMap, "GB2312");
+			
+			rb.method(HttpPost.METHOD_NAME).uriStr(url).parameters(paramMap).encoding("GB2312");
+			rsp = session.execute(rb);
+
 			if(rsp.getStatusLine().getStatusCode() != 200)
 			{
 				rc = new HttpResult(rsp.getStatusLine().getStatusCode(), url,
 					HttpResult.HttpMethod.POST);
 				break;
 			}
-			content = HttpClientUtil.saveToString(rsp.getEntity(), "GB2312");
+			content = HttpClientUtils.saveToString(rsp.getEntity(), "GB2312");
 			
 			paramMap.clear();
 			parseDoRegisterParameters(content, paramMap);
-			rsp = session.post(url, paramMap, "GB2312");
+			
+			rb.method(HttpPost.METHOD_NAME).uriStr(url).parameters(paramMap).encoding("GB2312");
+			rsp = session.execute(rb);
+			
 			if(rsp.getStatusLine().getStatusCode() != 200)
 			{
 				rc = new HttpResult(rsp.getStatusLine().getStatusCode(), url,
 					HttpResult.HttpMethod.POST);
 				break;
 			}
-			content = HttpClientUtil.saveToString(rsp.getEntity(), "GB2312");
+			content = HttpClientUtils.saveToString(rsp.getEntity(), "GB2312");
 			String result = parseDoRegisterResult(content);
 			log.info("[RESULT]: " + result);
 			
@@ -421,7 +443,7 @@ public class RjLogin
 		if(rc.getID() == ResultCode.RC_HTTP_ERROR.getID())
 		{
 			String resultFile = AppUtils.getOutputFilePath("HttpResultError.html");
-			HttpClientUtil.saveToFile(rsp.getEntity(), resultFile);
+			HttpClientUtils.saveToFile(rsp.getEntity(), resultFile);
 			
 			String logInfo = String.format("[Fail] register: ResultFile=%s, %s", resultFile, rc.toString());
 			log.info(logInfo);
@@ -438,11 +460,12 @@ public class RjLogin
 			return;
 		}
 
-		session.addReferer(AppConfig.getInstance().getPropInternal("rjh.url.user_panel"));
+		String userPanel = AppConfig.getInstance().getPropInternal("rjh.url.user_panel");
+		MiscParams.setReferer(session.getParams(), userPanel);
 
 		String url = AppConfig.getInstance().getPropInternal("rjh.url.logout");
-		HttpResponse rsp = session.get(url);
-		HttpClientUtil.saveToFile(rsp.getEntity(), AppUtils.getTempFilePath("logout.html"));
+		HttpResponse rsp = session.execute(url);
+		HttpClientUtils.saveToFile(rsp.getEntity(), AppUtils.getTempFilePath("logout.html"));
 
 		isLogin = false;
 		log.info("User [" + user + "] logout succeeded.");
@@ -475,7 +498,7 @@ public class RjLogin
 		
 		//2.
 		registerTime = (Calendar)startTime.clone();
-		CommonUtil.updateCalendar(registerTime, week, dayOfWeek);
+		MiscUtils.updateCalendar(registerTime, week, dayOfWeek);
 		
 		//3
 		startRegTime = (Calendar)registerTime.clone();
@@ -563,7 +586,7 @@ public class RjLogin
 		String content = IOUtils.toString(new FileInputStream(fileName), "GB2312");
 
 		String regex = "<span id=\"LblErr\" (.+?)>(.+?)</span>";
-		String result = CommonUtil.getRegexValueOnce(content, regex, 2);
+		String result = MiscUtils.getRegexValueOnce(content, regex, 2);
 
 		return result;
 	}
@@ -576,18 +599,18 @@ public class RjLogin
 			String content = IOUtils.toString(new FileInputStream(fileName), "GB2312");
 
 			String tableRegex = "<table id=\"Table1\" (.+?)<table (.+?) id=\"DataGrid1\" style=\"(.+?)\">(.+?)</table>";
-			String result = CommonUtil.getRegexValueOnce(content, tableRegex, 4, Pattern.MULTILINE
+			String result = MiscUtils.getRegexValueOnce(content, tableRegex, 4, Pattern.MULTILINE
 				| Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
 			log.trace(result);
 
 			String tableRowRegex = "<tr align=\"Right\" (.+?)</tr>(.+?)<tr align=\"Right\" (.+?)</tr>";
-			result = CommonUtil.getRegexValueOnce(result, tableRowRegex, 2, Pattern.MULTILINE
+			result = MiscUtils.getRegexValueOnce(result, tableRowRegex, 2, Pattern.MULTILINE
 				| Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
 			log.trace(result);
 
 			tableRowRegex = "<tr>(.+?)</tr>";
 			List<String> valueList = new ArrayList<String>();
-			int rc = CommonUtil.getRegexValue(result, tableRowRegex, valueList, true,
+			int rc = MiscUtils.getRegexValue(result, tableRowRegex, valueList, true,
 				Pattern.MULTILINE | Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
 
 			log.info("Found regsiter record count: " + (rc - 1));
@@ -601,7 +624,7 @@ public class RjLogin
 
 				fieldList.clear();
 
-				CommonUtil.getRegexValueOnce(record, recordRegex, fieldList, true,
+				MiscUtils.getRegexValueOnce(record, recordRegex, fieldList, true,
 					Pattern.MULTILINE | Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
 
 				RegInfo regInfo = new RegInfo(fieldList, 1);
@@ -621,22 +644,22 @@ public class RjLogin
 
 		// 1. __VIEWSTATE
 		String viewStateRegex = "<input type=\"hidden\" name=\"__VIEWSTATE\" value=\"(.+)\" />";
-		result = CommonUtil.getRegexValueOnce(content, viewStateRegex, 1);
+		result = MiscUtils.getRegexValueOnce(content, viewStateRegex, 1);
 		paramMap.put("__VIEWSTATE", result);
 
 		// 2. btn_search
 		String btnSearchRegex = "<input type=\"submit\" name=\"btn_search\" value=\"(.+)\" id=\"btn_search\" />";
-		result = CommonUtil.getRegexValueOnce(content, btnSearchRegex, 1);
+		result = MiscUtils.getRegexValueOnce(content, btnSearchRegex, 1);
 		paramMap.put("btn_search", result);
 
 		// 3. StartDate
 		String startDateRegex = "name=\"txt_StartDate\" type=\"text\" value=\"(.+)\" id=\"txt_StartDate\"";
-		result = CommonUtil.getRegexValueOnce(content, startDateRegex, 1);
+		result = MiscUtils.getRegexValueOnce(content, startDateRegex, 1);
 		paramMap.put("txt_StartDate", result);
 
 		// 4. EndDate
 		String endDateRegex = "name=\"txt_EndDate\" type=\"text\" value=\"(.+)\" id=\"txt_EndDate\"";
-		result = CommonUtil.getRegexValueOnce(content, endDateRegex, 1);
+		result = MiscUtils.getRegexValueOnce(content, endDateRegex, 1);
 		paramMap.put("txt_EndDate", result);
 	}
 
@@ -647,17 +670,17 @@ public class RjLogin
 
 		// 1. validationCodeRegex
 		String validationCodeRegex = "<img src=\"\\.\\./ValidateToken.aspx\\?yymm=(.+)\" id=\"IMG1\" />";
-		result = CommonUtil.getRegexValueOnce(content, validationCodeRegex, 1);
+		result = MiscUtils.getRegexValueOnce(content, validationCodeRegex, 1);
 		paramMap.put("ValidateToken", result);
 
 		// 2. __VIEWSTATE
 		String viewStateRegex = "<input type=\"hidden\" name=\"__VIEWSTATE\" value=\"(.+)\" />";
-		result = CommonUtil.getRegexValueOnce(content, viewStateRegex, 1);
+		result = MiscUtils.getRegexValueOnce(content, viewStateRegex, 1);
 		paramMap.put("__VIEWSTATE", result);
 
 		// 3. _stv
 		String stvRegex = "<input name=\"_stv\" id=\"_stv\" type=\"hidden\" style=\"(.+)\" value=\"(.+)\" />";
-		result = CommonUtil.getRegexValueOnce(content, stvRegex, 2);
+		result = MiscUtils.getRegexValueOnce(content, stvRegex, 2);
 		paramMap.put("_stv", result);
 
 		paramMap.put("BtnLogin.x", "38");
@@ -672,12 +695,12 @@ public class RjLogin
 
 		// 1. Get department list
 		String departmentRegex = "<select name=\"ddl_ks\" id=\"ddl_ks\">(.+?)</select>";
-		result = CommonUtil.getRegexValueOnce(content, departmentRegex, 1, flags);
+		result = MiscUtils.getRegexValueOnce(content, departmentRegex, 1, flags);
 
 		// Then Get department id
 		String departmentIDListRegex = "<option value=\"(.+?)\">(.+?)</option>";
 		List<String> valueList = new ArrayList<String>();
-		int matchCount = CommonUtil.getRegexValue(result, departmentIDListRegex, valueList, true, flags);
+		int matchCount = MiscUtils.getRegexValue(result, departmentIDListRegex, valueList, true, flags);
 		if(valueList.size() != matchCount * 3)
 		{
 			throw new ParseException("Unexpected result. matchCount=" + matchCount + ", listSize="
@@ -711,12 +734,12 @@ public class RjLogin
 
 		// 2. Get ViewState
 		String viewStateRegex = "<input type=\"hidden\" name=\"__VIEWSTATE\" value=\"(.+?)\" />";
-		result = CommonUtil.getRegexValueOnce(content, viewStateRegex, 1, flags);
+		result = MiscUtils.getRegexValueOnce(content, viewStateRegex, 1, flags);
 		paramMap.put("__VIEWSTATE", result);
 
 		// 3. Get Button value
 		String okBtnRegex = "<input type=\"submit\" name=\"btn_OK\" value=\"(.+?)\" id=\"btn_OK\" />";
-		result = CommonUtil.getRegexValueOnce(content, okBtnRegex, 1, flags);
+		result = MiscUtils.getRegexValueOnce(content, okBtnRegex, 1, flags);
 		paramMap.put("btn_OK", result);
 
 		// ...
@@ -747,7 +770,7 @@ public class RjLogin
 			
 			regex = String.format(columnRegex, i);
 			
-			matchCount = CommonUtil.getRegexValue(content, regex, tableContentList, true, flags);
+			matchCount = MiscUtils.getRegexValue(content, regex, tableContentList, true, flags);
 			
 			if(matchCount < 1)
 			{
@@ -783,7 +806,7 @@ public class RjLogin
 			validRegInfoList.clear();
 			
 			String availRawRegInfo = valueList.get(i).trim();
-			matchCount = CommonUtil.getRegexValue(availRawRegInfo, regex, rawRegInfoList, true, flags);
+			matchCount = MiscUtils.getRegexValue(availRawRegInfo, regex, rawRegInfoList, true, flags);
 			
 			List<RegDoctorInfo> regDoctorInfoList = new ArrayList<RegDoctorInfo>();
 			for(int j = 0; j < matchCount; j++)
@@ -815,7 +838,7 @@ public class RjLogin
 		
 		//1.
 		String regex = "<table (.+?) id=\"dg_List\" (.+?)>(.+?)</table>";
-		String result = CommonUtil.getRegexValueOnce(content, regex, 3, flags);
+		String result = MiscUtils.getRegexValueOnce(content, regex, 3, flags);
 		
 		//2.
 		StringBuilder sb = new StringBuilder();
@@ -829,7 +852,7 @@ public class RjLogin
 		regex = sb.toString();
 		
 		List<String> valueList = new ArrayList<String>();
-		int matchCount = CommonUtil.getRegexValue(result, regex, valueList, true, flags);
+		int matchCount = MiscUtils.getRegexValue(result, regex, valueList, true, flags);
 		
 		if(matchCount <= 0)
 		{
@@ -852,7 +875,7 @@ public class RjLogin
 		
 		//get viewstate
 		regex = "<input type=\"hidden\" name=\"__VIEWSTATE\" value=\"(.+?)\"(\\s*?)/>";
-		result = CommonUtil.getRegexValueOnce(content, regex, 1);
+		result = MiscUtils.getRegexValueOnce(content, regex, 1);
 		parseResult.viewState = result;
 	}
 	
@@ -862,29 +885,29 @@ public class RjLogin
 		
 		//1. btn_Submit
 		regex = "<input type=\"submit\" name=\"btn_Submit\" value=\"(.+?)\" id=\"btn_Submit\"(\\s*?)/>";
-		result = CommonUtil.getRegexValueOnce(content, regex, 1);
+		result = MiscUtils.getRegexValueOnce(content, regex, 1);
 		paramMap.put("btn_Submit", result);
 		
 		//2. 
 		regex = "<input type=\"hidden\" name=\"__EVENTTARGET\" value=\"(.*?)\"(\\s*?)/>";
-		result = CommonUtil.getRegexValueOnce(content, regex, 1);
+		result = MiscUtils.getRegexValueOnce(content, regex, 1);
 		paramMap.put("__EVENTTARGET", result);
 		
 		//2. 
 		regex = "<input type=\"hidden\" name=\"__EVENTARGUMENT\" value=\"(.*?)\"(\\s*?)/>";
-		result = CommonUtil.getRegexValueOnce(content, regex, 1);
+		result = MiscUtils.getRegexValueOnce(content, regex, 1);
 		paramMap.put("__EVENTARGUMENT", result);
 		
 		//2. 
 		regex = "<input type=\"hidden\" name=\"__VIEWSTATE\" value=\"(.*?)\"(\\s*?)/>";
-		result = CommonUtil.getRegexValueOnce(content, regex, 1);
+		result = MiscUtils.getRegexValueOnce(content, regex, 1);
 		paramMap.put("__VIEWSTATE", result);
 	}
 	
 	private String parseDoRegisterResult(String content) throws ParseException
 	{
 		String regex = "<span id=\"lbl_Message\">(.*?)</span>";
-		return CommonUtil.getRegexValueOnce(content, regex, 1);
+		return MiscUtils.getRegexValueOnce(content, regex, 1);
 	}
 	
 	private class ExitThread extends Thread
@@ -955,10 +978,10 @@ public class RjLogin
 			name = fieldList.get(fromIndex++);
 			
 			String temp = fieldList.get(fromIndex++);
-			total = CommonUtil.toInt(temp);
+			total = MiscUtils.toInt(temp);
 			
 			temp = fieldList.get(fromIndex++);
-			used = CommonUtil.toInt(temp);
+			used = MiscUtils.toInt(temp);
 			
 			fromIndex++;
 			
@@ -1097,14 +1120,14 @@ public class RjLogin
 		String docName = AppConfig.getInstance().getPropInput("rjh.doctor");
 		
 		String temp = AppConfig.getInstance().getPropInput("rjh.week");
-		int week = CommonUtil.toInt(temp);
+		int week = MiscUtils.toInt(temp);
 		if(week <= 0 || week > 5)
 		{
 			week = 5;
 		}
 		
 		temp = AppConfig.getInstance().getPropInput("rjh.dayOfWeek");
-		int dayOfWeek = CommonUtil.toInt(temp);
+		int dayOfWeek = MiscUtils.toInt(temp);
 		if(dayOfWeek < 1 || dayOfWeek > 6)
 		{
 			dayOfWeek = 5;

@@ -1,4 +1,4 @@
-package com.bao.lc.client;
+package com.bao.lc.site.sx;
 
 import java.io.FileInputStream;
 import java.util.ArrayList;
@@ -12,10 +12,11 @@ import org.apache.http.HttpResponse;
 import org.apache.http.params.HttpProtocolParams;
 
 import com.bao.lc.AppConfig;
+import com.bao.lc.client.BrowserClient;
+import com.bao.lc.client.utils.HttpClientUtils;
 import com.bao.lc.common.exception.ParseException;
 import com.bao.lc.util.AppUtils;
-import com.bao.lc.util.CommonUtil;
-import com.bao.lc.util.HttpClientUtil;
+import com.bao.lc.util.MiscUtils;
 
 public class CnetDownload
 {
@@ -43,21 +44,21 @@ public class CnetDownload
 		try
 		{
 			// 1. Get url user page content
-			rsp = session.get(url);
-			content = HttpClientUtil.saveToString(rsp.getEntity(), "UTF-8");
+			rsp = session.execute(url);
+			content = HttpClientUtils.saveToString(rsp.getEntity(), "UTF-8");
 			
 			nextUrl = extractDirectLink(content);
 
 			// 2. Get direct download link page
-			rsp = session.get(nextUrl);
-			content = HttpClientUtil.saveToString(rsp.getEntity(), "UTF-8");
+			rsp = session.execute(nextUrl);
+			content = HttpClientUtils.saveToString(rsp.getEntity(), "UTF-8");
 			nextUrl = extraceSrcFileURL(content);
 			log.info(nextUrl);
 
 			// 3. Download file
-			rsp = session.get(nextUrl);
+			rsp = session.execute(nextUrl);
 			String fileName = extraceFileName(nextUrl);
-			HttpClientUtil.saveToFile(rsp.getEntity(), AppUtils.getOutputFilePath(fileName));
+			HttpClientUtils.saveToFile(rsp.getEntity(), AppUtils.getOutputFilePath(fileName));
 		}
 		catch(Exception e)
 		{
@@ -78,7 +79,7 @@ public class CnetDownload
 		String regex = "<div class=\"dlLinkWrapper\"> <a href=\"(.+?)\" id=(.+?)>Direct Download Link</a>";
 		
 		List<String> valueList = new ArrayList<String>();
-		int matchCount = CommonUtil.getRegexValue(content, regex, valueList, true, 0);
+		int matchCount = MiscUtils.getRegexValue(content, regex, valueList, true, 0);
 		if(matchCount < 1)
 		{
 			throw new ParseException("Failed to find direct download link. matchCount = " + matchCount);
@@ -104,7 +105,7 @@ public class CnetDownload
 	private String extraceSrcFileURL(String content) throws ParseException
 	{
 		String regex = "src:'(.+)'";
-		String url = CommonUtil.getRegexValueOnce(content, regex, 1);
+		String url = MiscUtils.getRegexValueOnce(content, regex, 1);
 		return url;
 	}
 
@@ -148,7 +149,7 @@ public class CnetDownload
 			//Sleep if needed
 			if(i < (count - 1) && interval != 0)
 			{
-				CommonUtil.sleep(interval, rand);
+				MiscUtils.sleep(interval, rand);
 			}
 		}
 
@@ -179,8 +180,8 @@ public class CnetDownload
 	public static void main(String[] args)
 	{
 		String url = AppConfig.getInstance().getPropInput("cnet.dl.url");
-		int count = CommonUtil.toInt(AppConfig.getInstance().getPropInput("cnet.dl.count"));
-		int interval = CommonUtil.toInt(AppConfig.getInstance().getPropInput("cnet.dl.interval"));
+		int count = MiscUtils.toInt(AppConfig.getInstance().getPropInput("cnet.dl.count"));
+		int interval = MiscUtils.toInt(AppConfig.getInstance().getPropInput("cnet.dl.interval"));
 		
 		String value = null;
 		for(int i = 0; args != null && i < args.length; i++)
