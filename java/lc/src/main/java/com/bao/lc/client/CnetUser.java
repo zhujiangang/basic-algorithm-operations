@@ -176,12 +176,13 @@ public class CnetUser
 		return isLogin;
 	}
 	
-	public boolean logout() throws ClientProtocolException, IOException, ParseException
+	public boolean logout() throws ClientProtocolException, IOException, ParseException, URISyntaxException
 	{
 		String logoutPageRegex = "<a class=\"logOut\" href=\"(.+?)\">Log out</a>";
 		String logoutPage = CommonUtil.getRegexValueOnce(profileContent, logoutPageRegex, 1);
 
-		HttpResponse rsp = session.get(logoutPage, null, null, host);
+		URI logoutURI = URIUtils.rewriteURI(URI.create(logoutPage), host);
+		HttpResponse rsp = session.get(logoutURI.toString());
 		HttpClientUtil.saveToFile(rsp.getEntity(), AppUtils.getTempFilePath("logout.html"));
 		
 		boolean result = (rsp.getStatusLine().getStatusCode() == 200);
@@ -194,14 +195,16 @@ public class CnetUser
 		return result;
 	}
 	
-	public boolean getComminityProfile() throws ClientProtocolException, IOException, ParseException
+	public boolean getComminityProfile() throws ClientProtocolException, IOException, ParseException, URISyntaxException
 	{
 		String regex = "<a class=\"itemName\" href=\"(.+?)\">Community Profile</a>";
 		String url = CommonUtil.getRegexValueOnce(profileContent, regex, 1);
 		
 		Map<String, String> params = new HashMap<String, String>(1);
 		params.put("tag", "contentMain;contentBody");
-		HttpResponse rsp = session.get(url, null, params, host);
+		
+		URI uri = URIUtils.rewriteURI(URI.create(url), host);
+		HttpResponse rsp = session.get(uri, null, params, host);
 		HttpClientUtil.saveToFile(rsp.getEntity(), AppUtils.getTempFilePath("community-profile.html"));
 		
 		return (rsp.getStatusLine().getStatusCode() == 200);

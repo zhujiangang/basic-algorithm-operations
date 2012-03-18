@@ -24,16 +24,12 @@ import javax.script.ScriptException;
 import javax.script.SimpleBindings;
 import javax.swing.JOptionPane;
 
-import org.apache.commons.chain.Context;
-import org.apache.commons.chain.impl.ContextBase;
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpHost;
-import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.utils.URIUtils;
-import org.apache.http.protocol.HttpContext;
 import org.htmlparser.lexer.Lexer;
 import org.htmlparser.lexer.Page;
 import org.htmlparser.nodes.TextNode;
@@ -43,7 +39,6 @@ import org.htmlparser.util.ParserFeedback;
 import org.htmlparser.Node;
 import org.htmlparser.Parser;
 
-import com.bao.lc.client.BrowserClient;
 import com.bao.lc.common.LoggerFeedback;
 import com.bao.lc.common.exception.ParseException;
 
