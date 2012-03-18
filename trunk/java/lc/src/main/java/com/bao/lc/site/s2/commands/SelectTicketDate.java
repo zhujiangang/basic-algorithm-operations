@@ -14,7 +14,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.client.utils.URIUtils;
 import org.htmlparser.Node;
 import org.htmlparser.NodeFilter;
 import org.htmlparser.Parser;
@@ -36,6 +35,7 @@ import com.bao.lc.httpcommand.HttpCommandParams;
 import com.bao.lc.site.s2.ZyContants;
 import com.bao.lc.util.CommonUtil;
 import com.bao.lc.util.HttpClientUtil;
+import com.bao.lc.util.RequestBuilder;
 
 public class SelectTicketDate extends DefaultHttpCommand
 {
@@ -198,11 +198,12 @@ public class SelectTicketDate extends DefaultHttpCommand
 
 		// Build the next URI
 		URI requestURI = HttpCommandParams.getTargetRequestURI(context);
-		URI nextURI = URIUtils.resolve(requestURI, location);
 
 		// Next Request
-		HttpUriRequest nextRequest = HttpClientUtil.createRequest(nextURI, method, paramMap,
-			encoding, null);
+		RequestBuilder rb = new RequestBuilder();
+		rb.method(method).reference(location).baseURI(requestURI);
+		rb.parameters(paramMap).encoding(encoding);
+		HttpUriRequest nextRequest = rb.create();
 
 		context.put(HttpCommandPNames.TARGET_REQUEST, nextRequest);
 		context.put(HttpCommandPNames.TARGET_REFERER, requestURI.toString());

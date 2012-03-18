@@ -19,7 +19,7 @@ import org.apache.http.params.HttpProtocolParams;
 import org.apache.http.protocol.BasicHttpProcessor;
 
 import com.bao.lc.util.CommonUtil;
-import com.bao.lc.util.HttpClientUtil;
+import com.bao.lc.util.RequestBuilder;
 
 public class BrowserClient extends DefaultHttpClient
 {
@@ -90,7 +90,8 @@ public class BrowserClient extends DefaultHttpClient
 	{
 		uri = CommonUtil.getAbsoluteURI(uri, targetHost);
 
-		HttpGet hp = HttpClientUtil.createHttpGet(uri, params, headers);
+		RequestBuilder rb = new RequestBuilder();
+		HttpGet hp = rb.uri(uri).parameters(params).headers(headers).createGet();
 
 		HttpResponse rsp = null;
 		if(targetHost != null)
@@ -123,7 +124,9 @@ public class BrowserClient extends DefaultHttpClient
 	{
 		uri = CommonUtil.getAbsoluteURI(uri, targetHost);
 
-		HttpPost post = HttpClientUtil.createHttpPost(uri, params, encoding, headers);
+		RequestBuilder rb = new RequestBuilder();
+		rb.uri(uri).parameters(params).headers(headers).encoding(encoding);
+		HttpPost post = rb.createPost();
 
 		HttpResponse rsp = null;
 		if(targetHost != null)
