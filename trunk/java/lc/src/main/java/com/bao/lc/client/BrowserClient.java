@@ -13,7 +13,6 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 import org.apache.http.params.HttpParams;
 import org.apache.http.params.HttpProtocolParams;
-import org.apache.http.protocol.BasicHttpProcessor;
 import org.apache.http.protocol.HttpContext;
 
 import com.bao.lc.client.impl.PostRedirectStrategy;
@@ -38,6 +37,7 @@ public class BrowserClient extends DefaultHttpClient
 	public BrowserClient(final ClientConnectionManager conman, final HttpParams params)
 	{
 		super(conman, params);
+		init();
 	}
 
 	/**
@@ -46,27 +46,27 @@ public class BrowserClient extends DefaultHttpClient
 	public BrowserClient(final ClientConnectionManager conman)
 	{
 		super(conman, null);
+		init();
 	}
 
 	public BrowserClient(final HttpParams params)
 	{
 		super(null, params);
+		init();
 	}
 
 	public BrowserClient()
 	{
 		super(null, null);
+		init();
 	}
-
-	protected ClientConnectionManager createClientConnectionManager()
+	
+	protected void init()
 	{
-		return new ThreadSafeClientConnManager();
-	}
-
-	protected HttpParams createHttpParams()
-	{
-		HttpParams params = super.createHttpParams();
-
+		//Parameters
+		HttpParams params = getParams();
+		
+		//Set Agent
 		HttpProtocolParams.setUserAgent(params, AGENT_IE7);
 		HttpClientParams.setCookiePolicy(params, CookiePolicy.BROWSER_COMPATIBILITY);
 		
@@ -75,16 +75,14 @@ public class BrowserClient extends DefaultHttpClient
 		setRedirectStrategy(redirectStrategy);
 		MiscParams.setRedirectStrategy(params, redirectStrategy);
 		
-		return params;
+		//Interceptors
+		addRequestInterceptor(new RequestReferer());
+		addRequestInterceptor(new RequestResetRedirectChain());
 	}
 
-	protected BasicHttpProcessor createHttpProcessor()
+	protected ClientConnectionManager createClientConnectionManager()
 	{
-		BasicHttpProcessor httpproc = super.createHttpProcessor();
-		httpproc.addInterceptor(new RequestReferer());
-		httpproc.addInterceptor(new RequestResetRedirectChain());
-		
-		return httpproc;
+		return new ThreadSafeClientConnManager();
 	}
 
 	public HttpResponse execute(RequestBuilder builder, HttpContext context)
