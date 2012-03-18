@@ -23,7 +23,7 @@ public class PropertiesTest extends TestCase
 		{
 			prop.clear();
 			assertTrue(readFile(params[i], params[i + 1], false, prop));
-			CommonUtil.trimUtf8Bom(prop);
+			MiscUtils.trimUtf8Bom(prop);
 
 			validation(prop);
 		}

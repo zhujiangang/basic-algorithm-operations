@@ -12,12 +12,10 @@ import org.apache.http.protocol.HttpContext;
 
 import com.bao.lc.AppConfig;
 import com.bao.lc.client.BrowserClient;
-import com.bao.lc.client.PostRedirectStrategy;
-import com.bao.lc.client.RequestResetRedirectChain;
 import com.bao.lc.httpcommand.CommandCompleteListener;
-import com.bao.lc.httpcommand.DirectorBuilder;
-import com.bao.lc.httpcommand.HttpCommandParams;
+import com.bao.lc.httpcommand.impl.DirectorBuilder;
 import com.bao.lc.httpcommand.impl.LogCompleteListener;
+import com.bao.lc.httpcommand.utils.HttpCommandUtils;
 import com.bao.lc.site.s2.commands.DoBookTicket;
 import com.bao.lc.site.s2.commands.DoLogin;
 import com.bao.lc.site.s2.commands.DoLogout;
@@ -31,17 +29,10 @@ public class ZyClient
 	private static Log log = LogFactory.getLog(ZyClient.class);
 
 	private BrowserClient session = null;
-	private PostRedirectStrategy redirectStrategy = null;
 
 	public ZyClient()
 	{
 		session = new BrowserClient();
-		redirectStrategy = new PostRedirectStrategy();
-		session.getParams().setParameter(RequestResetRedirectChain.REDIRECT_STRATEGY,
-			redirectStrategy);
-		session.setRedirectStrategy(redirectStrategy);
-
-		session.addRequestInterceptor(new RequestResetRedirectChain());
 	}
 
 	@SuppressWarnings("unchecked")
@@ -53,7 +44,7 @@ public class ZyClient
 		HttpGet request = new HttpGet(AppConfig.getInstance().getPropInternal("zy.login.url"));
 
 		HttpContext httpContext = new BasicHttpContext();
-		Context context = HttpCommandParams.createContext(session, httpContext, request);
+		Context context = HttpCommandUtils.createContext(session, httpContext, request);
 
 		// Parameters
 		String user = AppConfig.getInstance().getPropInput("zy.user");

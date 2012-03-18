@@ -8,30 +8,21 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.http.client.methods.HttpGet;
 
 import com.bao.lc.client.BrowserClient;
-import com.bao.lc.client.PostRedirectStrategy;
-import com.bao.lc.client.RequestResetRedirectChain;
-import com.bao.lc.httpcommand.DefaultHttpCommand;
+import com.bao.lc.httpcommand.BasicHttpCommand;
 import com.bao.lc.httpcommand.HttpCommandDirector;
-import com.bao.lc.httpcommand.HttpCommandParams;
 import com.bao.lc.httpcommand.impl.DefaultHttpCommandDirector;
 import com.bao.lc.httpcommand.impl.LogCompleteListener;
+import com.bao.lc.httpcommand.utils.HttpCommandUtils;
 
 public class Client1
 {
 	private static Log log = LogFactory.getLog(Client1.class);
 
 	private BrowserClient session = null;
-	private PostRedirectStrategy redirectStrategy = null;
 
 	public Client1()
 	{
 		session = new BrowserClient();
-		redirectStrategy = new PostRedirectStrategy();
-		session.getParams().setParameter(RequestResetRedirectChain.REDIRECT_STRATEGY,
-			redirectStrategy);
-		session.setRedirectStrategy(redirectStrategy);
-
-		session.addRequestInterceptor(new RequestResetRedirectChain());
 	}
 
 	@SuppressWarnings("unchecked")
@@ -39,11 +30,11 @@ public class Client1
 	{
 		// Init Command context
 		HttpGet request = new HttpGet("http://www.downloads.com/");
-		Context context = HttpCommandParams.createContext(session, request);
+		Context context = HttpCommandUtils.createContext(session, request);
 
 		// Init Command chain
 		Chain chain = new ChainBase();
-		chain.addCommand(new DefaultHttpCommand());
+		chain.addCommand(new BasicHttpCommand());
 
 		// Fire!
 		try

@@ -35,7 +35,7 @@ public class JsonLibUtilTest extends TestCase
 
 		for(int i = 0; i < files.length; i++)
 		{
-			JsonLibUtil.showJSONFile(files[i]);
+			JsonLibUtils.showJSONFile(files[i]);
 		}
 		assertTrue(true);
 	}

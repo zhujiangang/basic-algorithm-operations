@@ -7,16 +7,16 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpUriRequest;
 
-import com.bao.lc.common.IDValuePair;
-import com.bao.lc.common.ResultCode;
-import com.bao.lc.httpcommand.DefaultHttpCommand;
-import com.bao.lc.httpcommand.HttpCommandPNames;
-import com.bao.lc.httpcommand.HttpCommandParams;
+import com.bao.lc.bean.IDValuePair;
+import com.bao.lc.bean.ResultCode;
+import com.bao.lc.client.utils.HttpClientUtils;
+import com.bao.lc.httpcommand.BasicHttpCommand;
+import com.bao.lc.httpcommand.params.HttpCommandPNames;
+import com.bao.lc.httpcommand.params.HttpCommandParams;
 import com.bao.lc.site.s2.ZyContants;
 import com.bao.lc.util.AppUtils;
-import com.bao.lc.util.HttpClientUtil;
 
-public class DoLogout extends DefaultHttpCommand
+public class DoLogout extends BasicHttpCommand
 {
 	private static Log log = LogFactory.getLog(DoLogout.class);
 
@@ -58,7 +58,7 @@ public class DoLogout extends DefaultHttpCommand
 		context.put(ZyContants.LOGIN_STATE_KEY, Boolean.FALSE);
 		
 		//Save result
-		HttpClientUtil.saveToFile(rsp.getEntity(), AppUtils.getTempFilePath("logout.html"));
+		HttpClientUtils.saveToFile(rsp.getEntity(), AppUtils.getTempFilePath("logout.html"));
 
 		//No next hop
 		context.remove(HttpCommandPNames.TARGET_REQUEST);

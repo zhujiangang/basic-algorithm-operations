@@ -5,9 +5,10 @@ import org.apache.commons.chain.Context;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.bao.lc.common.IDValuePair;
+import com.bao.lc.bean.IDValuePair;
 import com.bao.lc.httpcommand.CommandCompleteListener;
-import com.bao.lc.httpcommand.HttpCommandParams;
+import com.bao.lc.httpcommand.params.HttpCommandParams;
+import com.bao.lc.httpcommand.utils.HttpCommandUtils;
 
 public class LogCompleteListener implements CommandCompleteListener
 {
@@ -34,7 +35,7 @@ public class LogCompleteListener implements CommandCompleteListener
 	{
 		StringBuilder sb = new StringBuilder();
 		sb.append("Command[").append(command.getClass().getName()).append("] Result: ");
-		sb.append(HttpCommandParams.getCommandResultText(commandResult));
+		sb.append(HttpCommandUtils.getCommandResultText(commandResult));
 		sb.append(", Code: ").append(rc);
 		log.info(sb.toString());
 	}
