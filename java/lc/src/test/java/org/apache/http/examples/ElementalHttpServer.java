@@ -116,7 +116,7 @@ public class ElementalHttpServer {
                 System.out.println("Incoming entity content (bytes): " + entityContent.length);
             }
             
-            final File file = new File(this.docRoot, URLDecoder.decode(target));
+            final File file = new File(this.docRoot, URLDecoder.decode(target, System.getProperty("file.encoding")));
             if (!file.exists()) {
 
                 response.setStatusCode(HttpStatus.SC_NOT_FOUND);

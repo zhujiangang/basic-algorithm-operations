@@ -378,8 +378,6 @@ public class HtmlParserTest extends TestCase
 	 */
 	public void testLinkBean()
 	{
-		Parser parser = new Parser();
-
 		LinkBean linkBean = new LinkBean();
 		linkBean.setURL("http://www.google.com");
 		URL[] urls = linkBean.getLinks();
