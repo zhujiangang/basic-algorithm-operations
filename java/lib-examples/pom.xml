@@ -52,6 +52,15 @@
           </execution>
         </executions>
       </plugin>
+      
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+			  <artifactId>maven-surefire-plugin</artifactId>
+        <version>2.12</version>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
+      </plugin> 
     </plugins>
   </build> 
   
@@ -59,6 +68,9 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <commons-logging-version>1.1.1</commons-logging-version>
     <commons-io-version>1.3.2</commons-io-version>
+    <commons-chain-version>1.2</commons-chain-version>
+    <commons-digester-version>1.8</commons-digester-version>
+    <commons-configuration-version>1.8</commons-configuration-version>
 		<log4j-version>1.2.16</log4j-version>
 		<slf4j-version>1.6.0</slf4j-version>
 		<junit-version>4.8.2</junit-version>
@@ -78,6 +90,21 @@
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-io</artifactId>
       <version>${commons-io-version}</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-chain</groupId>
+      <artifactId>commons-chain</artifactId>
+      <version>${commons-chain-version}</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-digester</groupId>
+      <artifactId>commons-digester</artifactId>
+      <version>${commons-digester-version}</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-configuration</groupId>
+      <artifactId>commons-configuration</artifactId>
+      <version>${commons-configuration-version}</version>
     </dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>
@@ -117,7 +144,7 @@
 		</dependency>
   </dependencies>
   
-  	<repositories>
+  <repositories>
 		<repository>
 			<id>geotools Repo</id>
 			<url>http://download.osgeo.org/webdav/geotools/</url>
@@ -125,6 +152,30 @@
 		<repository>
 			<id>apache mirror</id>
 			<url>http://ftp.cica.es/mirrors/maven2/</url>
+		</repository>
+		<repository>
+			<id>codehaus.org</id>
+			<url>http://snapshots.repository.codehaus.org</url>
+		</repository>
+		<repository>
+			<id>apache.snapshots</id>
+			<url>http://people.apache.org/repo/m2-snapshot-repository</url>
+		</repository>
+		<repository>
+			<id>sonatype-nexus-snapshots</id>
+			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
+		</repository>
+		<repository>
+			<id>java.net</id>
+			<url>http://download.java.net/maven/2</url>
+		</repository>
+		<repository>
+			<id>m1.java.net</id>
+			<url>http://download.java.net/maven/1</url>
+		</repository>
+		<repository>
+			<id>maven2-repository.dev.java.net</id>
+			<url>http://download.java.net/maven/2/</url>
 		</repository>
 		<repository>
 			<id>local maven repository</id>
