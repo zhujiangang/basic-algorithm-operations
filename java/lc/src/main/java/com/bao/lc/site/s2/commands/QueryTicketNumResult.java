@@ -36,7 +36,7 @@ import com.bao.lc.client.utils.HttpClientUtils;
 import com.bao.lc.httpcommand.BasicHttpCommand;
 import com.bao.lc.httpcommand.params.HttpCommandPNames;
 import com.bao.lc.httpcommand.params.HttpCommandParams;
-import com.bao.lc.site.s2.ZyContants;
+import com.bao.lc.site.s2.ZyConstants;
 import com.bao.lc.util.MiscUtils;
 
 public class QueryTicketNumResult extends BasicHttpCommand
@@ -51,14 +51,14 @@ public class QueryTicketNumResult extends BasicHttpCommand
 		context.remove(HttpCommandPNames.HTTP_COMMAND_RESULT_CODE);
 		
 		//Get target URI
-		String encoding = MapUtils.getString(context, ZyContants.PARAM_RSP_ENCODING, "UTF-8");
-		String doctor = MapUtils.getString(context, ZyContants.PARAM_DOCTOR);
+		String encoding = MapUtils.getString(context, ZyConstants.PARAM_RSP_ENCODING, "UTF-8");
+		String doctor = MapUtils.getString(context, ZyConstants.PARAM_DOCTOR);
 		
 		String escapedName = MiscUtils.encode(doctor, encoding);
 		String url = AppConfig.getInstance().getPropInternal("zy.query.expert.url");
 		url = MessageFormat.format(url, escapedName);
 		
-		String userPageURI = MapUtils.getString(context, ZyContants.USER_PAGE_URI);
+		String userPageURI = MapUtils.getString(context, ZyConstants.USER_PAGE_URI);
 		URI baseURI = URI.create(userPageURI);
 		URI queryURI = URIUtils.resolve(baseURI, url);
 		
@@ -94,7 +94,7 @@ public class QueryTicketNumResult extends BasicHttpCommand
 	private TicketNumResult parse(Context context, HttpResponse rsp) throws ParserException,
 		IOException
 	{
-		String encoding = MapUtils.getString(context, ZyContants.PARAM_RSP_ENCODING, "UTF-8");
+		String encoding = MapUtils.getString(context, ZyConstants.PARAM_RSP_ENCODING, "UTF-8");
 		String queryResult = HttpClientUtils.saveToString(rsp.getEntity(), encoding);
 
 		Parser parser = MiscUtils.createParser(queryResult, encoding, log);
@@ -143,8 +143,8 @@ public class QueryTicketNumResult extends BasicHttpCommand
 		}
 		log.debug("done: " + regInfoList.size() + ", " + regInfoList.toString());
 
-		String doctor = MapUtils.getString(context, ZyContants.PARAM_DOCTOR);
-		String hospital = MapUtils.getString(context, ZyContants.PARAM_HOSPITAL);
+		String doctor = MapUtils.getString(context, ZyConstants.PARAM_DOCTOR);
+		String hospital = MapUtils.getString(context, ZyConstants.PARAM_HOSPITAL);
 
 		for(int i = 0, size = regInfoList.size(); i < size; i++)
 		{

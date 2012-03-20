@@ -103,24 +103,24 @@ public class ZyClient
 		Boolean bDayFixed = BooleanUtils.toBooleanObject(dayFixed);
 		long lTimeDiff = NumberUtils.toLong(timeDiff);
 
-		context.put(ZyContants.PARAM_USER, user);
-		context.put(ZyContants.PARAM_PASSWORD, pwd);
-		context.put(ZyContants.PARAM_DOCTOR, doctor);
-		context.put(ZyContants.PARAM_HOSPITAL, hos);
-		context.put(ZyContants.PARAM_DAY_OF_WEEK, dayOfWeek);
-		context.put(ZyContants.PARAM_FIXED_DAY, bDayFixed);
-		context.put(ZyContants.PARAM_CONSUMER_NAME, consumer);
-		context.put(ZyContants.PARAM_TIME_DIFF, Long.valueOf(lTimeDiff));
+		context.put(ZyConstants.PARAM_USER, user);
+		context.put(ZyConstants.PARAM_PASSWORD, pwd);
+		context.put(ZyConstants.PARAM_DOCTOR, doctor);
+		context.put(ZyConstants.PARAM_HOSPITAL, hos);
+		context.put(ZyConstants.PARAM_DAY_OF_WEEK, dayOfWeek);
+		context.put(ZyConstants.PARAM_FIXED_DAY, bDayFixed);
+		context.put(ZyConstants.PARAM_CONSUMER_NAME, consumer);
+		context.put(ZyConstants.PARAM_TIME_DIFF, Long.valueOf(lTimeDiff));
 		
 		lTimeDiff = getTimeDiff();
 		if(lTimeDiff != 0)
 		{
-			context.put(ZyContants.PARAM_TIME_DIFF, Long.valueOf(lTimeDiff));
+			context.put(ZyConstants.PARAM_TIME_DIFF, Long.valueOf(lTimeDiff));
 		}
 		
 		//other non-input parameters
-		context.put(ZyContants.PARAM_RSP_ENCODING, "UTF-8");
-		context.put(ZyContants.PARAM_TARGET_DAY, getTargetDay(context));
+		context.put(ZyConstants.PARAM_RSP_ENCODING, "UTF-8");
+		context.put(ZyConstants.PARAM_TARGET_DAY, getTargetDay(context));
 		
 		return context;
 	}
@@ -155,7 +155,7 @@ public class ZyClient
 	{
 		Calendar now = Calendar.getInstance();
 		
-		String dayOfWeek = MapUtils.getString(context, ZyContants.PARAM_DAY_OF_WEEK, "6");
+		String dayOfWeek = MapUtils.getString(context, ZyConstants.PARAM_DAY_OF_WEEK, "6");
 		int iDayOfWeek = MiscUtils.toInt(String.valueOf(dayOfWeek.charAt(0)));
 		MiscUtils.updateCalendar(now, 3, iDayOfWeek);
 		now.set(Calendar.HOUR_OF_DAY, 18);
@@ -163,7 +163,7 @@ public class ZyClient
 		now.set(Calendar.SECOND, 0);
 		now.set(Calendar.MILLISECOND, 0);
 		
-		long lTimeDiff = MapUtils.getLongValue(context, ZyContants.PARAM_TIME_DIFF, 0);
+		long lTimeDiff = MapUtils.getLongValue(context, ZyConstants.PARAM_TIME_DIFF, 0);
 		now.add(Calendar.MILLISECOND, (int)(-lTimeDiff));
 		
 		return now;
@@ -191,7 +191,7 @@ public class ZyClient
 		HttpCommandDirector director = new DefaultHttpCommandDirector();
 		director.execute(chain, context, new LogCompleteListener(log));
 		
-		Long diff = MapUtils.getLong(context, ZyContants.PARAM_TIME_DIFF);
+		Long diff = MapUtils.getLong(context, ZyConstants.PARAM_TIME_DIFF);
 		if(diff != null)
 		{
 			return diff.longValue();
@@ -240,7 +240,7 @@ public class ZyClient
 		// 1. Init Command context
 		Context context = createContext();
 
-		String consumerName = MapUtils.getString(context, ZyContants.PARAM_CONSUMER_NAME);
+		String consumerName = MapUtils.getString(context, ZyConstants.PARAM_CONSUMER_NAME);
 		if(consumerName == null || consumerName.isEmpty())
 		{
 			throw new IllegalArgumentException("consumerName: " + consumerName);

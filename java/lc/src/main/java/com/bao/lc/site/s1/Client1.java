@@ -5,13 +5,19 @@ import org.apache.commons.chain.Context;
 import org.apache.commons.chain.impl.ChainBase;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
 
+import com.bao.lc.bean.IDValuePair;
+import com.bao.lc.bean.ResultCode;
 import com.bao.lc.client.BrowserClient;
+import com.bao.lc.client.utils.HttpClientUtils;
 import com.bao.lc.httpcommand.BasicHttpCommand;
 import com.bao.lc.httpcommand.HttpCommandDirector;
 import com.bao.lc.httpcommand.impl.DefaultHttpCommandDirector;
 import com.bao.lc.httpcommand.impl.LogCompleteListener;
+import com.bao.lc.httpcommand.params.HttpCommandPNames;
+import com.bao.lc.httpcommand.params.HttpCommandParams;
 import com.bao.lc.httpcommand.utils.HttpCommandUtils;
 
 public class Client1
@@ -34,13 +40,13 @@ public class Client1
 
 		// Init Command chain
 		Chain chain = new ChainBase();
-		chain.addCommand(new BasicHttpCommand());
+		chain.addCommand(new SampleCommand());
 
 		// Fire!
 		try
 		{
 			HttpCommandDirector director = new DefaultHttpCommandDirector();
-			
+
 			director.execute(chain, context, new LogCompleteListener(log));
 		}
 		finally
@@ -63,4 +69,20 @@ public class Client1
 		client.action1();
 	}
 
+}
+
+class SampleCommand extends BasicHttpCommand
+{
+	protected IDValuePair postExecute(Context context) throws Exception
+	{
+		HttpResponse rsp = HttpCommandParams.getResponse(context);
+
+		String content = HttpClientUtils.saveToString(rsp);
+		System.out.println(content);
+
+		context.remove(HttpCommandPNames.TARGET_REQUEST);
+		context.remove(HttpCommandPNames.TARGET_REFERER);
+
+		return ResultCode.RC_OK;
+	}
 }

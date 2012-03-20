@@ -1,6 +1,6 @@
 package com.bao.lc.site.s2;
 
-public interface ZyContants
+public interface ZyConstants
 {
 	//input parameters
 	public static final String PARAM_USER = "zy.param.user";

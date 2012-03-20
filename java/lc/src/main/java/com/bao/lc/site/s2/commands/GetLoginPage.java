@@ -27,7 +27,7 @@ import com.bao.lc.client.utils.HttpClientUtils;
 import com.bao.lc.httpcommand.BasicHttpCommand;
 import com.bao.lc.httpcommand.params.HttpCommandPNames;
 import com.bao.lc.httpcommand.params.HttpCommandParams;
-import com.bao.lc.site.s2.ZyContants;
+import com.bao.lc.site.s2.ZyConstants;
 import com.bao.lc.util.MiscUtils;
 
 public class GetLoginPage extends BasicHttpCommand
@@ -96,13 +96,13 @@ public class GetLoginPage extends BasicHttpCommand
 
 			if("userName".equals(name))
 			{
-				params.put(name, MapUtils.getString(context, ZyContants.PARAM_USER));
+				params.put(name, MapUtils.getString(context, ZyConstants.PARAM_USER));
 				continue;
 			}
 
 			if("password".equals(name))
 			{
-				params.put(name, MapUtils.getString(context, ZyContants.PARAM_PASSWORD));
+				params.put(name, MapUtils.getString(context, ZyConstants.PARAM_PASSWORD));
 				continue;
 			}
 
