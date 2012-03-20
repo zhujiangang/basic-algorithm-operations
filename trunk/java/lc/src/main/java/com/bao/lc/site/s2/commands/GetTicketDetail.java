@@ -38,7 +38,7 @@ import com.bao.lc.client.utils.HttpClientUtils;
 import com.bao.lc.httpcommand.BasicHttpCommand;
 import com.bao.lc.httpcommand.params.HttpCommandPNames;
 import com.bao.lc.httpcommand.params.HttpCommandParams;
-import com.bao.lc.site.s2.ZyContants;
+import com.bao.lc.site.s2.ZyConstants;
 import com.bao.lc.util.AppUtils;
 import com.bao.lc.util.MiscUtils;
 
@@ -67,7 +67,7 @@ public class GetTicketDetail extends BasicHttpCommand
 	private void parse(Context context) throws ParserException, IOException
 	{
 		HttpResponse rsp = HttpCommandParams.getResponse(context);
-		String encoding = MapUtils.getString(context, ZyContants.PARAM_RSP_ENCODING, "UTF-8");
+		String encoding = MapUtils.getString(context, ZyConstants.PARAM_RSP_ENCODING, "UTF-8");
 		String queryResult = HttpClientUtils.saveToString(rsp.getEntity(), encoding);
 
 		Parser parser = MiscUtils.createParser(queryResult, encoding, log);
@@ -168,7 +168,7 @@ public class GetTicketDetail extends BasicHttpCommand
 		}
 
 		// 1. Diag Time
-		String dayOfWeek = MapUtils.getString(context, ZyContants.PARAM_DAY_OF_WEEK);
+		String dayOfWeek = MapUtils.getString(context, ZyConstants.PARAM_DAY_OF_WEEK);
 
 		String expectedDiagTime = AppUtils.getDayOfWeekTextCN1(dayOfWeek);
 		String diagTimeValue = diagTimeMap.get(expectedDiagTime);
@@ -197,7 +197,7 @@ public class GetTicketDetail extends BasicHttpCommand
 		String consumerName = this.targetConusmer;
 		if(consumerName == null || targetConusmer.isEmpty())
 		{
-			consumerName = MapUtils.getString(context, ZyContants.PARAM_CONSUMER_NAME);
+			consumerName = MapUtils.getString(context, ZyConstants.PARAM_CONSUMER_NAME);
 		}
 		log.info("consumerName=" + consumerName);
 		ConsumerInfo consumer = consumerMap.get(consumerName);

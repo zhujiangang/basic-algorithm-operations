@@ -13,14 +13,19 @@ import java.util.List;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.http.Header;
+import org.apache.http.HeaderElement;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
 import org.apache.http.ParseException;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.utils.URIUtils;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.protocol.ExecutionContext;
+import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
 
@@ -97,7 +102,7 @@ public class HttpClientUtils
 		}
 	}
 	
-	public static String saveToString(HttpEntity entity, String charsetName)  throws IOException, ParseException
+	public static String saveToString(HttpEntity entity, String charsetName) throws IOException, ParseException
 	{
 		String result = EntityUtils.toString(entity, charsetName);
 		if(AppConfig.getInstance().isDebug())
@@ -106,6 +111,41 @@ public class HttpClientUtils
 			FileUtils.writeStringToFile(new File(tempFile), result, charsetName);
 		}
 		return result;
+	}
+	
+	public static String saveToString(HttpResponse rsp, String defaultCharset) throws IOException, ParseException
+	{
+		String charsetName = getCharset(rsp);
+		if(charsetName == null)
+		{
+			charsetName = defaultCharset;
+		}
+		return saveToString(rsp.getEntity(), charsetName);
+	}
+	
+	public static String saveToString(HttpResponse rsp) throws IOException, ParseException
+	{
+		return saveToString(rsp, "UTF-8");
+	}
+	
+	public static String getCharset(HttpResponse rsp)
+	{
+		Header header = rsp.getLastHeader(HTTP.CONTENT_TYPE);
+		if(header == null)
+		{
+			return null;
+		}
+
+		HeaderElement[] elements = header.getElements();
+		for(int i = 0; i < elements.length; i++)
+		{
+			NameValuePair entry = elements[i].getParameterByName("charset");
+			if(entry != null)
+			{
+				return entry.getValue();
+			}
+		}
+		return null;
 	}
 	
 	public static URI getRequestURI(final HttpRequest request, final HttpContext context)

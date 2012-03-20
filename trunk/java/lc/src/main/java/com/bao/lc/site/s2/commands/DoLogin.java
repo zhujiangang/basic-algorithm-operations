@@ -24,7 +24,7 @@ import com.bao.lc.common.LinkTextRegexFilter;
 import com.bao.lc.httpcommand.BasicHttpCommand;
 import com.bao.lc.httpcommand.params.HttpCommandPNames;
 import com.bao.lc.httpcommand.params.HttpCommandParams;
-import com.bao.lc.site.s2.ZyContants;
+import com.bao.lc.site.s2.ZyConstants;
 import com.bao.lc.util.MiscUtils;
 
 public class DoLogin extends BasicHttpCommand
@@ -44,7 +44,7 @@ public class DoLogin extends BasicHttpCommand
 		String encoding = "UTF-8";
 		// save the member center page
 		String userPage = HttpClientUtils.saveToString(rsp.getEntity(), encoding);
-		context.put(ZyContants.USER_PAGE_CONTENT_KEY, userPage);
+		context.put(ZyConstants.USER_PAGE_CONTENT_KEY, userPage);
 		
 		PostRedirectStrategy redirectStrategy = HttpCommandParams.getRedirectStrategy(context);
 		if(redirectStrategy == null)
@@ -57,10 +57,10 @@ public class DoLogin extends BasicHttpCommand
 		}
 
 		HttpUriRequest finalRequest = redirectStrategy.getFinalRequest();
-		context.put(ZyContants.USER_PAGE_URI, finalRequest.getURI().toString());
+		context.put(ZyConstants.USER_PAGE_URI, finalRequest.getURI().toString());
 
 		// set login state
-		context.put(ZyContants.LOGIN_STATE_KEY, Boolean.TRUE);
+		context.put(ZyConstants.LOGIN_STATE_KEY, Boolean.TRUE);
 		
 		//Parse logout URI request
 		parseLogoutRequest(context, userPage, finalRequest.getURI(), encoding);
@@ -69,7 +69,7 @@ public class DoLogin extends BasicHttpCommand
 		context.remove(HttpCommandPNames.TARGET_REQUEST);
 		context.remove(HttpCommandPNames.TARGET_REFERER);
 		
-		String user = MapUtils.getString(context, ZyContants.PARAM_USER);
+		String user = MapUtils.getString(context, ZyConstants.PARAM_USER);
 		log.info("User [" + user + "] login successfully.");
 
 		return ResultCode.RC_OK;
@@ -97,6 +97,6 @@ public class DoLogin extends BasicHttpCommand
 		URI logoutURI = URIUtils.resolve(userPageURI, link);
 		HttpGet get = new HttpGet(logoutURI);
 
-		context.put(ZyContants.LOGOUT_URI_REQUEST, get);
+		context.put(ZyConstants.LOGOUT_URI_REQUEST, get);
 	}
 }

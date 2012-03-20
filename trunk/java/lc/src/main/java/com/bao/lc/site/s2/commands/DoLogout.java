@@ -13,7 +13,7 @@ import com.bao.lc.client.utils.HttpClientUtils;
 import com.bao.lc.httpcommand.BasicHttpCommand;
 import com.bao.lc.httpcommand.params.HttpCommandPNames;
 import com.bao.lc.httpcommand.params.HttpCommandParams;
-import com.bao.lc.site.s2.ZyContants;
+import com.bao.lc.site.s2.ZyConstants;
 import com.bao.lc.util.AppUtils;
 
 public class DoLogout extends BasicHttpCommand
@@ -29,20 +29,20 @@ public class DoLogout extends BasicHttpCommand
 	protected IDValuePair preExecute(Context context) throws Exception
 	{
 		//Check if the user login?
-		if(!MapUtils.getBooleanValue(context, ZyContants.LOGIN_STATE_KEY, false))
+		if(!MapUtils.getBooleanValue(context, ZyConstants.LOGIN_STATE_KEY, false))
 		{
 			return ResultCode.RC_USER_NOT_LOGIN;
 		}
 		
 		//Logout request
-		HttpUriRequest logoutRequest = (HttpUriRequest)context.get(ZyContants.LOGOUT_URI_REQUEST);
+		HttpUriRequest logoutRequest = (HttpUriRequest)context.get(ZyConstants.LOGOUT_URI_REQUEST);
 		if(logoutRequest == null)
 		{
 			throw new IllegalStateException("Can't find logout URI request");
 		}
 		
 		//User page URI as referrer
-		String userPageURI = MapUtils.getString(context, ZyContants.USER_PAGE_URI);
+		String userPageURI = MapUtils.getString(context, ZyConstants.USER_PAGE_URI);
 		
 		context.put(HttpCommandPNames.TARGET_REQUEST, logoutRequest);
 		context.put(HttpCommandPNames.TARGET_REFERER, userPageURI);
@@ -55,7 +55,7 @@ public class DoLogout extends BasicHttpCommand
 	{
 		HttpResponse rsp = HttpCommandParams.getResponse(context);
 		//Set login state
-		context.put(ZyContants.LOGIN_STATE_KEY, Boolean.FALSE);
+		context.put(ZyConstants.LOGIN_STATE_KEY, Boolean.FALSE);
 		
 		//Save result
 		HttpClientUtils.saveToFile(rsp.getEntity(), AppUtils.getTempFilePath("logout.html"));
@@ -64,7 +64,7 @@ public class DoLogout extends BasicHttpCommand
 		context.remove(HttpCommandPNames.TARGET_REQUEST);
 		context.remove(HttpCommandPNames.TARGET_REFERER);
 		
-		String user = MapUtils.getString(context, ZyContants.PARAM_USER);
+		String user = MapUtils.getString(context, ZyConstants.PARAM_USER);
 		log.info("User [" + user + "] logout successfully.");
 		
 		return ResultCode.RC_OK;

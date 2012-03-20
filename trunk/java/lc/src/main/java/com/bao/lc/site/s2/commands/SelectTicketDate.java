@@ -35,7 +35,7 @@ import com.bao.lc.client.utils.HttpClientUtils;
 import com.bao.lc.httpcommand.BasicHttpCommand;
 import com.bao.lc.httpcommand.params.HttpCommandPNames;
 import com.bao.lc.httpcommand.params.HttpCommandParams;
-import com.bao.lc.site.s2.ZyContants;
+import com.bao.lc.site.s2.ZyConstants;
 import com.bao.lc.util.MiscUtils;
 
 public class SelectTicketDate extends BasicHttpCommand
@@ -50,7 +50,7 @@ public class SelectTicketDate extends BasicHttpCommand
 	private IDValuePair parse(Context context) throws ParserException, IOException
 	{
 		HttpResponse rsp = HttpCommandParams.getResponse(context);
-		String encoding = MapUtils.getString(context, ZyContants.PARAM_RSP_ENCODING, "UTF-8");
+		String encoding = MapUtils.getString(context, ZyConstants.PARAM_RSP_ENCODING, "UTF-8");
 		String content = HttpClientUtils.saveToString(rsp.getEntity(), encoding);
 
 		Parser parser = MiscUtils.createParser(content, encoding, log);
@@ -227,7 +227,7 @@ public class SelectTicketDate extends BasicHttpCommand
 		
 		do
 		{
-			Calendar targetDay = (Calendar)context.get(ZyContants.PARAM_TARGET_DAY);
+			Calendar targetDay = (Calendar)context.get(ZyConstants.PARAM_TARGET_DAY);
 			if(targetDay == null)
 			{
 				break;
@@ -250,7 +250,7 @@ public class SelectTicketDate extends BasicHttpCommand
 		{
 			return diagDate;
 		}
-		boolean fixedDay = MapUtils.getBooleanValue(context, ZyContants.PARAM_FIXED_DAY, false);
+		boolean fixedDay = MapUtils.getBooleanValue(context, ZyConstants.PARAM_FIXED_DAY, false);
 		if(fixedDay)
 		{
 			log.info("Can't find the target day, stop to try.");
