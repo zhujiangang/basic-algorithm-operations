@@ -46,6 +46,17 @@ public class GetTicketDetail extends BasicHttpCommand
 {
 	private static Log log = LogFactory.getLog(GetTicketDetail.class);
 
+	private String targetConusmer = null;
+	public GetTicketDetail(String consumerName)
+	{
+		targetConusmer = consumerName;
+		log.info("targetConusmer=" + targetConusmer);
+	}
+	
+	public GetTicketDetail()
+	{
+		this(null);
+	}
 	@Override
 	protected IDValuePair postExecute(Context context) throws Exception
 	{
@@ -183,7 +194,12 @@ public class GetTicketDetail extends BasicHttpCommand
 
 			consumerMap.put(name, consumer);
 		}
-		String consumerName = MapUtils.getString(context, ZyContants.PARAM_CONSUMER_NAME);
+		String consumerName = this.targetConusmer;
+		if(consumerName == null || targetConusmer.isEmpty())
+		{
+			consumerName = MapUtils.getString(context, ZyContants.PARAM_CONSUMER_NAME);
+		}
+		log.info("consumerName=" + consumerName);
 		ConsumerInfo consumer = consumerMap.get(consumerName);
 		if(consumer == null)
 		{

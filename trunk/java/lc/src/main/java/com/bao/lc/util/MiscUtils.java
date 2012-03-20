@@ -5,6 +5,8 @@ import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Iterator;
@@ -41,6 +43,8 @@ import com.bao.lc.common.exception.ParseException;
 public class MiscUtils
 {
 	private static Log log = LogFactory.getLog(MiscUtils.class);
+	
+	public static final DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
 
 	public static int getRegexValue(String str, String regex, List<String> valueList,
 		boolean allGroup, int flags)
@@ -228,6 +232,11 @@ public class MiscUtils
 	public static Calendar toCalendar(String dateStr)
 	{
 		String regex = "(\\d+?)-(\\d+?)-(\\d+?) (\\d+?):(\\d+?):(\\d+?)";
+		return toCalendar(dateStr, regex);
+	}
+	
+	public static Calendar toCalendar(String dateStr, String regex)
+	{
 		List<String> valueList = new ArrayList<String>();
 
 		int matchCount = getRegexValue(dateStr, regex, valueList, true, 0);
@@ -283,6 +292,10 @@ public class MiscUtils
 		{
 			return;
 		}
+		if(interval < 0 && rand == null)
+		{
+			return;
+		}
 
 		long sleepTime = 0;
 		if(interval < 0)
@@ -306,6 +319,25 @@ public class MiscUtils
 		{
 			// ignore
 		}
+	}
+	
+	public static void sleep(long millis)
+	{
+		if(millis <= 0)
+		{
+			return;
+		}
+		
+		log.debug("[Sleep] start: " + millis + " (ms).");
+		try
+		{
+			Thread.sleep(millis);
+		}
+		catch(InterruptedException e)
+		{
+			log.warn("InterruptedException when sleep.", e);
+		}
+		log.debug("[Sleep]  stop: " + millis + " (ms).");
 	}
 
 	public static String escapeJS(String s)
@@ -419,5 +451,10 @@ public class MiscUtils
 
 		Parser parser = new Parser(lexer, feedback);
 		return parser;
+	}
+	
+	public static String toString(Calendar cal)
+	{
+		return dateFormat.format(cal.getTime());
 	}
 }

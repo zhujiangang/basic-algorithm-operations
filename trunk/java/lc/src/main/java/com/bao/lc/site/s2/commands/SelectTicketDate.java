@@ -3,6 +3,7 @@ package com.bao.lc.site.s2.commands;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,12 +44,10 @@ public class SelectTicketDate extends BasicHttpCommand
 
 	protected IDValuePair postExecute(Context context) throws Exception
 	{
-		parse(context);
-		
-		return ResultCode.RC_OK;
+		return parse(context);
 	}
 
-	private void parse(Context context) throws ParserException, IOException
+	private IDValuePair parse(Context context) throws ParserException, IOException
 	{
 		HttpResponse rsp = HttpCommandParams.getResponse(context);
 		String encoding = MapUtils.getString(context, ZyContants.PARAM_RSP_ENCODING, "UTF-8");
@@ -135,27 +134,16 @@ public class SelectTicketDate extends BasicHttpCommand
 
 		if(timeList.isEmpty())
 		{
-			throw new ParserException("[IMPORTANT]: No available tickets!");
-		}
-
-		String diagDate = null;
-		for(int i = 0, size = timeList.size(); i < size; i++)
-		{
-			String value = timeList.get(i).getAttribute("value");
-			if(diagDate == null)
-			{
-				diagDate = value;
-			}
-			else
-			{
-				// pick up the big one
-				if(diagDate.compareTo(value) < 0)
-				{
-					diagDate = value;
-				}
-			}
-		}
+			log.warn("[IMPORTANT]: time list is empty!");
+			return ResultCode.RC_DOCTOR_REG_LIST_FULL;
+		}		
+		String diagDate = getFinalDiagDate(context, timeList);
 		log.info("Target reg date: " + diagDate);
+		if(diagDate == null)
+		{
+			log.warn("[IMPORTANT]: Can't find the target diag date.");
+			return ResultCode.RC_DOCTOR_REG_LIST_FULL;
+		}
 
 		String registertime = "";
 		for(int i = 0, size = regTimeList.size(); i < size; i++)
@@ -207,5 +195,85 @@ public class SelectTicketDate extends BasicHttpCommand
 
 		context.put(HttpCommandPNames.TARGET_REQUEST, nextRequest);
 		context.put(HttpCommandPNames.TARGET_REFERER, requestURI.toString());
+		
+		return ResultCode.RC_OK;
+	}
+	
+	private Calendar toCalendar(String str)
+	{		
+		String regex = "(\\d+?)-(\\d+?)-(\\d+?)";
+		List<String> valueList = new ArrayList<String>();
+
+		int matchCount = MiscUtils.getRegexValue(str, regex, valueList, true, 0);
+		if(matchCount != 1)
+		{
+			log.error("Failed to format str to date: " + str);
+			return null;
+		}
+		Calendar cal = Calendar.getInstance();
+		cal.set(Calendar.MILLISECOND, 0);
+
+		int index = 1;
+		cal.set(Calendar.YEAR, MiscUtils.toInt(valueList.get(index++)));
+		cal.set(Calendar.MONTH, MiscUtils.toInt(valueList.get(index++)) - 1);
+		cal.set(Calendar.DAY_OF_MONTH, MiscUtils.toInt(valueList.get(index++)));
+		
+		return cal;
+	}
+	
+	private String getFinalDiagDate(Context context, List<InputTag> timeList)
+	{
+		String diagDate = null;
+		
+		do
+		{
+			Calendar targetDay = (Calendar)context.get(ZyContants.PARAM_TARGET_DAY);
+			if(targetDay == null)
+			{
+				break;
+			}
+			log.info("Target day: " + MiscUtils.toString(targetDay));
+			for(int i = 0, size = timeList.size(); i < size; i++)
+			{
+				String value = timeList.get(i).getAttribute("value");
+				Calendar cal = toCalendar(value);
+				if(MiscUtils.isSameDay(targetDay, cal))
+				{
+					diagDate = value;
+					break;
+				}
+			}
+		}
+		while(false);
+		
+		if(diagDate != null)
+		{
+			return diagDate;
+		}
+		boolean fixedDay = MapUtils.getBooleanValue(context, ZyContants.PARAM_FIXED_DAY, false);
+		if(fixedDay)
+		{
+			log.info("Can't find the target day, stop to try.");
+			return null;
+		}
+		
+		log.info("Can't find the target day, try to find an alternative day.");
+		for(int i = 0, size = timeList.size(); i < size; i++)
+		{
+			String value = timeList.get(i).getAttribute("value");
+			if(diagDate == null)
+			{
+				diagDate = value;
+			}
+			else
+			{
+				// pick up the big one
+				if(diagDate.compareTo(value) < 0)
+				{
+					diagDate = value;
+				}
+			}
+		}
+		return diagDate;
 	}
 }
