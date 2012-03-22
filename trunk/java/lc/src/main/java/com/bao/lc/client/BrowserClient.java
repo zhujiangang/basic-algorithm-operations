@@ -23,6 +23,7 @@ import com.bao.lc.client.params.MiscParams;
 public class BrowserClient extends DefaultHttpClient
 {
 	public static final String AGENT_IE7 = "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.1; Trident/5.0; SLCC2; .NET CLR 2.0.50727; .NET CLR 3.5.30729; .NET CLR 3.0.30729; Media Center PC 6.0; TEN)";
+	public static final String AGENT_IE8 = "Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 5.1; Trident/4.0; .NET CLR 1.1.4322; .NET CLR 2.0.50727; .NET CLR 3.0.4506.2152; .NET CLR 3.5.30729; InfoPath.2; MS-RTC LM 8; FDM; .NET4.0C)";
 	public static final String AGENT_CHROME = "Mozilla/5.0 (Windows NT 5.1) AppleWebKit/535.2 (KHTML, like Gecko) Chrome/15.0.874.106 Safari/535.2";
 	public static final String AGENT_FIREFOX = "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.1.6) Gecko/20091201 Firefox/3.5.6 (.NET CLR 3.5.30729)";
 
@@ -67,7 +68,7 @@ public class BrowserClient extends DefaultHttpClient
 		HttpParams params = getParams();
 		
 		//Set Agent
-		HttpProtocolParams.setUserAgent(params, AGENT_IE7);
+		HttpProtocolParams.setUserAgent(params, AGENT_IE8);
 		HttpClientParams.setCookiePolicy(params, CookiePolicy.BROWSER_COMPATIBILITY);
 		
 		//Set redirect strategy

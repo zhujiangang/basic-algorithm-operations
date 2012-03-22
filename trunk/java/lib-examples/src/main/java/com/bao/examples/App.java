@@ -22,8 +22,20 @@ public class App
 		PropertyConfigurator.configure(App.class.getResource("/log4j.properties"));
 	}
 
+	private static void showInteger(char l, char h)
+	{
+		for(char c = l; c <= h; c++)
+		{
+			System.out.printf("char=%c, int=%3d(%02X)\n", c, (int)c, (int)c);
+		}
+	}
 	public static void main(String[] args)
 	{
 		log.info("Hello World!");
+		
+		showInteger('0', '9');
+		showInteger('a', 'z');
+		showInteger('A', 'Z');
+		showInteger('%', '%');
 	}
 }

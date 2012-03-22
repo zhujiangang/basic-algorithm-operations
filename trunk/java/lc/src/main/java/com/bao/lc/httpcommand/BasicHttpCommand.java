@@ -6,13 +6,13 @@ import org.apache.commons.collections.MapUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.protocol.HttpContext;
 
 import com.bao.lc.bean.HttpResult;
 import com.bao.lc.bean.IDValuePair;
 import com.bao.lc.bean.ResultCode;
-import com.bao.lc.client.BrowserClient;
 import com.bao.lc.client.params.MiscParams;
 import com.bao.lc.client.utils.HttpClientUtils;
 import com.bao.lc.httpcommand.params.HttpCommandPNames;
@@ -109,7 +109,7 @@ public class BasicHttpCommand implements Filter
 
 	protected IDValuePair doExecute(Context context) throws Exception
 	{
-		BrowserClient httpClient = HttpCommandParams.getBrowserClient(context);
+		HttpClient httpClient = HttpCommandParams.getHttpClient(context);
 		HttpContext httpContext = HttpCommandParams.getHttpContext(context);
 
 		IDValuePair rc = ResultCode.RC_OK;
@@ -128,9 +128,13 @@ public class BasicHttpCommand implements Filter
 			String referer = (String) context.get(HttpCommandPNames.TARGET_REFERER);
 			if(referer != null)
 			{
-				MiscParams.setReferer(httpClient.getParams(), referer);
+				MiscParams.setReferer(request.getParams(), referer);
 			}
-
+			
+			if(log.isDebugEnabled())
+			{
+				log.debug("[Execute]: URI=" + request.getURI() + ", referer=" + referer);
+			}
 			// 3. Execute the URI request
 			HttpResponse rsp = httpClient.execute(request, httpContext);
 			int statusCode = rsp.getStatusLine().getStatusCode();
@@ -170,8 +174,15 @@ public class BasicHttpCommand implements Filter
 	{
 		StringBuilder sb = new StringBuilder();
 		sb.append("rc=").append(rc);
-		sb.append(", ").append(request.getMethod());
-		sb.append(" ").append(request.getURI().toString());
+		if(request != null)
+		{
+			sb.append(", ").append(request.getMethod());
+			sb.append(" ").append(request.getURI().toString());			
+		}
+		else
+		{
+			sb.append(", request=null.");
+		}
 		return sb.toString();
 	}
 }
