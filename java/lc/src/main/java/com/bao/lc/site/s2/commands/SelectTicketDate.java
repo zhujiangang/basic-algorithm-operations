@@ -201,7 +201,7 @@ public class SelectTicketDate extends BasicHttpCommand
 	
 	private Calendar toCalendar(String str)
 	{		
-		String regex = "(\\d+?)-(\\d+?)-(\\d+?)";
+		String regex = "(\\d+?)-(\\d+?)-(\\d+?)\\|";
 		List<String> valueList = new ArrayList<String>();
 
 		int matchCount = MiscUtils.getRegexValue(str, regex, valueList, true, 0);
@@ -237,7 +237,7 @@ public class SelectTicketDate extends BasicHttpCommand
 			{
 				String value = timeList.get(i).getAttribute("value");
 				Calendar cal = toCalendar(value);
-				if(MiscUtils.isSameDay(targetDay, cal))
+				if(cal != null && MiscUtils.isSameDay(targetDay, cal))
 				{
 					diagDate = value;
 					break;
