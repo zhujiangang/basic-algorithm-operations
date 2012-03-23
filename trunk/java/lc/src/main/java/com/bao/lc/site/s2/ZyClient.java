@@ -19,7 +19,6 @@ import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
 
 import com.bao.lc.AppConfig;
-import com.bao.lc.bean.ResultCode;
 import com.bao.lc.client.BrowserClient;
 import com.bao.lc.httpcommand.CommandCompleteListener;
 import com.bao.lc.httpcommand.HttpCommandDirector;
@@ -225,7 +224,6 @@ public class ZyClient
 			chain.addCommand(new GetTicketDetail(consumer));
 
 			DefaultCommandRetryStrategy retryStrategy = new ZyCommandRetryStrategy(3, siteStartTime.getTime());
-			retryStrategy.addRetryResultCode(ResultCode.RC_DOCTOR_REG_LIST_FULL);
 			Command selectDate = new RetryHttpCommand(new SelectTicketDate(), retryStrategy);
 			chain.addCommand(selectDate);
 

@@ -13,6 +13,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpResponse;
+import org.htmlparser.Node;
 import org.htmlparser.NodeFilter;
 import org.htmlparser.Parser;
 import org.htmlparser.Text;
@@ -36,6 +37,7 @@ import com.bao.lc.common.ScriptCodeFilter;
 import com.bao.lc.httpcommand.BasicHttpCommand;
 import com.bao.lc.httpcommand.params.HttpCommandParams;
 import com.bao.lc.site.s3.params.TdPNames;
+import com.bao.lc.site.s3.params.TdParams;
 import com.bao.lc.util.AppUtils;
 import com.bao.lc.util.MiscUtils;
 
@@ -43,7 +45,7 @@ public class DoLogin extends BasicHttpCommand
 {
 	private static Log log = LogFactory.getLog(DoLogin.class);
 
-	private static final String JS_CODE_REGEX = "var message = \"(.*?)\";";
+	private static final String JS_ERROR_MSG_REGEX = "var message = \"(.+?)\";";
 
 	private static final String JS_LOGIN_REGEX = "var isLogin(.*?)=(.+?)var u_name = '(.*?)';";
 
@@ -78,50 +80,13 @@ public class DoLogin extends BasicHttpCommand
 			log.info("User [" + user + "] login failed.");
 
 			// TODO: check failed reason.
+			parseFailReason(context, userPage, charset);
 
 			return ResultCode.RC_USER_NOT_LOGIN;
 		}
 	}
 
-	private void parse(Context context, String pageContent, String charset) throws ParserException
-	{
-		Parser parser = MiscUtils.createParser(pageContent, charset, log);
-
-		// Set filters
-		List<NodeFilter> predicates = new ArrayList<NodeFilter>(3);
-		NodeFilter[] a = new NodeFilter[0];
-
-		// 1. login form filters
-		predicates.add(new HasAttributeFilter("id", "loginForm"));
-		predicates.add(new HasAttributeFilter("name", "loginForm"));
-		predicates.add(new NodeClassFilter(FormTag.class));
-		NodeFilter loginFormFilter = new AndFilter(predicates.toArray(a));
-
-		// 2. verification code error filters
-		predicates.clear();
-		predicates.add(new HasAttributeFilter("id", "randErr"));
-		predicates.add(new NodeClassFilter(Span.class));
-		NodeFilter vCodeErrorFilter = new AndFilter(predicates.toArray(a));
-
-		// 3. error message from java script code
-		NodeFilter scriptFilter = new ScriptCodeFilter(JS_CODE_REGEX);
-
-		// 4. successfully filter
-		predicates.clear();
-		// @TODO
-		NodeFilter okFilter = null;
-
-		// Final filter
-		predicates.clear();
-		predicates.add(loginFormFilter);
-		predicates.add(vCodeErrorFilter);
-		predicates.add(scriptFilter);
-		predicates.add(okFilter);
-		NodeFilter finalFilter = new OrFilter(predicates.toArray(a));
-
-		// parse
-		NodeList nodeList = parser.parse(finalFilter);
-	}
+	
 
 	private boolean isLogin(Context context, String pageContent, String charset)
 		throws ParserException
@@ -261,5 +226,113 @@ public class DoLogin extends BasicHttpCommand
 		log.info("The welcome message: " + msgText.getText());
 
 		return true;
+	}
+	
+	private void parseFailReason(Context context, String pageContent, String charset) throws ParserException
+	{
+		Parser parser = MiscUtils.createParser(pageContent, charset, log);
+
+		// Set filters
+		List<NodeFilter> predicates = new ArrayList<NodeFilter>(3);
+		NodeFilter[] a = new NodeFilter[0];
+
+		// 1. login form filters
+		predicates.add(new HasAttributeFilter("id", "loginForm"));
+		predicates.add(new HasAttributeFilter("name", "loginForm"));
+		predicates.add(new NodeClassFilter(FormTag.class));
+		NodeFilter loginFormFilter = new AndFilter(predicates.toArray(a));
+		
+		// 2. verification code error filters
+		predicates.clear();
+		predicates.add(new HasAttributeFilter("id", "randErr"));
+		predicates.add(new NodeClassFilter(Span.class));
+		NodeFilter vCodeErrorFilter = new AndFilter(predicates.toArray(a));
+
+		// 3. error message from java script code
+		NodeFilter scriptFilter = new ScriptCodeFilter(JS_ERROR_MSG_REGEX);
+
+		// Final filter
+		predicates.clear();
+		predicates.add(loginFormFilter);
+		predicates.add(vCodeErrorFilter);
+		predicates.add(scriptFilter);
+		NodeFilter finalFilter = new OrFilter(predicates.toArray(a));
+
+		// parse
+		NodeList nodeList = parser.parse(finalFilter);
+		
+		FormTag loginForm = null;
+		Span vCodeSpan = null;
+		ScriptTag scriptErrorMsg = null;
+		
+		for(int i = 0, size = nodeList.size(); i < size; i++)
+		{
+			Node node = nodeList.elementAt(i);
+			if(node instanceof FormTag)
+			{
+				loginForm = (FormTag)node;
+			}
+			else if(node instanceof Span)
+			{
+				vCodeSpan = (Span)node;
+			}
+			else if(node instanceof ScriptTag)
+			{
+				scriptErrorMsg = (ScriptTag)node;
+			}
+		}
+		
+		IDValuePair rc = ResultCode.RC_TD_LOGIN_UNKOWN_ERROR;
+		String outErrorMsg = null;
+		do
+		{
+			//RC_TD_LOGIN_VCODE_ERROR
+			if(vCodeSpan != null)
+			{
+				rc = ResultCode.RC_TD_LOGIN_VCODE_ERROR;
+				outErrorMsg = vCodeSpan.toPlainTextString().trim();
+				break;
+			}
+			
+			//Message error
+			if(scriptErrorMsg != null)
+			{				
+				String srcCode = scriptErrorMsg.getScriptCode();
+				List<String> valueList = new ArrayList<String>();
+				int matchCount = MiscUtils.getRegexValue(srcCode, JS_ERROR_MSG_REGEX, valueList, true, 0);
+				if(matchCount > 0)
+				{
+					outErrorMsg = valueList.get(1);
+				}
+				
+				if(outErrorMsg != null)
+				{
+					if(outErrorMsg.contains(AppConfig.getInstance().getPropInternal("td.login.nok.account")))
+					{
+						rc = ResultCode.RC_TD_LOGIN_ACCOUNT_ERROR;
+					}
+					else if(outErrorMsg.contains(AppConfig.getInstance().getPropInternal("td.login.nok.password")))
+					{
+						rc = ResultCode.RC_TD_LOGIN_PASSWORD_ERROR;
+					}
+					else
+					{
+						rc = ResultCode.RC_TD_LOGIN_OTHER_MSG_ERROR;
+					}
+					
+					break;
+				}
+			}
+			
+			if(loginForm == null)
+			{
+				log.error("Can't find the login form, error reason unkown.");
+			}
+			outErrorMsg = "Unkown error.";
+		}
+		while(false);
+		
+		Log uiLog = TdParams.getUI(context);
+		uiLog.error("Login failed: [" + outErrorMsg + "], rc=" + rc);
 	}
 }
