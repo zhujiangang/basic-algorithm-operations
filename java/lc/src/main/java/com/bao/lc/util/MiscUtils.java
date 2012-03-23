@@ -26,6 +26,7 @@ import javax.swing.JOptionPane;
 
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.builder.CompareToBuilder;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.htmlparser.lexer.Lexer;
@@ -261,19 +262,16 @@ public class MiscUtils
 
 	public static boolean isSameDay(Calendar cal1, Calendar cal2)
 	{
-		if(cal1.get(Calendar.YEAR) != cal2.get(Calendar.YEAR))
-		{
-			return false;
-		}
-		if(cal1.get(Calendar.MONTH) != cal2.get(Calendar.MONTH))
-		{
-			return false;
-		}
-		if(cal1.get(Calendar.DAY_OF_MONTH) != cal2.get(Calendar.DAY_OF_MONTH))
-		{
-			return false;
-		}
-		return true;
+		return compareDay(cal1, cal2) == 0;
+	}
+	
+	public static int compareDay(Calendar cal1, Calendar cal2)
+	{
+		CompareToBuilder cb = new CompareToBuilder();
+		cb.append(cal1.get(Calendar.YEAR), cal2.get(Calendar.YEAR));
+		cb.append(cal1.get(Calendar.MONTH), cal2.get(Calendar.MONTH));
+		cb.append(cal1.get(Calendar.DAY_OF_MONTH), cal2.get(Calendar.DAY_OF_MONTH));
+		return cb.toComparison();
 	}
 
 	public static long diff(Calendar cal1, Calendar cal2)
@@ -361,6 +359,24 @@ public class MiscUtils
 		}
 
 		return s;
+	}
+	
+	public static String randJS()
+	{
+		ScriptEngineManager sem = new ScriptEngineManager();
+		ScriptEngine engine = sem.getEngineByExtension("js");
+
+		try
+		{
+			Object res = engine.eval("Math.random()");
+			return ObjectUtils.toString(res);
+		}
+		catch(ScriptException e)
+		{
+			log.error("Failed to eval JS", e);
+		}
+
+		return String.valueOf(Math.random());
 	}
 
 	public static String encode(final String content, final String encoding)

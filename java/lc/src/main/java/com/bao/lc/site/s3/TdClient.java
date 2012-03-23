@@ -132,6 +132,7 @@ public class TdClient
 
 		// Parameters
 		context.put(TdPNames.PARAM_RSP_ENCODING, "UTF-8");
+		context.put(TdPNames.PARAM_UI, log);
 		
 		String user = AppConfig.getInstance().getPropInput("td.user");
 		String pwd = AppConfig.getInstance().getPropInput("td.password");

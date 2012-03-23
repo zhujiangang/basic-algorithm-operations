@@ -1,15 +1,20 @@
 package com.bao.lc.site.s2.commands;
 
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import org.apache.commons.chain.Context;
+import org.apache.commons.chain.impl.ContextBase;
 import org.apache.commons.collections.MapUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -25,9 +30,12 @@ import org.htmlparser.filters.NodeClassFilter;
 import org.htmlparser.filters.OrFilter;
 import org.htmlparser.tags.FormTag;
 import org.htmlparser.tags.InputTag;
+import org.htmlparser.tags.TableRow;
+import org.htmlparser.tags.TableTag;
 import org.htmlparser.util.NodeList;
 import org.htmlparser.util.ParserException;
 
+import com.bao.lc.AppConfig;
 import com.bao.lc.bean.IDValuePair;
 import com.bao.lc.bean.ResultCode;
 import com.bao.lc.client.RequestBuilder;
@@ -36,6 +44,7 @@ import com.bao.lc.httpcommand.BasicHttpCommand;
 import com.bao.lc.httpcommand.params.HttpCommandPNames;
 import com.bao.lc.httpcommand.params.HttpCommandParams;
 import com.bao.lc.site.s2.ZyConstants;
+import com.bao.lc.util.AppUtils;
 import com.bao.lc.util.MiscUtils;
 
 public class SelectTicketDate extends BasicHttpCommand
@@ -53,39 +62,8 @@ public class SelectTicketDate extends BasicHttpCommand
 		String encoding = MapUtils.getString(context, ZyConstants.PARAM_RSP_ENCODING, "UTF-8");
 		String content = HttpClientUtils.saveToString(rsp.getEntity(), encoding);
 
-		Parser parser = MiscUtils.createParser(content, encoding, log);
-
-		// Set filters
-		List<NodeFilter> predicates = new ArrayList<NodeFilter>(2);
-		NodeFilter[] a = new NodeFilter[0];
-
-		// 1. Submit filters
-		predicates.add(new HasAttributeFilter("id", "submitForm"));
-		predicates.add(new NodeClassFilter(FormTag.class));
-		NodeFilter submitFormFilter = new AndFilter(predicates.toArray(a));
-		predicates.clear();
-
-		// 2. time select
-		predicates.add(new HasAttributeFilter("name", "ddlselect"));
-		predicates.add(new NodeClassFilter(InputTag.class));
-		NodeFilter selectFilter = new AndFilter(predicates.toArray(a));
-		predicates.clear();
-
-		// 3.
-		predicates.add(new HasAttributeFilter("name", "ddlRegisterTime"));
-		predicates.add(new HasAttributeFilter("date"));
-		NodeFilter regTimeFilter = new AndFilter(predicates.toArray(a));
-		predicates.clear();
-
-		// 4. final filter
-		predicates.add(submitFormFilter);
-		predicates.add(selectFilter);
-		predicates.add(regTimeFilter);
-		NodeFilter finalFilter = new OrFilter(predicates.toArray(a));
-		predicates.clear();
-
-		// Fire!
-		NodeList nodeList = parser.parse(finalFilter);
+		//1. Correct 
+		NodeList nodeList = getSelectTimeList(content, encoding);
 
 		FormTag submitForm = null;
 		List<InputTag> timeList = new ArrayList<InputTag>(2);
@@ -135,14 +113,32 @@ public class SelectTicketDate extends BasicHttpCommand
 		if(timeList.isEmpty())
 		{
 			log.warn("[IMPORTANT]: time list is empty!");
-			return ResultCode.RC_DOCTOR_REG_LIST_FULL;
-		}		
+			IDValuePair rc = parseFailReason(context, content, encoding);
+			if(rc != null)
+			{
+				return rc;
+			}
+			else
+			{
+				return ResultCode.RC_ZY_TIME_LIST_EMPTY;
+			}
+		}
+		
 		String diagDate = getFinalDiagDate(context, timeList);
 		log.info("Target reg date: " + diagDate);
 		if(diagDate == null)
 		{
 			log.warn("[IMPORTANT]: Can't find the target diag date.");
-			return ResultCode.RC_DOCTOR_REG_LIST_FULL;
+			
+			IDValuePair rc = parseFailReason(context, content, encoding);
+			if(rc != null)
+			{
+				return rc;
+			}
+			else
+			{
+				return ResultCode.RC_ZY_TARGET_DATE_NO_TICKET;
+			}
 		}
 
 		String registertime = "";
@@ -199,6 +195,45 @@ public class SelectTicketDate extends BasicHttpCommand
 		return ResultCode.RC_OK;
 	}
 	
+	private NodeList getSelectTimeList(String content, String encoding) throws ParserException
+	{
+		Parser parser = MiscUtils.createParser(content, encoding, log);
+
+		// Set filters
+		List<NodeFilter> predicates = new ArrayList<NodeFilter>(2);
+		NodeFilter[] a = new NodeFilter[0];
+
+		// 1. Submit filters
+		predicates.add(new HasAttributeFilter("id", "submitForm"));
+		predicates.add(new NodeClassFilter(FormTag.class));
+		NodeFilter submitFormFilter = new AndFilter(predicates.toArray(a));
+		predicates.clear();
+
+		// 2. time select
+		predicates.add(new HasAttributeFilter("name", "ddlselect"));
+		predicates.add(new NodeClassFilter(InputTag.class));
+		NodeFilter selectFilter = new AndFilter(predicates.toArray(a));
+		predicates.clear();
+
+		// 3.
+		predicates.add(new HasAttributeFilter("name", "ddlRegisterTime"));
+		predicates.add(new HasAttributeFilter("date"));
+		NodeFilter regTimeFilter = new AndFilter(predicates.toArray(a));
+		predicates.clear();
+
+		// 4. final filter
+		predicates.add(submitFormFilter);
+		predicates.add(selectFilter);
+		predicates.add(regTimeFilter);
+		NodeFilter finalFilter = new OrFilter(predicates.toArray(a));
+		predicates.clear();
+
+		// Fire!
+		NodeList nodeList = parser.parse(finalFilter);
+		
+		return nodeList;
+	}
+	
 	private Calendar toCalendar(String str)
 	{		
 		String regex = "(\\d+?)-(\\d+?)-(\\d+?)\\|";
@@ -210,13 +245,18 @@ public class SelectTicketDate extends BasicHttpCommand
 			log.error("Failed to format str to date: " + str);
 			return null;
 		}
+		
+		return toCalendar(valueList, 1);
+	}
+	
+	private Calendar toCalendar(List<String> valueList, int nStartIndex)
+	{
 		Calendar cal = Calendar.getInstance();
 		cal.set(Calendar.MILLISECOND, 0);
 
-		int index = 1;
-		cal.set(Calendar.YEAR, MiscUtils.toInt(valueList.get(index++)));
-		cal.set(Calendar.MONTH, MiscUtils.toInt(valueList.get(index++)) - 1);
-		cal.set(Calendar.DAY_OF_MONTH, MiscUtils.toInt(valueList.get(index++)));
+		cal.set(Calendar.YEAR, MiscUtils.toInt(valueList.get(nStartIndex++)));
+		cal.set(Calendar.MONTH, MiscUtils.toInt(valueList.get(nStartIndex++)) - 1);
+		cal.set(Calendar.DAY_OF_MONTH, MiscUtils.toInt(valueList.get(nStartIndex++)));
 		
 		return cal;
 	}
@@ -275,5 +315,140 @@ public class SelectTicketDate extends BasicHttpCommand
 			}
 		}
 		return diagDate;
+	}
+	
+	private IDValuePair parseFailReason(Context context, String content, String encoding) throws ParserException
+	{
+		Parser parser = MiscUtils.createParser(content, encoding, log);
+
+		// Set filters
+		List<NodeFilter> predicates = new ArrayList<NodeFilter>(2);
+		NodeFilter[] a = new NodeFilter[0];
+
+		// 1. data table filters
+		predicates.add(new HasAttributeFilter("class", "datatable"));
+		predicates.add(new NodeClassFilter(TableTag.class));
+		NodeFilter dataTableFilter = new AndFilter(predicates.toArray(a));
+		predicates.clear();
+		
+		NodeList tableList = parser.parse(dataTableFilter);
+		if(tableList.size() != 1)
+		{
+			log.error("The datatable doesn't exist. tableList.size=" + tableList.size());
+			return null;
+		}
+		
+		// parse the table content
+		TableTag dataTable = (TableTag)tableList.elementAt(0);
+		
+		TableRow[] rows = dataTable.getRows();
+		for(int i = 0; i < rows.length; i++)
+		{
+			String rowText = rows[i].toPlainTextString().trim();
+			rowText = StringUtils.replaceChars(rowText, "\r\n\t", null).trim();
+			if(rowText.isEmpty())
+			{
+				continue;
+			}
+			if(i == 0 && rowText.contains(AppConfig.getInstance().getPropInternal("zy.datatable.h1")))
+			{
+				continue;
+			}
+			if(i == 1 && rowText.contains(AppConfig.getInstance().getPropInternal("zy.datatable.h2")))
+			{
+				continue;
+			}
+			log.debug("row[" + i + "]=" + rowText);
+			
+			IDValuePair rc = isFullOrOver(rowText);
+			if(rc != null)
+			{
+				return rc;
+			}
+			
+			Calendar targetDay = (Calendar)context.get(ZyConstants.PARAM_TARGET_DAY);
+			rc = isStopToBook(targetDay, rowText);
+			if(rc != null)
+			{
+				return rc;
+			}
+		}
+		
+		return null;
+	}
+	
+	private IDValuePair isFullOrOver(String rowText)
+	{
+		int flags = Pattern.MULTILINE | Pattern.DOTALL | Pattern.UNICODE_CASE;
+		String regex = AppConfig.getInstance().getPropInternal("zy.datatable.full.regex1");
+		List<String> valueList = new ArrayList<String>();
+		
+		int matchCount = MiscUtils.getRegexValue(rowText, regex, valueList, true, flags);
+		if(matchCount == 1)
+		{
+			Calendar suggestRegDate = toCalendar(valueList, 2);
+			Calendar today = Calendar.getInstance();
+			
+			int c = MiscUtils.compareDay(today, suggestRegDate);
+			if(c == 0)
+			{
+				log.debug("The register time is not reached yet.");
+				return ResultCode.RC_ZY_REG_TIME_NOT_REACH_YET;
+			}
+			else if(c < 0)
+			{
+				log.info("All the ticket has been booked over really.");
+				return ResultCode.RC_DOCTOR_REG_LIST_FULL;
+			}
+		}
+		
+		return null;
+	}
+	
+	private IDValuePair isStopToBook(Calendar targetDay, String rowText)
+	{
+		if(targetDay == null)
+		{
+			return null;
+		}
+		int flags = Pattern.MULTILINE | Pattern.DOTALL | Pattern.UNICODE_CASE;
+		//STOP
+		String regex = AppConfig.getInstance().getPropInternal("zy.datatable.stop.regex1");
+		List<String> valueList = new ArrayList<String>();
+		int matchCount = MiscUtils.getRegexValue(rowText, regex, valueList, true, flags);
+		if(matchCount == 1)
+		{
+			Calendar stopDay = toCalendar(valueList, 2);
+
+			if(MiscUtils.isSameDay(targetDay, stopDay))
+			{
+				log.info("The ticket has been stopped to book.");
+				return ResultCode.RC_ZY_TARGET_DATE_STOP_TO_BOOK;
+			}
+		}
+		
+		return null;
+	}
+	
+	public static void main(String[] args) throws Exception
+	{
+		String[] names = {"1.html", "2.html"};
+		
+		Context context = new ContextBase();
+		Calendar cal = Calendar.getInstance();
+		cal.set(2012, 3, 4);
+		context.put(ZyConstants.PARAM_TARGET_DAY, cal);
+		
+		for(int i = 0; i < names.length; i++)
+		{
+			InputStream is = new FileInputStream(AppUtils.getTempFilePath(names[i]));
+			String encoding = "UTF-8";
+			String content = IOUtils.toString(is, encoding);
+			log.info("File: " + names[i]);
+			
+			SelectTicketDate theInstance = new SelectTicketDate();
+			IDValuePair rc = theInstance.parseFailReason(context, content, encoding);
+			log.info("Result: " + rc);
+		}
 	}
 }
