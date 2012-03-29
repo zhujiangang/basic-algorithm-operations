@@ -199,7 +199,7 @@ public class RjLogin
 		MiscParams.setReferer(session.getParams(), url);
 		
 		RequestBuilder rb = new RequestBuilder();
-		rb.method(HttpPost.METHOD_NAME).uriStr(url).parameters(paramMap).encoding("GB2312");
+		rb.method(HttpPost.METHOD_NAME).uriStr(url).paramMap(paramMap).encoding("GB2312");
 		rsp = session.execute(rb);
 
 		// Check login result
@@ -250,7 +250,7 @@ public class RjLogin
 			parseQueryRegListPage(content, paramMap);
 			
 			RequestBuilder rb = new RequestBuilder();
-			rb.method(HttpPost.METHOD_NAME).uriStr(url).parameters(paramMap).encoding("GB2312");
+			rb.method(HttpPost.METHOD_NAME).uriStr(url).paramMap(paramMap).encoding("GB2312");
 			rsp = session.execute(rb);
 
 			HttpClientUtils.saveToFile(rsp.getEntity(), AppUtils.getTempFilePath("reg_result.html"));
@@ -327,7 +327,7 @@ public class RjLogin
 			parseRegPageParameter(content, department, week, paramMap);
 			
 			RequestBuilder rb = new RequestBuilder();
-			rb.method(HttpPost.METHOD_NAME).uriStr(url).parameters(paramMap).encoding("GB2312");
+			rb.method(HttpPost.METHOD_NAME).uriStr(url).paramMap(paramMap).encoding("GB2312");
 			rsp = session.execute(rb);
 			
 			if(rsp.getStatusLine().getStatusCode() != 200)
@@ -399,7 +399,7 @@ public class RjLogin
 			paramMap.put("__EVENTTARGET", regDetail.eventTarget);
 			paramMap.put("__EVENTARGUMENT", regDetail.eventArgument);
 			
-			rb.method(HttpPost.METHOD_NAME).uriStr(url).parameters(paramMap).encoding("GB2312");
+			rb.method(HttpPost.METHOD_NAME).uriStr(url).paramMap(paramMap).encoding("GB2312");
 			rsp = session.execute(rb);
 
 			if(rsp.getStatusLine().getStatusCode() != 200)
@@ -413,7 +413,7 @@ public class RjLogin
 			paramMap.clear();
 			parseDoRegisterParameters(content, paramMap);
 			
-			rb.method(HttpPost.METHOD_NAME).uriStr(url).parameters(paramMap).encoding("GB2312");
+			rb.method(HttpPost.METHOD_NAME).uriStr(url).paramMap(paramMap).encoding("GB2312");
 			rsp = session.execute(rb);
 			
 			if(rsp.getStatusLine().getStatusCode() != 200)

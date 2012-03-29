@@ -25,7 +25,10 @@ public class GetVerificationCode extends BasicHttpCommand
 
 		// show validation code
 		String validationCode = MiscUtils.getValidationCode(fileName);
-		context.put(TdPNames.VERIFICATION_CODE, validationCode);
+		context.put(TdPNames.PARAM_LOGIN_VCODE, validationCode);
+		
+		//Remove next hop
+		HttpCommandParams.purgeRequestParams(context);
 
 		return ResultCode.RC_OK;
 	}

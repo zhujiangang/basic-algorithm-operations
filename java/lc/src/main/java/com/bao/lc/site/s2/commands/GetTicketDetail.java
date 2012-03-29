@@ -264,7 +264,7 @@ public class GetTicketDetail extends BasicHttpCommand
 		// Next Request
 		RequestBuilder rb = new RequestBuilder();
 		rb.method(method).reference(location).baseURI(requestURI);
-		rb.parameters(paramMap).encoding(encoding);
+		rb.paramMap(paramMap).encoding(encoding);
 		HttpUriRequest nextRequest = rb.create();
 
 		context.put(HttpCommandPNames.TARGET_REQUEST, nextRequest);

@@ -1,7 +1,6 @@
 package com.bao.lc.httpcommand;
 
 import org.apache.commons.chain.Context;
-import org.apache.commons.chain.Filter;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -19,7 +18,7 @@ import com.bao.lc.httpcommand.params.HttpCommandPNames;
 import com.bao.lc.httpcommand.params.HttpCommandParams;
 import com.bao.lc.util.AppUtils;
 
-public class BasicHttpCommand implements Filter
+public class BasicHttpCommand extends AbstractCommand
 {
 	private Log log = LogFactory.getLog(getClass());
 
@@ -28,72 +27,15 @@ public class BasicHttpCommand implements Filter
 	}
 
 	// ----------------------------------------------------------- Methods
-	@Override
-	public boolean postprocess(Context context, Exception exception)
-	{
-		//save the exception command
-		if(!context.containsKey(HttpCommandPNames.EXCEPTION_COMMAND))
-		{
-			context.put(HttpCommandPNames.EXCEPTION_COMMAND, this);
-		}
-		
-		return false;
-	}
-	
+
 	@SuppressWarnings("unchecked")
 	@Override
 	public boolean execute(Context context) throws Exception
 	{
-		// Default: complete the current command
-		boolean result = PROCESSING_COMPLETE;
+		boolean result = super.execute(context);
 
-		IDValuePair rc = ResultCode.RC_OK;
-
-		do
-		{
-			// 0. Pre Execute
-			rc = preExecute(context);
-			if(rc != ResultCode.RC_OK)
-			{
-				break;
-			}
-
-			// 1. Do Execute
-			rc = doExecute(context);
-			if(rc != ResultCode.RC_OK)
-			{
-				break;
-			}
-
-			// -1. Post Execute
-			rc = postExecute(context);
-			if(rc != ResultCode.RC_OK)
-			{
-				break;
-			}
-
-			// Done, everything is OK
-			rc = ResultCode.RC_OK;
-			result = CONTINUE_PROCESSING;
-		}
-		while(false);
-
-		// Save and log(if needed) the command result
-		context.put(HttpCommandPNames.HTTP_COMMAND_RESULT_CODE, rc);
-
-		if(rc != ResultCode.RC_OK)
-		{
-			log.info(getResultLog(rc, HttpCommandParams.getTargetRequest(context)));
-		}
-		if(log.isDebugEnabled())
-		{
-			StringBuilder sb = new StringBuilder();
-			sb.append("Next hop: URI=");
-			sb.append(HttpCommandParams.getTargetRequestURI(context));
-			sb.append(", Referer=");
-			sb.append(MapUtils.getString(context, HttpCommandPNames.TARGET_REFERER));
-			log.debug(sb.toString());
-		}
+		// Log useful informations
+		log.info(getResultLog(context, result));
 
 		return result;
 	}
@@ -101,8 +43,7 @@ public class BasicHttpCommand implements Filter
 	protected IDValuePair preExecute(Context context) throws Exception
 	{
 		// Remove the response if it exists
-		context.remove(HttpCommandPNames.TARGET_RESPONSE);
-		context.remove(HttpCommandPNames.HTTP_COMMAND_RESULT_CODE);
+		HttpCommandParams.purgeResponseParams(context);
 
 		return ResultCode.RC_OK;
 	}
@@ -130,7 +71,7 @@ public class BasicHttpCommand implements Filter
 			{
 				MiscParams.setReferer(request.getParams(), referer);
 			}
-			
+
 			if(log.isDebugEnabled())
 			{
 				log.debug("[Execute]: URI=" + request.getURI() + ", referer=" + referer);
@@ -164,25 +105,50 @@ public class BasicHttpCommand implements Filter
 		String file = AppUtils.getTempFilePath("HttpResult_200.html");
 		HttpClientUtils.saveToFile(rsp.getEntity(), file);
 
-		context.remove(HttpCommandPNames.TARGET_REQUEST);
-		context.remove(HttpCommandPNames.TARGET_REFERER);
+		HttpCommandParams.purgeRequestParams(context);
 
 		return ResultCode.RC_OK;
 	}
 
-	private String getResultLog(IDValuePair rc, HttpUriRequest request)
+	private String getResultLog(Context context, boolean result)
 	{
 		StringBuilder sb = new StringBuilder();
-		sb.append("rc=").append(rc);
-		if(request != null)
+		
+		//1. Command Result
+		sb.append("[Result]: ").append(result);
+
+		//2. Application Result Code
+		IDValuePair rc = HttpCommandParams.getResultCode(context);
+		sb.append(", rc=").append(rc);
+		
+		//explain the request
+		if(rc == ResultCode.RC_OK)
 		{
-			sb.append(", ").append(request.getMethod());
-			sb.append(" ").append(request.getURI().toString());			
+			sb.append(", NextHop=");
 		}
 		else
 		{
-			sb.append(", request=null.");
+			sb.append(", CurrHop=");
 		}
+
+		//Request
+		HttpUriRequest request = HttpCommandParams.getTargetRequest(context);
+		if(request != null)
+		{
+			sb.append(request.getMethod()).append(" ").append(request.getURI());
+		}
+		else
+		{
+			sb.append("null");
+		}
+
+		//Append the referrer if it is OK 
+		if(rc == ResultCode.RC_OK)
+		{
+			sb.append(", Referer=");
+			sb.append(MapUtils.getString(context, HttpCommandPNames.TARGET_REFERER));
+		}
+
 		return sb.toString();
 	}
 }

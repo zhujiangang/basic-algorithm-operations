@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.chain.Command;
 import org.apache.commons.chain.Context;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.logging.Log;
@@ -27,16 +28,13 @@ import org.htmlparser.util.ParserException;
 import com.bao.lc.bean.IDValuePair;
 import com.bao.lc.bean.ResultCode;
 import com.bao.lc.client.RequestBuilder;
-import com.bao.lc.httpcommand.BasicHttpCommand;
-import com.bao.lc.httpcommand.HttpCommandDirector;
-import com.bao.lc.httpcommand.impl.DefaultHttpCommandDirector;
-import com.bao.lc.httpcommand.impl.LogCompleteListener;
+import com.bao.lc.httpcommand.AbstractCommand;
 import com.bao.lc.httpcommand.params.HttpCommandPNames;
 import com.bao.lc.httpcommand.params.HttpCommandParams;
 import com.bao.lc.site.s3.params.TdPNames;
 import com.bao.lc.util.MiscUtils;
 
-public class ParseLoginPage extends BasicHttpCommand
+public class ParseLoginPage extends AbstractCommand
 {
 	private static Log log = LogFactory.getLog(ParseLoginPage.class);
 
@@ -54,6 +52,12 @@ public class ParseLoginPage extends BasicHttpCommand
 		vCodeImage = null;
 	}
 
+	@Override
+	protected IDValuePair preExecute(Context context) throws Exception
+	{
+		return ResultCode.RC_OK;
+	}
+	
 	@Override
 	protected IDValuePair doExecute(Context context) throws Exception
 	{
@@ -79,9 +83,13 @@ public class ParseLoginPage extends BasicHttpCommand
 
 		// 1. parse content
 		parseContent(context, content, encoding);
-
+		
 		// 2. Verification Code
-		String vCode = getVerificationCode(context, this.vCodeImage.extractImageLocn());
+		String vCode = MapUtils.getString(context, TdPNames.PARAM_LOGIN_VCODE);
+		if(vCode == null)
+		{
+			vCode = getVerificationCode(context, this.vCodeImage.extractImageLocn());
+		}
 
 		// 3. Get all input parameters
 		Map<String, String> params = new HashMap<String, String>();
@@ -98,7 +106,7 @@ public class ParseLoginPage extends BasicHttpCommand
 		// Create request of the next hop
 		RequestBuilder rb = new RequestBuilder();
 		rb.method(this.loginForm.getFormMethod()).baseURI(baseURI).reference(location);
-		rb.parameters(params).encoding(encoding);
+		rb.paramMap(params).encoding(encoding);
 		HttpUriRequest nextRequest = rb.create();
 
 		// done
@@ -156,41 +164,6 @@ public class ParseLoginPage extends BasicHttpCommand
 		}
 	}
 
-	private String getVerificationCode(Context context, String vCodeLocation)
-	{
-		// Save the current context
-		HttpUriRequest currRequest = HttpCommandParams.getTargetRequest(context);
-		String currReferer = MapUtils.getString(context, HttpCommandPNames.TARGET_REFERER);
-
-		URI baseURI = currRequest.getURI();
-
-		boolean isFirstLogin = MapUtils.getBooleanValue(context, TdPNames.PARAM_IS_LOGIN_FIRST, true);
-		if(!isFirstLogin)
-		{
-			vCodeLocation += "&" + MiscUtils.randJS();
-		}
-		// Create request of the next hop
-		RequestBuilder rb = new RequestBuilder();
-		rb.baseURI(baseURI).reference(vCodeLocation);
-		HttpUriRequest nextRequest = rb.create();
-
-		context.put(HttpCommandPNames.TARGET_REQUEST, nextRequest);
-		context.put(HttpCommandPNames.TARGET_REFERER, baseURI.toString());
-
-		// Do execute GetVerificationCode
-		HttpCommandDirector director = new DefaultHttpCommandDirector();
-		director.execute(new GetVerificationCode(), context, new LogCompleteListener(log));
-
-		// Get the result
-		String vCode = MapUtils.getString(context, TdPNames.VERIFICATION_CODE);
-
-		// Restore
-		context.put(HttpCommandPNames.TARGET_REQUEST, currRequest);
-		context.put(HttpCommandPNames.TARGET_REFERER, currReferer);
-
-		return vCode;
-	}
-
 	private void getInputParameters(Context context, String vCode, FormTag loginForm,
 		Map<String, String> params)
 	{
@@ -214,5 +187,40 @@ public class ParseLoginPage extends BasicHttpCommand
 			}
 			params.put(name, value);
 		}
+	}
+	
+	private String getVerificationCode(Context context, String vCodeLocation) throws Exception
+	{
+		// Save the current context
+		HttpUriRequest currRequest = HttpCommandParams.getTargetRequest(context);
+		String currReferer = MapUtils.getString(context, HttpCommandPNames.TARGET_REFERER);
+
+		URI baseURI = currRequest.getURI();
+
+		boolean isFirstLogin = MapUtils.getBooleanValue(context, TdPNames.PARAM_IS_LOGIN_FIRST, true);
+		if(!isFirstLogin)
+		{
+			vCodeLocation += "&" + MiscUtils.randJS();
+		}
+		// Create request of the next hop
+		RequestBuilder rb = new RequestBuilder();
+		rb.baseURI(baseURI).reference(vCodeLocation);
+		HttpUriRequest nextRequest = rb.create();
+
+		context.put(HttpCommandPNames.TARGET_REQUEST, nextRequest);
+		context.put(HttpCommandPNames.TARGET_REFERER, baseURI.toString());
+
+		// Do execute GetVerificationCode
+		Command childCommand = new GetVerificationCode();
+		childCommand.execute(context);
+
+		// Get the result
+		String vCode = MapUtils.getString(context, TdPNames.PARAM_LOGIN_VCODE);
+
+		// Restore
+		context.put(HttpCommandPNames.TARGET_REQUEST, currRequest);
+		context.put(HttpCommandPNames.TARGET_REFERER, currReferer);
+
+		return vCode;
 	}
 }

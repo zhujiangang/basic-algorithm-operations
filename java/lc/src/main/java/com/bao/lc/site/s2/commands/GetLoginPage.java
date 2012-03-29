@@ -119,7 +119,7 @@ public class GetLoginPage extends BasicHttpCommand
 
 		RequestBuilder rb = new RequestBuilder();
 		rb.method(method).baseURI(baseURI).reference(location);
-		rb.parameters(params).encoding(encoding);
+		rb.paramMap(params).encoding(encoding);
 		HttpUriRequest nextRequest = rb.create();
 
 		context.put(HttpCommandPNames.TARGET_REQUEST, nextRequest);

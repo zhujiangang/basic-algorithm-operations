@@ -12,6 +12,7 @@ import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicNameValuePair;
 
@@ -33,7 +34,8 @@ public class RequestBuilder
 	private String uriString = null;
 
 	//Optional
-	private Map<String, String> params = null;
+	private Map<String, String> paramMap = null;
+	private List<NameValuePair> paramList = null;
 	
 	//Optional
 	private Map<String, String> headers = null;
@@ -59,7 +61,8 @@ public class RequestBuilder
 		reference = null;
 		uriString = null;
 
-		params = null;
+		paramMap = null;
+		paramList = null;
 		headers = null;
 		encoding = "UTF-8";
 
@@ -113,6 +116,27 @@ public class RequestBuilder
 
 		return requestURI;
 	}
+	
+	private List<NameValuePair> getParameters()
+	{
+		if(paramList != null && paramMap != null)
+		{
+			throw new IllegalArgumentException("paramList and paramMap can't exist at the same time.");
+		}
+		
+		if(paramList != null)
+		{
+			return paramList;
+		}
+		
+		if(paramMap != null)
+		{
+			return toNameValuePairList(paramMap);
+		}
+		
+		return null;
+	}
+	
 	public RequestBuilder method(String method)
 	{
 		this.method = method;
@@ -138,9 +162,14 @@ public class RequestBuilder
 		this.uriString = uriString;
 		return this;
 	}
-	public RequestBuilder parameters(Map<String, String> params)
+	public RequestBuilder paramMap(Map<String, String> paramMap)
 	{
-		this.params = params;
+		this.paramMap = paramMap;
+		return this;
+	}
+	public RequestBuilder paramList(List<NameValuePair> paramList)
+	{
+		this.paramList = paramList;
 		return this;
 	}
 	public RequestBuilder headers(Map<String, String> headers)
@@ -187,9 +216,34 @@ public class RequestBuilder
 			URI requestURI = getRequestURI();
 
 			// parameters
-			if(params != null && !params.isEmpty())
+			List<NameValuePair> parameters = this.getParameters();
+			if(parameters != null && !parameters.isEmpty())
 			{
-				get = new HttpGet(requestURI.toString() + assemblyParameter(params));
+				String addedQuery = URLEncodedUtils.format(parameters, encoding);
+				
+				StringBuilder sb = new StringBuilder();
+				sb.append(requestURI.toString());
+				
+				String rawQuery = requestURI.getRawQuery();
+				//e.g. http://www.yahoo.com/
+				if(rawQuery == null)
+				{
+					sb.append("?");
+				}
+				else
+				{
+					//e.g. http://www.yahoo.com/a.html?a=1
+					if(!rawQuery.isEmpty() && !rawQuery.endsWith("&"))
+					{
+						sb.append("&");
+					}
+					//else case:
+					//e.g. empty rawQuery: http://www.yahoo.com/?
+					//e.g. http://www.yahoo.com/a.html?a=1&
+				}
+				sb.append(addedQuery);
+				
+				get = new HttpGet(sb.toString());
 			}
 			else
 			{
@@ -224,7 +278,10 @@ public class RequestBuilder
 		try
 		{
 			URI requestURI = getRequestURI();
-			if(params == null)
+			
+			// parameters
+			List<NameValuePair> parameters = this.getParameters();
+			if(parameters == null)
 			{
 				throw new IllegalArgumentException("must specify 'parameters' for POST");
 			}
@@ -236,14 +293,9 @@ public class RequestBuilder
 			post = new HttpPost(requestURI);
 
 			// Post data
-			List<NameValuePair> list = new ArrayList<NameValuePair>();
-			for(String paramName : params.keySet())
-			{
-				list.add(new BasicNameValuePair(paramName, params.get(paramName)));
-			}
 			try
 			{
-				post.setEntity(new UrlEncodedFormEntity(list, encoding));
+				post.setEntity(new UrlEncodedFormEntity(parameters, encoding));
 			}
 			catch(UnsupportedEncodingException e)
 			{
@@ -279,7 +331,7 @@ public class RequestBuilder
 	 * @param headers
 	 * @return
 	 */
-	public static Header[] assemblyHeader(Map<String, String> headers)
+	private static Header[] assemblyHeader(Map<String, String> headers)
 	{
 		Header[] allHeader = new BasicHeader[headers.size()];
 		int i = 0;
@@ -290,21 +342,14 @@ public class RequestBuilder
 		}
 		return allHeader;
 	}
-
-	/**
-	 * Assembly Parameters
-	 * 
-	 * @param paramMap
-	 * @return
-	 */
-	public static String assemblyParameter(Map<String, String> paramMap)
+	
+	private static List<NameValuePair> toNameValuePairList(Map<String, String> paramMap)
 	{
-		StringBuilder sb = new StringBuilder("?");
-		for(String str : paramMap.keySet())
+		List<NameValuePair> list = new ArrayList<NameValuePair>(paramMap.size());
+		for(String paramName : paramMap.keySet())
 		{
-			sb.append(str).append("=").append(paramMap.get(str));
-			sb.append("&");
+			list.add(new BasicNameValuePair(paramName, paramMap.get(paramName)));
 		}
-		return sb.substring(0, sb.length() - 1);
+		return list;
 	}
 }
