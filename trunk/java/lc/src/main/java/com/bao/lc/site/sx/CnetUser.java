@@ -142,7 +142,7 @@ public class CnetUser
 		params.put("viewType", "json");
 		
 		RequestBuilder rb = new RequestBuilder();
-		rb.method(HttpPost.METHOD_NAME).uriStr(url).parameters(params).encoding("UTF-8");
+		rb.method(HttpPost.METHOD_NAME).uriStr(url).paramMap(params).encoding("UTF-8");
 		rsp = session.execute(rb);
 
 		// parse result
@@ -211,7 +211,7 @@ public class CnetUser
 		URI uri = URIUtils.rewriteURI(URI.create(url), host);
 		
 		RequestBuilder rb = new RequestBuilder();
-		rb.uri(uri).parameters(params);
+		rb.uri(uri).paramMap(params);
 		HttpResponse rsp = session.execute(rb);
 		
 		HttpClientUtils.saveToFile(rsp.getEntity(), AppUtils.getTempFilePath("community-profile.html"));
@@ -254,7 +254,7 @@ public class CnetUser
 		params.put("path", path);
 		
 		RequestBuilder rb = new RequestBuilder();
-		rb.method(HttpPost.METHOD_NAME).uri(uri).parameters(params).encoding("UTF-8");
+		rb.method(HttpPost.METHOD_NAME).uri(uri).paramMap(params).encoding("UTF-8");
 		rsp = session.execute(rb);
 		HttpClientUtils.saveToFile(rsp.getEntity(), AppUtils.getTempFilePath("modifyProfileResult.html"));
 		

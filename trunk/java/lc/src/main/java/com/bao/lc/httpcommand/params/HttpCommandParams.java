@@ -4,6 +4,7 @@ import java.net.URI;
 
 import org.apache.commons.chain.Command;
 import org.apache.commons.chain.Context;
+import org.apache.commons.collections.MapUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.RedirectStrategy;
@@ -13,6 +14,7 @@ import org.apache.http.protocol.HttpContext;
 import com.bao.lc.bean.IDValuePair;
 import com.bao.lc.client.BrowserClient;
 import com.bao.lc.client.impl.PostRedirectStrategy;
+import com.bao.lc.client.utils.HttpClientUtils;
 
 public class HttpCommandParams
 {
@@ -44,6 +46,26 @@ public class HttpCommandParams
 			throw new IllegalStateException("Empty HTTP_RESPONSE.");
 		}
 		return rsp;
+	}
+	
+	public static String getCharset(Context context)
+	{
+		String charsetName = HttpClientUtils.getCharset(getResponse(context));
+		if(charsetName == null)
+		{
+			charsetName = HttpCommandParams.getDefaultResponseCharset(context);
+		}
+		return charsetName;
+	}
+	
+	public static String getDefaultResponseCharset(Context context)
+	{
+		String charset = MapUtils.getString(context, HttpCommandPNames.RESPONSE_DEFAULT_CHARSET);
+		if(charset == null)
+		{
+			return "UTF-8";
+		}
+		return charset;
 	}
 
 	public static IDValuePair getResultCode(Context context)
@@ -97,5 +119,17 @@ public class HttpCommandParams
 	public static Command getExceptionCommand(Context context)
 	{
 		return (Command) context.get(HttpCommandPNames.EXCEPTION_COMMAND);
+	}
+	
+	public static void purgeRequestParams(Context context)
+	{
+		context.remove(HttpCommandPNames.TARGET_REQUEST);
+		context.remove(HttpCommandPNames.TARGET_REFERER);
+	}
+	public static void purgeResponseParams(Context context)
+	{
+		context.remove(HttpCommandPNames.TARGET_RESPONSE);
+		context.remove(HttpCommandPNames.HTTP_COMMAND_RESULT_CODE);
+		context.remove(HttpCommandPNames.EXCEPTION_COMMAND);
 	}
 }

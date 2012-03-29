@@ -28,9 +28,9 @@ import com.bao.lc.httpcommand.impl.DirectorBuilder;
 import com.bao.lc.httpcommand.impl.LogCompleteListener;
 import com.bao.lc.httpcommand.params.HttpCommandPNames;
 import com.bao.lc.httpcommand.utils.HttpCommandUtils;
-import com.bao.lc.site.s3.commands.DoLogin;
-import com.bao.lc.site.s3.commands.GetLoginPage;
 import com.bao.lc.site.s3.commands.DoLogout;
+import com.bao.lc.site.s3.commands.Login;
+import com.bao.lc.site.s3.commands.QueryLeftTicket;
 import com.bao.lc.site.s3.params.TdPNames;
 
 public class TdClient
@@ -96,7 +96,7 @@ public class TdClient
 		return true;
 	}
 	
-	public void execute(Command mainCommand, Context context)
+	public void execute(Command mainCommand, Context context) throws Exception
 	{
 		// 3. Fire!
 		CommandCompleteListener listener = new LogCompleteListener(log);
@@ -130,16 +130,30 @@ public class TdClient
 		Context context = HttpCommandUtils.createContext(session, httpContext, new HttpGet(loginUrl));
 		context.put(HttpCommandPNames.TARGET_REFERER, refererUrl);
 
-		// Parameters
-		context.put(TdPNames.PARAM_RSP_ENCODING, "UTF-8");
-		context.put(TdPNames.PARAM_UI, log);
+		// Input Parameters
+		context.put(HttpCommandPNames.RESPONSE_DEFAULT_CHARSET, "UTF-8");
+		context.put(TdPNames.PARAM_UI, LogFactory.getLog("TdClient.UI"));
 		
 		String user = AppConfig.getInstance().getPropInput("td.user");
 		String pwd = AppConfig.getInstance().getPropInput("td.password");
-		
+		String fromStation = AppConfig.getInstance().getPropInput("td.from_station");
+		String toStation = AppConfig.getInstance().getPropInput("td.to_station");
+		String ticketDate = AppConfig.getInstance().getPropInput("td.ticket.date");
+		String ticketTimeRange = AppConfig.getInstance().getPropInput("td.ticket.time_range");
 		
 		context.put(TdPNames.PARAM_USER, user);
 		context.put(TdPNames.PARAM_PASSWORD, pwd);
+		context.put(TdPNames.PARAM_FROM_STATION, fromStation);
+		context.put(TdPNames.PARAM_TO_STATION, toStation);
+		context.put(TdPNames.PARAM_TICKET_DATE, ticketDate);
+		context.put(TdPNames.PARAM_TICKET_TIME_RANGE, ticketTimeRange);
+		
+		// Internal parameters
+		String queryLeftTicketBaseURL = AppConfig.getInstance().getPropInternal("td.queryLeftTicket.url");
+		String queryLeftTicketReferer = AppConfig.getInstance().getPropInternal("td.queryLeftTicket.referer");
+		
+		context.put(TdPNames.PARAM_QUERY_LEFT_TICKET_BASE_URL, queryLeftTicketBaseURL);
+		context.put(TdPNames.PARAM_QUERY_LEFT_TICKET_REFERER, queryLeftTicketReferer);
 		
 		return context;
 	}
@@ -148,9 +162,8 @@ public class TdClient
 	{
 		// 2. Init Command chain
 		Chain chain = new ChainBase();
-		chain.addCommand(new GetLoginPage());
-		chain.addCommand(new DoLogin());
-
+		chain.addCommand(new Login());
+		chain.addCommand(new QueryLeftTicket());
 		return chain;
 	}
 	
@@ -160,7 +173,14 @@ public class TdClient
 		Chain chain = createChain1();
 		
 		// 3. Execute
-		execute(chain, context);
+		try
+		{
+			execute(chain, context);
+		}
+		catch(Exception e)
+		{
+			log.error(e.getMessage(), e);
+		}
 	}
 	/**
 	 * @param args

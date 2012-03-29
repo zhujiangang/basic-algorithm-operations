@@ -10,7 +10,7 @@ import com.bao.lc.httpcommand.params.HttpCommandParams;
 public class DefaultHttpCommandDirector implements HttpCommandDirector
 {
 	@Override
-	public void execute(Command command, Context context, CommandCompleteListener listener)
+	public void execute(Command command, Context context, CommandCompleteListener listener) throws Exception
 	{
 		try
 		{
@@ -35,7 +35,7 @@ public class DefaultHttpCommandDirector implements HttpCommandDirector
 	@Override
 	public void execute(Command mainCommand, Context mainContext,
 		CommandCompleteListener mainListener, Command finalCommand, Context finalContext,
-		CommandCompleteListener finalListener)
+		CommandCompleteListener finalListener) throws Exception
 	{
 		try
 		{

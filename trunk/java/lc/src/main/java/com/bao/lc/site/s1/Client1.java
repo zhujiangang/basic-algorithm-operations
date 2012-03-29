@@ -32,7 +32,7 @@ public class Client1
 	}
 
 	@SuppressWarnings("unchecked")
-	public void action1()
+	public void action1() throws Exception
 	{
 		// Init Command context
 		HttpGet request = new HttpGet("http://www.downloads.com/");
@@ -66,7 +66,15 @@ public class Client1
 	public static void main(String[] args)
 	{
 		Client1 client = new Client1();
-		client.action1();
+		
+		try
+		{
+			client.action1();
+		}
+		catch(Exception e)
+		{
+			log.error("exception", e);
+		}
 	}
 
 }

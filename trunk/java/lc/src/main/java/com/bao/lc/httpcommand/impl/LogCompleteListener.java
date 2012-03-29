@@ -41,7 +41,7 @@ public class LogCompleteListener implements CommandCompleteListener
 	}
 
 	@Override
-	public void commandException(Exception e, Command command, Context context)
+	public void commandException(Exception e, Command command, Context context) throws Exception
 	{
 		StringBuilder sb = new StringBuilder();
 		sb.append("Command[").append(command.getClass().getName()).append("] Exception");

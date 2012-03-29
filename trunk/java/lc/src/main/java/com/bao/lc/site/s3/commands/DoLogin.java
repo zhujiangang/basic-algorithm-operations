@@ -57,7 +57,8 @@ public class DoLogin extends BasicHttpCommand
 
 		// Login page content
 		String userPage = HttpClientUtils.saveToString(rsp.getEntity(), charset);
-		context.put(TdPNames.LOGIN_PAGE_CONTENT, userPage);
+		context.put(TdPNames.PARAM_INPUT_CONTENT, userPage);
+		context.put(TdPNames.PARAM_INPUT_ENCODING, charset);
 
 		// For manual check
 		IOUtils.write(userPage, new FileOutputStream(AppUtils.getTempFilePath("login.html")),
@@ -69,8 +70,9 @@ public class DoLogin extends BasicHttpCommand
 		if(isLogin(context, userPage, charset))
 		{
 			context.put(TdPNames.LOGIN_STATE, Boolean.TRUE);
-			log.info("User [" + user + "] login successfully.");
 
+			TdParams.getUI(context).info("User [" + user + "] login successfully.");
+			
 			return ResultCode.RC_OK;
 		}
 		// Login Failed
@@ -79,14 +81,11 @@ public class DoLogin extends BasicHttpCommand
 			context.put(TdPNames.LOGIN_STATE, Boolean.FALSE);
 			log.info("User [" + user + "] login failed.");
 
-			// TODO: check failed reason.
-			parseFailReason(context, userPage, charset);
-
-			return ResultCode.RC_USER_NOT_LOGIN;
+			//check failed reason.
+			IDValuePair rc = parseFailReason(context, userPage, charset);
+			return rc;
 		}
 	}
-
-	
 
 	private boolean isLogin(Context context, String pageContent, String charset)
 		throws ParserException
@@ -228,7 +227,7 @@ public class DoLogin extends BasicHttpCommand
 		return true;
 	}
 	
-	private void parseFailReason(Context context, String pageContent, String charset) throws ParserException
+	private IDValuePair parseFailReason(Context context, String pageContent, String charset) throws ParserException
 	{
 		Parser parser = MiscUtils.createParser(pageContent, charset, log);
 
@@ -327,12 +326,14 @@ public class DoLogin extends BasicHttpCommand
 			if(loginForm == null)
 			{
 				log.error("Can't find the login form, error reason unkown.");
+				rc = ResultCode.RC_TD_LOGIN_NO_SUBMIT_FORM_ERROR;
 			}
 			outErrorMsg = "Unkown error.";
 		}
 		while(false);
 		
-		Log uiLog = TdParams.getUI(context);
-		uiLog.error("Login failed: [" + outErrorMsg + "], rc=" + rc);
+		TdParams.getUI(context).error("Login failed: [" + outErrorMsg + "], rc=" + rc);
+		
+		return rc;
 	}
 }

@@ -42,8 +42,8 @@ import com.bao.lc.util.MiscUtils;
 public class ZyClient
 {
 	private static Log log = LogFactory.getLog(ZyClient.class);
-	
-	private static final DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS"); 
+
+	private static final DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
 
 	private BrowserClient session = null;
 
@@ -52,7 +52,7 @@ public class ZyClient
 		session = new BrowserClient();
 	}
 
-	public void execute(Chain chain, Context context)
+	public void execute(Chain chain, Context context) throws Exception
 	{
 		// 3. Fire!
 		CommandCompleteListener listener = new LogCompleteListener(log);
@@ -94,11 +94,12 @@ public class ZyClient
 		String consumer = AppConfig.getInstance().getPropInput("zy.consumer.name");
 		String timeDiff = AppConfig.getInstance().getPropInput("zy.time.diff");
 
-		String msg = String.format(
-			"User=[%s], pwd=[%s], hos=[%s], doctor=[%s], dayOfWeek=[%s], dayFixed=[%s], consumer=[%s], timeDiff=[%s]", user, pwd,
-			hos, doctor, dayOfWeek, dayFixed, consumer, timeDiff);
+		String msg = String
+			.format(
+				"User=[%s], pwd=[%s], hos=[%s], doctor=[%s], dayOfWeek=[%s], dayFixed=[%s], consumer=[%s], timeDiff=[%s]",
+				user, pwd, hos, doctor, dayOfWeek, dayFixed, consumer, timeDiff);
 		log.info(msg);
-		
+
 		Boolean bDayFixed = BooleanUtils.toBooleanObject(dayFixed);
 		long lTimeDiff = NumberUtils.toLong(timeDiff);
 
@@ -110,17 +111,24 @@ public class ZyClient
 		context.put(ZyConstants.PARAM_FIXED_DAY, bDayFixed);
 		context.put(ZyConstants.PARAM_CONSUMER_NAME, consumer);
 		context.put(ZyConstants.PARAM_TIME_DIFF, Long.valueOf(lTimeDiff));
-		
-		lTimeDiff = getTimeDiff();
-		if(lTimeDiff != 0)
+
+		try
 		{
-			context.put(ZyConstants.PARAM_TIME_DIFF, Long.valueOf(lTimeDiff));
+			lTimeDiff = getTimeDiff();
+			if(lTimeDiff != 0)
+			{
+				context.put(ZyConstants.PARAM_TIME_DIFF, Long.valueOf(lTimeDiff));
+			}
 		}
-		
-		//other non-input parameters
+		catch(Exception e)
+		{
+			log.error("getTimeDiff exception", e);
+		}
+
+		// other non-input parameters
 		context.put(ZyConstants.PARAM_RSP_ENCODING, "UTF-8");
 		context.put(ZyConstants.PARAM_TARGET_DAY, getTargetDay(context));
-		
+
 		return context;
 	}
 
@@ -139,21 +147,22 @@ public class ZyClient
 	}
 
 	@SuppressWarnings("unchecked")
-	public void action1()
+	public void action1() throws Exception
 	{
 		// 1. Init Command context
 		Context context = createContext();
 
 		// 2. Init Command chain
 		Chain chain = createChain1();
-		
+
 		// 3. Execute
 		execute(chain, context);
 	}
+
 	private Calendar getTargetDay(Context context)
 	{
 		Calendar now = Calendar.getInstance();
-		
+
 		String dayOfWeek = MapUtils.getString(context, ZyConstants.PARAM_DAY_OF_WEEK, "6");
 		int iDayOfWeek = MiscUtils.toInt(String.valueOf(dayOfWeek.charAt(0)));
 		MiscUtils.updateCalendar(now, 3, iDayOfWeek);
@@ -161,35 +170,36 @@ public class ZyClient
 		now.set(Calendar.MINUTE, 0);
 		now.set(Calendar.SECOND, 0);
 		now.set(Calendar.MILLISECOND, 0);
-		
+
 		long lTimeDiff = MapUtils.getLongValue(context, ZyConstants.PARAM_TIME_DIFF, 0);
-		now.add(Calendar.MILLISECOND, (int)(-lTimeDiff));
-		
+		now.add(Calendar.MILLISECOND, (int) (-lTimeDiff));
+
 		return now;
 	}
+
 	private Calendar getSiteStartTime(Context context)
 	{
 		Calendar target = getTargetDay(context);
 		target.add(Calendar.DAY_OF_MONTH, -15);
-		
-		//DEBUG
-//		target.set(Calendar.MINUTE, 33);
-		
+
+		// DEBUG
+		// target.set(Calendar.MINUTE, 33);
+
 		return target;
 	}
-	
-	private long getTimeDiff()
+
+	private long getTimeDiff() throws Exception
 	{
 		// Startup URI
 		HttpGet request = new HttpGet(AppConfig.getInstance().getPropInternal("zy.systime.url"));
 		Context context = HttpCommandUtils.createContext(session, request);
-		
+
 		Chain chain = new ChainBase();
 		chain.addCommand(new GetTimeDiff());
-		
+
 		HttpCommandDirector director = new DefaultHttpCommandDirector();
 		director.execute(chain, context, new LogCompleteListener(log));
-		
+
 		Long diff = MapUtils.getLong(context, ZyConstants.PARAM_TIME_DIFF);
 		if(diff != null)
 		{
@@ -197,33 +207,35 @@ public class ZyClient
 		}
 		return 0L;
 	}
+
 	private Chain createChain2(Context context, String[] consumers)
 	{
 		// 2. Init Command chain
 		Chain chain = new ChainBase();
-		
+
 		Calendar siteStartTime = getSiteStartTime(context);
-		
-		Calendar localStartTime = (Calendar)siteStartTime.clone();
+
+		Calendar localStartTime = (Calendar) siteStartTime.clone();
 		localStartTime.add(Calendar.SECOND, -2);
-		
+
 		StringBuilder sb = new StringBuilder();
 		sb.append("Site Start Time: ").append(dateFormat.format(siteStartTime.getTime()));
 		sb.append(", Local Start Time: ").append(dateFormat.format(localStartTime.getTime()));
 		log.info(sb.toString());
-		
+
 		chain.addCommand(new SleepCommand(localStartTime.getTime()));
 		chain.addCommand(new GetLoginPage());
 		chain.addCommand(new DoLogin());
-		
+
 		for(int i = 0; i < consumers.length; i++)
 		{
 			String consumer = consumers[i].trim();
-			
+
 			chain.addCommand(new QueryTicketNumResult());
 			chain.addCommand(new GetTicketDetail(consumer));
 
-			DefaultCommandRetryStrategy retryStrategy = new ZyCommandRetryStrategy(3, siteStartTime.getTime());
+			DefaultCommandRetryStrategy retryStrategy = new ZyCommandRetryStrategy(3,
+				siteStartTime.getTime());
 			Command selectDate = new RetryHttpCommand(new SelectTicketDate(), retryStrategy);
 			chain.addCommand(selectDate);
 
@@ -233,7 +245,7 @@ public class ZyClient
 		return chain;
 	}
 
-	public void action2()
+	public void action2() throws Exception
 	{
 		// 1. Init Command context
 		Context context = createContext();
@@ -244,7 +256,7 @@ public class ZyClient
 			throw new IllegalArgumentException("consumerName: " + consumerName);
 		}
 		String[] consumers = consumerName.split(",");
-		
+
 		// 2. Init Command chain
 		Chain chain = createChain2(context, consumers);
 
@@ -258,6 +270,14 @@ public class ZyClient
 	public static void main(String[] args)
 	{
 		ZyClient client = new ZyClient();
-		client.action2();
+		
+		try
+		{
+			client.action2();
+		}
+		catch(Exception e)
+		{
+			log.error("exception", e);
+		}
 	}
 }

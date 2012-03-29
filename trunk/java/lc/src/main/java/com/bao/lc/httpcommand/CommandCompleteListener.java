@@ -10,5 +10,5 @@ public interface CommandCompleteListener
 	public void commandComplete(boolean commandResult, IDValuePair rc, Command command,
 		Context context);
 
-	public void commandException(Exception e, Command command, Context context);
+	public void commandException(Exception e, Command command, Context context) throws Exception;
 }

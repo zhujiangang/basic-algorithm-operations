@@ -8,26 +8,39 @@ import org.apache.commons.logging.LogFactory;
 
 import com.bao.lc.bean.IDValuePair;
 import com.bao.lc.bean.ResultCode;
+import com.bao.lc.httpcommand.impl.DefaultCommandBuilder;
 import com.bao.lc.httpcommand.params.HttpCommandPNames;
 import com.bao.lc.httpcommand.params.HttpCommandParams;
 
 public class RetryHttpCommand implements Filter
 {
 	private static Log log = LogFactory.getLog(RetryHttpCommand.class);
-
-	private Command command = null;
+	
+	/*Input parameters*/
+	private CommandBuilder commandBuilder = null;
 	private CommandRetryStrategy retryStrategy = null;
+	
+	/*Cache the last generated command for method "postprocess" usage*/
+	private Command command = null;
 
+	public RetryHttpCommand(CommandBuilder commandBuilder, CommandRetryStrategy retryStrategy)
+	{
+		if(commandBuilder == null)
+		{
+			throw new IllegalArgumentException("commandBuilder can't be null");
+		}
+		this.commandBuilder = commandBuilder;
+		this.retryStrategy = retryStrategy;
+	}
 	public RetryHttpCommand(Command command, CommandRetryStrategy retryStrategy)
 	{
-		this.command = command;
-		this.retryStrategy = retryStrategy;
+		this(new DefaultCommandBuilder(command), retryStrategy);
 	}
 
 	@Override
 	public boolean execute(Context context) throws Exception
 	{
-		boolean result;
+		boolean result = Command.PROCESSING_COMPLETE;
 
 		int execCount = 0;
 
@@ -38,6 +51,8 @@ public class RetryHttpCommand implements Filter
 			{
 				log.debug("Attempt to execute: " + execCount);
 
+				//Get the command
+				command = commandBuilder.build(context, execCount);
 				result = command.execute(context);
 
 				IDValuePair rc = HttpCommandParams.getResultCode(context);

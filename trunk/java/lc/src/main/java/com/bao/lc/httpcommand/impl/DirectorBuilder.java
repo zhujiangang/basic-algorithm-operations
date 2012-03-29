@@ -52,7 +52,7 @@ public class DirectorBuilder
 		return this;
 	}
 
-	public void execute()
+	public void execute() throws Exception
 	{
 		if((mFinalCommand != null && mFinalContext == null)
 			|| (mFinalCommand == null && mFinalContext != null))
