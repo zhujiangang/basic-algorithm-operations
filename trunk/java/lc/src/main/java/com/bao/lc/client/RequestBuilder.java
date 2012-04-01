@@ -111,7 +111,7 @@ public class RequestBuilder
 
 		if(!allowRelativeURI && !requestURI.isAbsolute())
 		{
-			throw new IllegalArgumentException("URI must be absolute");
+			throw new IllegalArgumentException("URI must be absolute, URI=" + requestURI.toString());
 		}
 
 		return requestURI;

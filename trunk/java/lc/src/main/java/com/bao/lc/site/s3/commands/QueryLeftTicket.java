@@ -17,12 +17,15 @@ import com.bao.lc.bean.IDValuePair;
 import com.bao.lc.bean.ResultCode;
 import com.bao.lc.client.RequestBuilder;
 import com.bao.lc.client.utils.HttpClientUtils;
+import com.bao.lc.common.URI2NameBuilder;
 import com.bao.lc.httpcommand.BasicHttpCommand;
 import com.bao.lc.httpcommand.params.HttpCommandPNames;
 import com.bao.lc.httpcommand.params.HttpCommandParams;
 import com.bao.lc.site.s3.TdUtils;
+import com.bao.lc.site.s3.ai.TrainTicketSelector;
 import com.bao.lc.site.s3.bean.TrainTicketInfo;
 import com.bao.lc.site.s3.params.TdPNames;
+import com.bao.lc.site.s3.params.TdParams;
 import com.bao.lc.util.MiscUtils;
 
 public class QueryLeftTicket extends BasicHttpCommand
@@ -52,9 +55,13 @@ public class QueryLeftTicket extends BasicHttpCommand
 	{
 		//1. Save the response content
 		HttpResponse rsp = HttpCommandParams.getResponse(context);
-		String charset = HttpCommandParams.getCharset(context);
+		String charset = HttpCommandParams.getCharset(rsp, context);
 		
-		String content = HttpClientUtils.saveToString(rsp.getEntity(), charset);
+		URI2NameBuilder ub = new URI2NameBuilder();
+		ub.uri(HttpCommandParams.getTargetRequestURI(context));
+		ub.addParamName("method").encoding(charset);
+		
+		String content = HttpClientUtils.saveToString(rsp.getEntity(), charset, ub);
 		
 		//2. Parse
 		IDValuePair rc = parseResponseContent(context, content);
@@ -138,19 +145,31 @@ public class QueryLeftTicket extends BasicHttpCommand
 			String[] fields = row.split(",");
 			if(fields.length < TrainTicketInfo.RAW_FIELD_COUNT)
 			{
-				log.error("The ticket info is incomplete. row=" + row);
+				log.error("The ticket info is incomplete. row=" + row + ", raw data: " + content);
 				return ResultCode.RC_TD_QUERY_LEFT_TICKET_ERROR;
 			}
 			
 			TrainTicketInfo ticketInfo = new TrainTicketInfo(fields, 0);
 			ticketInfoList.add(ticketInfo);
 		}
-		context.put(TdPNames.TICKET_INFO_LIST, ticketInfoList);
+		context.put(TdPNames._TICKET_INFO_LIST, ticketInfoList);
 		
 		if(log.isDebugEnabled())
 		{
 			log.debug("ticketInfoList=" + ticketInfoList);
 		}
+		
+		TrainTicketSelector selector = new TrainTicketSelector(ticketInfoList, context);
+		TrainTicketInfo ticket = selector.select();
+		if(ticket == null)
+		{
+			TdParams.getUI(context).info("No avalable ticket with current filter!");
+			return ResultCode.RC_TD_NO_AVAILABLE_TICKET_WITH_FILTER;
+		}
+		
+		context.put(TdPNames._ORDER_TICKET_INFO, ticket);
+		TdParams.getUI(context).info("Found the best matched ticket: " + ticket);
+		
 		
 		return ResultCode.RC_OK;
 	}

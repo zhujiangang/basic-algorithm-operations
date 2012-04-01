@@ -45,7 +45,8 @@ public class MiscUtils
 {
 	private static Log log = LogFactory.getLog(MiscUtils.class);
 	
-	public static final DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+	private static final DateFormat fullDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+	private static final DateFormat datePartFormat = new SimpleDateFormat("yyyy-MM-dd");
 
 	public static int getRegexValue(String str, String regex, List<String> valueList,
 		boolean allGroup, int flags)
@@ -469,8 +470,20 @@ public class MiscUtils
 		return parser;
 	}
 	
+	public static Parser createParser(String text, String charset)
+	{
+		Lexer lexer = new Lexer(new Page(text, charset));
+		Parser parser = new Parser(lexer, Parser.DEVNULL);
+		return parser;
+	}
+	
 	public static String toString(Calendar cal)
 	{
-		return dateFormat.format(cal.getTime());
+		return fullDateFormat.format(cal.getTime());
+	}
+	
+	public static String getDatePart(Calendar cal)
+	{
+		return datePartFormat.format(cal.getTime());
 	}
 }

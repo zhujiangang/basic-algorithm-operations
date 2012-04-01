@@ -67,14 +67,14 @@ public class ParseLoginPage extends AbstractCommand
 	@Override
 	protected IDValuePair postExecute(Context context) throws Exception
 	{
-		String content = MapUtils.getString(context, TdPNames.PARAM_INPUT_CONTENT);
+		String content = MapUtils.getString(context, TdPNames._LOGIN_PAGE_CONTENT);
 		if(content == null)
 		{
 			log.error("content is null.");
 			return ResultCode.RC_NULL_PARAMETER;
 		}
 
-		String encoding = MapUtils.getString(context, TdPNames.PARAM_INPUT_ENCODING);
+		String encoding = MapUtils.getString(context, TdPNames._LOGIN_PAGE_ENCODING);
 		if(encoding == null)
 		{
 			log.error("encoding is null.");
@@ -85,7 +85,7 @@ public class ParseLoginPage extends AbstractCommand
 		parseContent(context, content, encoding);
 		
 		// 2. Verification Code
-		String vCode = MapUtils.getString(context, TdPNames.PARAM_LOGIN_VCODE);
+		String vCode = MapUtils.getString(context, TdPNames._LOGIN_VOCDE);
 		if(vCode == null)
 		{
 			vCode = getVerificationCode(context, this.vCodeImage.extractImageLocn());
@@ -197,7 +197,7 @@ public class ParseLoginPage extends AbstractCommand
 
 		URI baseURI = currRequest.getURI();
 
-		boolean isFirstLogin = MapUtils.getBooleanValue(context, TdPNames.PARAM_IS_LOGIN_FIRST, true);
+		boolean isFirstLogin = MapUtils.getBooleanValue(context, TdPNames._IS_FIRST_LOGIN, true);
 		if(!isFirstLogin)
 		{
 			vCodeLocation += "&" + MiscUtils.randJS();
@@ -215,7 +215,7 @@ public class ParseLoginPage extends AbstractCommand
 		childCommand.execute(context);
 
 		// Get the result
-		String vCode = MapUtils.getString(context, TdPNames.PARAM_LOGIN_VCODE);
+		String vCode = MapUtils.getString(context, TdPNames._LOGIN_VOCDE);
 
 		// Restore
 		context.put(HttpCommandPNames.TARGET_REQUEST, currRequest);
