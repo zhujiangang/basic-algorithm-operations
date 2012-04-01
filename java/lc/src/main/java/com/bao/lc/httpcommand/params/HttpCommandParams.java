@@ -48,9 +48,9 @@ public class HttpCommandParams
 		return rsp;
 	}
 	
-	public static String getCharset(Context context)
+	public static String getCharset(HttpResponse rsp, Context context)
 	{
-		String charsetName = HttpClientUtils.getCharset(getResponse(context));
+		String charsetName = HttpClientUtils.getCharset(rsp);
 		if(charsetName == null)
 		{
 			charsetName = HttpCommandParams.getDefaultResponseCharset(context);

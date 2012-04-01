@@ -30,12 +30,13 @@ import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
 
 import com.bao.lc.AppConfig;
+import com.bao.lc.common.Builder;
 import com.bao.lc.util.AppUtils;
 
-
 public class HttpClientUtils
-{	
-	private static final Log log = LogFactory.getLog(HttpClientUtils.class); 
+{
+	private static final Log log = LogFactory.getLog(HttpClientUtils.class);
+
 	/**
 	 * Assembly Cookies
 	 * 
@@ -101,19 +102,28 @@ public class HttpClientUtils
 			closeStream(bos);
 		}
 	}
-	
-	public static String saveToString(HttpEntity entity, String charsetName) throws IOException, ParseException
+
+	public static String saveToString(HttpEntity entity, String charsetName) throws IOException,
+		ParseException
+	{
+		return saveToString(entity, charsetName, null);
+	}
+
+	public static String saveToString(HttpEntity entity, String charsetName,
+		Builder<String> nameBuilder) throws IOException, ParseException
 	{
 		String result = EntityUtils.toString(entity, charsetName);
 		if(AppConfig.getInstance().isDebug())
 		{
-			String tempFile = AppUtils.getTempFilePath("TempDebugFile.html");
-			FileUtils.writeStringToFile(new File(tempFile), result, charsetName);
+			String fileName = ((nameBuilder != null) ? nameBuilder.build() : "TempDebugFile.html");
+			String fullFileName = AppUtils.getTempFilePath(fileName);
+			FileUtils.writeStringToFile(new File(fullFileName), result, charsetName);
 		}
 		return result;
 	}
-	
-	public static String saveToString(HttpResponse rsp, String defaultCharset) throws IOException, ParseException
+
+	public static String saveToString(HttpResponse rsp, String defaultCharset) throws IOException,
+		ParseException
 	{
 		String charsetName = getCharset(rsp);
 		if(charsetName == null)
@@ -122,12 +132,12 @@ public class HttpClientUtils
 		}
 		return saveToString(rsp.getEntity(), charsetName);
 	}
-	
+
 	public static String saveToString(HttpResponse rsp) throws IOException, ParseException
 	{
 		return saveToString(rsp, "UTF-8");
 	}
-	
+
 	public static String getCharset(HttpResponse rsp)
 	{
 		Header header = rsp.getLastHeader(HTTP.CONTENT_TYPE);
@@ -147,31 +157,31 @@ public class HttpClientUtils
 		}
 		return null;
 	}
-	
+
 	public static URI getRequestURI(final HttpRequest request, final HttpContext context)
 	{
 		URI uri = null;
 		if(request instanceof HttpUriRequest)
 		{
-			uri = ((HttpUriRequest)request).getURI();
+			uri = ((HttpUriRequest) request).getURI();
 		}
 		else
 		{
 			uri = URI.create(request.getRequestLine().getUri());
 		}
-		
+
 		if(uri.isAbsolute())
 		{
 			return uri;
 		}
-		
-		HttpHost targetHost = (HttpHost)context.getAttribute(ExecutionContext.HTTP_TARGET_HOST);
+
+		HttpHost targetHost = (HttpHost) context.getAttribute(ExecutionContext.HTTP_TARGET_HOST);
 		if(targetHost == null)
 		{
 			log.error("Can't find the target host from URI: " + uri.toString());
 			return null;
 		}
-		
+
 		try
 		{
 			uri = URIUtils.rewriteURI(uri, targetHost);

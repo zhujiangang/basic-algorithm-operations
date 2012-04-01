@@ -17,7 +17,7 @@ public class LoginCommandBuilder implements CommandBuilder
 	{
 		Chain chain = new ChainBase();
 
-		String content = MapUtils.getString(context, TdPNames.PARAM_INPUT_CONTENT);
+		String content = MapUtils.getString(context, TdPNames._LOGIN_PAGE_CONTENT);
 		if(execCount <= 1 || content == null)
 		{
 			chain.addCommand(new GetLoginPage());

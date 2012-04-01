@@ -28,7 +28,7 @@ public class DoLogout extends BasicHttpCommand
 		super.preExecute(context);
 
 		// Check if the user login?
-		if(!MapUtils.getBooleanValue(context, TdPNames.LOGIN_STATE, false))
+		if(!MapUtils.getBooleanValue(context, TdPNames._LOGIN_STATE, false))
 		{
 			return ResultCode.RC_USER_NOT_LOGIN;
 		}
@@ -51,7 +51,7 @@ public class DoLogout extends BasicHttpCommand
 	{
 		HttpResponse rsp = HttpCommandParams.getResponse(context);
 		//Set login state
-		context.put(TdPNames.LOGIN_STATE, Boolean.FALSE);
+		context.put(TdPNames._LOGIN_STATE, Boolean.FALSE);
 		
 		//Save result
 		HttpClientUtils.saveToFile(rsp.getEntity(), AppUtils.getTempFilePath("logout.html"));

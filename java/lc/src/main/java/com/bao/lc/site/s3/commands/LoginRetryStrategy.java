@@ -25,15 +25,15 @@ public class LoginRetryStrategy implements CommandRetryStrategy
 		else if(rc == ResultCode.RC_TD_LOGIN_VCODE_ERROR)
 		{
 			//retry with verification code
-			context.remove(TdPNames.PARAM_LOGIN_VCODE);
+			context.remove(TdPNames._LOGIN_VOCDE);
 			
 			ret = true;
 		}
 		else if(rc == ResultCode.RC_TD_LOGIN_NO_SUBMIT_FORM_ERROR)
 		{
 			//start from GetLoginPage
-			context.remove(TdPNames.PARAM_INPUT_CONTENT);
-			context.remove(TdPNames.PARAM_INPUT_ENCODING);
+			context.remove(TdPNames._LOGIN_PAGE_CONTENT);
+			context.remove(TdPNames._LOGIN_PAGE_ENCODING);
 			
 			ret = true;
 		}
@@ -50,7 +50,7 @@ public class LoginRetryStrategy implements CommandRetryStrategy
 
 		if(ret)
 		{
-			context.put(TdPNames.PARAM_IS_LOGIN_FIRST, Boolean.FALSE);
+			context.put(TdPNames._IS_FIRST_LOGIN, Boolean.FALSE);
 		}
 		
 		log.debug("[LoginRetryStrategy]: retry=" + ret + ", rc=" + rc);

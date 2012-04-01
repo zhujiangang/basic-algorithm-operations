@@ -29,9 +29,12 @@ import com.bao.lc.httpcommand.impl.LogCompleteListener;
 import com.bao.lc.httpcommand.params.HttpCommandPNames;
 import com.bao.lc.httpcommand.utils.HttpCommandUtils;
 import com.bao.lc.site.s3.commands.DoLogout;
+import com.bao.lc.site.s3.commands.GetTicketBookInitPage;
 import com.bao.lc.site.s3.commands.Login;
 import com.bao.lc.site.s3.commands.QueryLeftTicket;
+import com.bao.lc.site.s3.commands.SubmitOrder;
 import com.bao.lc.site.s3.params.TdPNames;
+import com.bao.lc.util.MiscUtils;
 
 public class TdClient
 {
@@ -132,7 +135,7 @@ public class TdClient
 
 		// Input Parameters
 		context.put(HttpCommandPNames.RESPONSE_DEFAULT_CHARSET, "UTF-8");
-		context.put(TdPNames.PARAM_UI, LogFactory.getLog("TdClient.UI"));
+		context.put(TdPNames._USER_INTERFACE, LogFactory.getLog("TdClient.UI"));
 		
 		String user = AppConfig.getInstance().getPropInput("td.user");
 		String pwd = AppConfig.getInstance().getPropInput("td.password");
@@ -140,6 +143,7 @@ public class TdClient
 		String toStation = AppConfig.getInstance().getPropInput("td.to_station");
 		String ticketDate = AppConfig.getInstance().getPropInput("td.ticket.date");
 		String ticketTimeRange = AppConfig.getInstance().getPropInput("td.ticket.time_range");
+		Integer userCount = MiscUtils.toInt(AppConfig.getInstance().getPropInput("td.user.count"));
 		
 		context.put(TdPNames.PARAM_USER, user);
 		context.put(TdPNames.PARAM_PASSWORD, pwd);
@@ -147,13 +151,26 @@ public class TdClient
 		context.put(TdPNames.PARAM_TO_STATION, toStation);
 		context.put(TdPNames.PARAM_TICKET_DATE, ticketDate);
 		context.put(TdPNames.PARAM_TICKET_TIME_RANGE, ticketTimeRange);
+		context.put(TdPNames.PARAM_USER_COUNT, userCount);
 		
 		// Internal parameters
+		//Init page
+		String ticketBookInitURL = AppConfig.getInstance().getPropInternal("td.ticket_booking.init.url");
+		String ticketBookInitReferer = AppConfig.getInstance().getPropInternal("td.ticket_booking.init.referer");
+		context.put(TdPNames.PARAM_TICKET_BOOK_INIT_URL, ticketBookInitURL);
+		context.put(TdPNames.PARAM_TICKET_BOOK_INIT_REFERER, ticketBookInitReferer);
+		
+		//queryLeftTicket page
 		String queryLeftTicketBaseURL = AppConfig.getInstance().getPropInternal("td.queryLeftTicket.url");
 		String queryLeftTicketReferer = AppConfig.getInstance().getPropInternal("td.queryLeftTicket.referer");
-		
 		context.put(TdPNames.PARAM_QUERY_LEFT_TICKET_BASE_URL, queryLeftTicketBaseURL);
 		context.put(TdPNames.PARAM_QUERY_LEFT_TICKET_REFERER, queryLeftTicketReferer);
+
+		//submit order page
+		String submitOrderURL = AppConfig.getInstance().getPropInternal("td.submitOrder.url");
+		String submitOrderReferer = AppConfig.getInstance().getPropInternal("td.submitOrder.referer");
+		context.put(TdPNames.PARAM_SUBMIT_ORDER_URL, submitOrderURL);
+		context.put(TdPNames.PARAM_SUBMIT_ORDER_REFERER, submitOrderReferer);
 		
 		return context;
 	}
@@ -163,7 +180,9 @@ public class TdClient
 		// 2. Init Command chain
 		Chain chain = new ChainBase();
 		chain.addCommand(new Login());
+		chain.addCommand(new GetTicketBookInitPage());
 		chain.addCommand(new QueryLeftTicket());
+		chain.addCommand(new SubmitOrder());
 		return chain;
 	}
 	

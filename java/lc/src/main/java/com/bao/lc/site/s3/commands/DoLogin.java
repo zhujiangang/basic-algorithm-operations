@@ -34,6 +34,7 @@ import com.bao.lc.bean.IDValuePair;
 import com.bao.lc.bean.ResultCode;
 import com.bao.lc.client.utils.HttpClientUtils;
 import com.bao.lc.common.ScriptCodeFilter;
+import com.bao.lc.common.URI2NameBuilder;
 import com.bao.lc.httpcommand.BasicHttpCommand;
 import com.bao.lc.httpcommand.params.HttpCommandParams;
 import com.bao.lc.site.s3.params.TdPNames;
@@ -56,9 +57,13 @@ public class DoLogin extends BasicHttpCommand
 		String charset = HttpClientUtils.getCharset(rsp);
 
 		// Login page content
-		String userPage = HttpClientUtils.saveToString(rsp.getEntity(), charset);
-		context.put(TdPNames.PARAM_INPUT_CONTENT, userPage);
-		context.put(TdPNames.PARAM_INPUT_ENCODING, charset);
+		URI2NameBuilder ub = new URI2NameBuilder();
+		ub.uri(HttpCommandParams.getTargetRequestURI(context));
+		ub.addParamName("method").encoding(charset);
+		
+		String userPage = HttpClientUtils.saveToString(rsp.getEntity(), charset, ub);
+		context.put(TdPNames._LOGIN_PAGE_CONTENT, userPage);
+		context.put(TdPNames._LOGIN_PAGE_ENCODING, charset);
 
 		// For manual check
 		IOUtils.write(userPage, new FileOutputStream(AppUtils.getTempFilePath("login.html")),
@@ -69,7 +74,7 @@ public class DoLogin extends BasicHttpCommand
 		// Login OK
 		if(isLogin(context, userPage, charset))
 		{
-			context.put(TdPNames.LOGIN_STATE, Boolean.TRUE);
+			context.put(TdPNames._LOGIN_STATE, Boolean.TRUE);
 
 			TdParams.getUI(context).info("User [" + user + "] login successfully.");
 			
@@ -78,7 +83,7 @@ public class DoLogin extends BasicHttpCommand
 		// Login Failed
 		else
 		{
-			context.put(TdPNames.LOGIN_STATE, Boolean.FALSE);
+			context.put(TdPNames._LOGIN_STATE, Boolean.FALSE);
 			log.info("User [" + user + "] login failed.");
 
 			//check failed reason.
