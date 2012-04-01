@@ -1,13 +1,20 @@
 package com.bao.examples.html;
 
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 import org.htmlparser.NodeFilter;
 import org.htmlparser.Parser;
+import org.htmlparser.filters.AndFilter;
+import org.htmlparser.filters.HasAttributeFilter;
 import org.htmlparser.filters.NodeClassFilter;
 import org.htmlparser.filters.OrFilter;
+import org.htmlparser.tags.FormTag;
+import org.htmlparser.tags.InputTag;
 import org.htmlparser.tags.TableColumn;
 import org.htmlparser.tags.TableRow;
 import org.htmlparser.tags.TableTag;
@@ -81,6 +88,39 @@ public class HtmlParserTest2 extends TestCase
 		catch(ParserException e)
 		{
 			e.printStackTrace();
+		}
+	}
+	
+	public void testTemp() throws ParserException
+	{
+		Parser myParser = Parser.createParser(fileContent, "UTF-8");
+		
+		NodeFilter[] a = new NodeFilter[0];
+		
+		List<NodeFilter> filters = new ArrayList<NodeFilter>();
+		filters.add(new NodeClassFilter(FormTag.class));
+		filters.add(new HasAttributeFilter("id", "confirmPassenger"));
+		filters.add(new HasAttributeFilter("name", "save_passenger_single"));
+		
+		
+		NodeFilter filter = new AndFilter(filters.toArray(a));
+		NodeList nodeList = myParser.parse(filter);
+		
+		if(nodeList.size() <= 0)
+		{
+			System.err.println("Can't find any Form!");
+		}
+		
+		FormTag form = (FormTag)nodeList.elementAt(0);
+		
+		NodeList inputs = form.getFormInputs();
+		for(int i = 0, size = inputs.size(); i < size; i++)
+		{
+			InputTag input = (InputTag) inputs.elementAt(i);
+
+			
+			System.out.printf(Locale.CHINESE, "%02d: name=%s,value=%s\n", i, input.getAttribute("name"),
+				input.getAttribute("value"));
 		}
 	}
 }
