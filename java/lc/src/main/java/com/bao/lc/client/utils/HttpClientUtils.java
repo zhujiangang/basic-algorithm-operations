@@ -109,16 +109,32 @@ public class HttpClientUtils
 		return saveToString(entity, charsetName, null);
 	}
 
-	public static String saveToString(HttpEntity entity, String charsetName,
+	public static String saveToString(HttpEntity entity, String defaultCharset,
 		Builder<String> nameBuilder) throws IOException, ParseException
 	{
-		String result = EntityUtils.toString(entity, charsetName);
+		// Get bytes
+		byte[] byteContent = EntityUtils.toByteArray(entity);
+
 		if(AppConfig.getInstance().isDebug())
 		{
+			// Write to file
 			String fileName = ((nameBuilder != null) ? nameBuilder.build() : "TempDebugFile.html");
 			String fullFileName = AppUtils.getTempFilePath(fileName);
-			FileUtils.writeStringToFile(new File(fullFileName), result, charsetName);
+			FileUtils.writeByteArrayToFile(new File(fullFileName), byteContent);
 		}
+
+		//Pick up from EntityUtils.toString()
+		String realCharset = EntityUtils.getContentCharSet(entity);
+		if(realCharset == null)
+		{
+			realCharset = defaultCharset;
+		}
+		if(realCharset == null)
+		{
+			realCharset = HTTP.DEFAULT_CONTENT_CHARSET;
+		}
+		
+		String result = new String(byteContent, realCharset);
 		return result;
 	}
 
@@ -163,7 +179,7 @@ public class HttpClientUtils
 		URI uri = null;
 		if(request instanceof HttpUriRequest)
 		{
-			uri = ((HttpUriRequest) request).getURI();
+			uri = ((HttpUriRequest)request).getURI();
 		}
 		else
 		{
@@ -175,7 +191,7 @@ public class HttpClientUtils
 			return uri;
 		}
 
-		HttpHost targetHost = (HttpHost) context.getAttribute(ExecutionContext.HTTP_TARGET_HOST);
+		HttpHost targetHost = (HttpHost)context.getAttribute(ExecutionContext.HTTP_TARGET_HOST);
 		if(targetHost == null)
 		{
 			log.error("Can't find the target host from URI: " + uri.toString());

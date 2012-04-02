@@ -16,14 +16,14 @@ public class MapOperation<K, V>
 		this.map2 = map2;
 	}
 
-	public MapXorResult xor()
+	public MapXorResult<K, V> xor()
 	{
 		return xor(XOR_KEY_VALUE);
 	}
 
-	public MapXorResult xor(int flag)
+	public MapXorResult<K, V> xor(int flag)
 	{
-		MapXorResult result = new MapXorResult();
+		MapXorResult<K, V> result = new MapXorResult<K, V>();
 
 		// Both empty
 		if(isEmpty(map1) && isEmpty(map2))

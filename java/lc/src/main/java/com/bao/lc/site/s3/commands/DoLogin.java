@@ -54,7 +54,7 @@ public class DoLogin extends BasicHttpCommand
 	protected IDValuePair postExecute(Context context) throws Exception
 	{
 		HttpResponse rsp = HttpCommandParams.getResponse(context);
-		String charset = HttpClientUtils.getCharset(rsp);
+		String charset = HttpCommandParams.getCharset(rsp, context);
 
 		// Login page content
 		URI2NameBuilder ub = new URI2NameBuilder();
