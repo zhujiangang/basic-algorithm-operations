@@ -5,14 +5,9 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.commons.chain.Context;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.http.HttpResponse;
-
-import com.bao.lc.client.utils.HttpClientUtils;
-import com.bao.lc.httpcommand.params.HttpCommandParams;
 
 public class TdUtils
 {
@@ -73,15 +68,5 @@ public class TdUtils
 			isInitialized = init();
 		}
 		return stationNameMap.get(name);
-	}
-	
-	public static String getCharset(HttpResponse rsp, Context context)
-	{
-		String charsetName = HttpClientUtils.getCharset(rsp);
-		if(charsetName == null)
-		{
-			charsetName = HttpCommandParams.getDefaultResponseCharset(context);
-		}
-		return charsetName;
 	}
 }

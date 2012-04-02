@@ -57,7 +57,7 @@ public class SubmitOrder extends BasicHttpCommand
 	protected IDValuePair postExecute(Context context) throws Exception
 	{
 		HttpResponse rsp = HttpCommandParams.getResponse(context);
-		String charset = HttpClientUtils.getCharset(rsp);
+		String charset = HttpCommandParams.getCharset(rsp, context);
 
 		// Login page content
 		URI2NameBuilder ub = new URI2NameBuilder();
@@ -183,7 +183,7 @@ public class SubmitOrder extends BasicHttpCommand
 		//Try to do a check
 		Map<String, String> submitFormParamMap = TdParams.getOrderFormParamMap(context);
 		
-		MapOperation<String, String> mapOper = new MapOperation(paramMap, submitFormParamMap);
+		MapOperation<String, String> mapOper = new MapOperation<String, String>(paramMap, submitFormParamMap);
 		MapXorResult<String, String> xorResult = mapOper.xor(MapOperation.XOR_KEY_ONLY);
 		if(xorResult.getRelation() != MapRelation.EQUALS)
 		{

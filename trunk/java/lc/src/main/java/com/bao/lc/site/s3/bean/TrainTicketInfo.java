@@ -301,11 +301,11 @@ public class TrainTicketInfo implements Columnable
 		
 		if(column == CAT_TRAIN_CLASS)
 		{
-			result = new ListElementIndex(getTrainClass(), (List)args[0]);
+			result = new ListElementIndex(getTrainClass(), (List<?>)args[0]);
 		}
 		else if(column == CAT_COST_TIME)
 		{
-			result = new ListFilter(this.timeCost, (List)args[0]);
+			result = new ListFilter(this.timeCost, (List<?>)args[0]);
 		}
 		else if(column == CAT_SEAT_CLASS)
 		{

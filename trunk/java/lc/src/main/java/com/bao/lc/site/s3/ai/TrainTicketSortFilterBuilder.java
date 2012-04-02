@@ -121,8 +121,8 @@ public class TrainTicketSortFilterBuilder
 
 	private static class TrainClassCondition implements SortFilter<TrainTicketInfo>
 	{
-		private List values = null;
-		public TrainClassCondition(List values)
+		private List<?> values = null;
+		public TrainClassCondition(List<?> values)
 		{
 			this.values = values;
 		}
@@ -131,7 +131,7 @@ public class TrainTicketSortFilterBuilder
 			return TrainTicketInfo.CAT_TRAIN_CLASS;
 		}
 
-		public List getValues()
+		public List<?> getValues()
 		{
 			return this.values;
 		}
@@ -175,7 +175,7 @@ public class TrainTicketSortFilterBuilder
 			return TrainTicketInfo.CAT_SEAT_CLASS;
 		}
 
-		public List getValues()
+		public List<Integer> getValues()
 		{
 			return this.values;
 		}

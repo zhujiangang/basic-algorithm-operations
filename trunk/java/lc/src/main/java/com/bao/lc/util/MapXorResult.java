@@ -1,7 +1,7 @@
 package com.bao.lc.util;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 
 public class MapXorResult<K, V>
 {
@@ -10,8 +10,8 @@ public class MapXorResult<K, V>
 
 	public MapXorResult()
 	{
-		only1 = new HashMap<K, V>(0);
-		only2 = new HashMap<K, V>(0);
+		only1 = new TreeMap<K, V>();
+		only2 = new TreeMap<K, V>();
 	}
 
 	public Map<K, V> getOnly1()

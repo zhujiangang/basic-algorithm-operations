@@ -6,9 +6,9 @@ import java.util.List;
 public class ListElementIndex implements ComparableFilter<TrainTicketInfo, ListElementIndex>
 {
 	private Object value = null;
-	private List valueList = null;
+	private List<?> valueList = null;
 	
-	public ListElementIndex(Object o, List valueList)
+	public ListElementIndex(Object o, List<?> valueList)
 	{
 		this.value = o;
 		this.valueList = valueList;

@@ -6,5 +6,5 @@ public interface SortFilter<T> extends Filter<T>
 {
 	public int getCategory();
 
-	public List getValues();
+	public List<?> getValues();
 }
