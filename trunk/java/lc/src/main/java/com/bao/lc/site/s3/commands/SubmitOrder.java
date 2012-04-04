@@ -1,19 +1,24 @@
 package com.bao.lc.site.s3.commands;
 
+import java.net.URI;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.chain.Context;
 import org.apache.commons.collections.MapUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpUriRequest;
 
+import com.bao.lc.bean.BasicIDValuePair;
 import com.bao.lc.bean.IDValuePair;
 import com.bao.lc.bean.ResultCode;
 import com.bao.lc.client.RequestBuilder;
+import com.bao.lc.client.impl.PostRedirectStrategy;
 import com.bao.lc.client.utils.HttpClientUtils;
 import com.bao.lc.common.URI2NameBuilder;
 import com.bao.lc.httpcommand.BasicHttpCommand;
@@ -66,6 +71,28 @@ public class SubmitOrder extends BasicHttpCommand
 		
 		String submitOrderPage = HttpClientUtils.saveToString(rsp.getEntity(), charset, ub);
 		
+		//error url: http://www.12306.cn/mormhweb/logFiles/error.html
+		PostRedirectStrategy redirectStrategy = HttpCommandParams.getRedirectStrategy(context);
+		HttpUriRequest finalReq = redirectStrategy.getFinalRequest();
+		if(finalReq == null || finalReq.getURI() == null)
+		{
+			log.error("Can't find redirect req or uri when submit order.");
+			return new BasicIDValuePair(ResultCode.RC_CANT_FIND_REDIRECTS, "submit order");
+		}
+		URI redirectURI = finalReq.getURI();
+		String expectedURI = MapUtils.getString(context, TdPNames.PARAM_CONFIRM_PASSENGER_URL, "");
+		if(!StringUtils.equals(expectedURI, redirectURI.toString()))
+		{
+			String content = MiscUtils.toPlainText(submitOrderPage, charset);
+			TdParams.getUI(context).info(content);
+			
+			String info = String.format(
+				"SubmitOrder error: Exptected redirect URI=%s, actual=%s, content=%s", expectedURI,
+				redirectURI.toString(), content);
+			log.error(info);
+
+			return new BasicIDValuePair(ResultCode.RC_UNEXPECTED_REDIRECTS, info);
+		}
 		//TODO
 		HttpCommandParams.purgeRequestParams(context);
 		
