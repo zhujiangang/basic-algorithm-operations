@@ -175,22 +175,42 @@ public class TrainTicketInfo implements Columnable
 	{
 		StringBuilder sb = new StringBuilder();
 		sb.append("index=").append(index);
-		sb.append(",trainNo=").append(trainNo);
-		sb.append(",fromStation=").append(fromStation);
-		sb.append(",toStation=").append(toStation);
-		sb.append(",timeCost=").append(timeCost);
-		sb.append(",buss_seat=").append(buss_seat);
-		sb.append(",best_seat=").append(best_seat);
-		sb.append(",one_seat=").append(one_seat);
-		sb.append(",two_seat=").append(two_seat);
-		sb.append(",vag_sleeper=").append(vag_sleeper);
-		sb.append(",soft_sleeper=").append(soft_sleeper);
-		sb.append(",hard_sleeper=").append(hard_sleeper);
-		sb.append(",soft_seat=").append(soft_seat);
-		sb.append(",hard_seat=").append(hard_seat);
-		sb.append(",none_seat=").append(none_seat);
-		sb.append(",other_seat=").append(other_seat);
-		sb.append(",bookButton=").append(bookButton);
+		
+		if(this._bookButtonParameter == null)
+		{
+			sb.append(",trainNo=").append(trainNo);
+			sb.append(",fromStation=").append(fromStation);
+			sb.append(",toStation=").append(toStation);
+			sb.append(",timeCost=").append(timeCost);
+			
+			sb.append(",buss_seat=").append(buss_seat);
+			sb.append(",best_seat=").append(best_seat);
+			sb.append(",one_seat=").append(one_seat);
+			sb.append(",two_seat=").append(two_seat);
+			sb.append(",vag_sleeper=").append(vag_sleeper);
+			sb.append(",soft_sleeper=").append(soft_sleeper);
+			sb.append(",hard_sleeper=").append(hard_sleeper);
+			sb.append(",soft_seat=").append(soft_seat);
+			sb.append(",hard_seat=").append(hard_seat);
+			sb.append(",none_seat=").append(none_seat);
+			sb.append(",other_seat=").append(other_seat);
+			
+			sb.append(",bookButton=").append(bookButton);
+		}
+		else
+		{
+			sb.append(",bookButtonParameter=").append(_bookButtonParameter);
+			sb.append(",seats:{");
+			for(int i = BUSINESS_SEAT; i <= OTHER_SEAT; i++)
+			{
+				if(this.seats[i] > 0)
+				{
+					sb.append(i).append("=").append(this.seats[i]).append(" ");
+				}
+			}
+			sb.append("}");
+		}
+
 		return sb.toString();
 	}
 	
@@ -236,7 +256,7 @@ public class TrainTicketInfo implements Columnable
 		}
 		
 		this._bookButtonParameter = parameter;
-		log.info("bookButtonParameter=" + _bookButtonParameter);
+		log.info("index=" + index + ", bookButtonParameter=" + _bookButtonParameter);
 	}
 	
 	private void parseOtherFields()

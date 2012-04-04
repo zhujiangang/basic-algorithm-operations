@@ -107,7 +107,7 @@ public class PostDataComparator
 			String name = input.getAttribute("name");
 			if(name == null)
 			{
-				log.warn("null name");
+				log.warn("null name, raw: " + input.toHtml());
 				continue;
 			}
 			String value = input.getAttribute("value");
@@ -151,7 +151,7 @@ public class PostDataComparator
 
 		MapOperation<String, String> mapOper = new MapOperation<String, String>(formMap, postMap);
 		
-		MapXorResult xorResult = mapOper.xor(MapOperation.XOR_KEY_ONLY);
+		MapXorResult xorResult = mapOper.xor(MapOperation.XOR_KEY_VALUE);
 		
 		MapRelation relation = xorResult.getRelation();
 		log.info("MapXorResult = " + relation);

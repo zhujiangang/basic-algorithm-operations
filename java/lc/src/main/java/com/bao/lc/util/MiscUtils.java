@@ -34,11 +34,13 @@ import org.htmlparser.lexer.Page;
 import org.htmlparser.nodes.TextNode;
 import org.htmlparser.tags.TableColumn;
 import org.htmlparser.util.NodeList;
+import org.htmlparser.util.ParserException;
 import org.htmlparser.util.ParserFeedback;
 import org.htmlparser.Node;
 import org.htmlparser.Parser;
 
 import com.bao.lc.common.LoggerFeedback;
+import com.bao.lc.common.YesFilter;
 import com.bao.lc.common.exception.ParseException;
 
 public class MiscUtils
@@ -475,6 +477,23 @@ public class MiscUtils
 		Lexer lexer = new Lexer(new Page(text, charset));
 		Parser parser = new Parser(lexer, Parser.DEVNULL);
 		return parser;
+	}
+	
+	public static String toPlainText(String html, String charset)
+	{
+		Parser parser = createParser(html, charset);
+		
+		try
+		{
+			NodeList allNodes = parser.parse(new YesFilter());
+			return allNodes.asString();
+		}
+		catch(ParserException e)
+		{
+			log.error("toPlainText failed.", e);
+		}
+
+		return html;
 	}
 	
 	public static String toString(Calendar cal)

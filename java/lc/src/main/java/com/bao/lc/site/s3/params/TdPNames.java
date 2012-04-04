@@ -22,6 +22,9 @@ public interface TdPNames
 	public static final String PARAM_SUBMIT_ORDER_URL = "td.param.submit_order_url";
 	public static final String PARAM_SUBMIT_ORDER_REFERER = "td.param.submit_order_referer";
 	
+	public static final String PARAM_CONFIRM_PASSENGER_URL = "td.param.confirm_passenger_url";
+	public static final String PARAM_CONFIRM_PASSENGER_REFERER = "td.param.confirm_passenger_referer";
+	
 	/*Computed parameters*/
 	public static final String _USER_INTERFACE = "_td.user_interface";	
 	public static final String _TICKET_INFO_LIST = "_td.train_ticket_info.list";

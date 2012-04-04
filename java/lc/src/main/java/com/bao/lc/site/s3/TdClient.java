@@ -172,6 +172,12 @@ public class TdClient
 		context.put(TdPNames.PARAM_SUBMIT_ORDER_URL, submitOrderURL);
 		context.put(TdPNames.PARAM_SUBMIT_ORDER_REFERER, submitOrderReferer);
 		
+		//confirm passenger page
+		String confirmPassengerURL = AppConfig.getInstance().getPropInternal("td.confirmPassenger.url");
+		String confirmPassengerReferer = AppConfig.getInstance().getPropInternal("td.confirmPassenger.referer");
+		context.put(TdPNames.PARAM_CONFIRM_PASSENGER_URL, confirmPassengerURL);
+		context.put(TdPNames.PARAM_CONFIRM_PASSENGER_REFERER, confirmPassengerReferer);
+		
 		return context;
 	}
 	
