@@ -63,4 +63,10 @@ public class ListElementCount implements ComparableFilter<TrainTicketInfo, ListE
 		}
 		return false;
 	}
+
+	@Override
+	public Object getValue()
+	{
+		return indexCountList;
+	}
 }

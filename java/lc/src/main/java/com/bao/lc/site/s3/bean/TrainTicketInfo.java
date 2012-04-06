@@ -89,6 +89,8 @@ public class TrainTicketInfo implements Columnable
 	private String _station_train_code = null; //车次
 	private String _from_station_name = null; //发站
 	private String _to_station_name = null; //到站
+	private String _start_time = null; //发车时间
+	private String _end_time = null; //到站时间
 	
 
 	public TrainTicketInfo(String[] args, int startIndex)
@@ -266,20 +268,33 @@ public class TrainTicketInfo implements Columnable
 			log.error("bookButtonParameter = null.");
 			return;
 		}
-		String[] trainParams = { "station_train_code", "lishi", "train_start_time", "trainno",
-			"from_station_telecode", "to_station_telecode", "arrive_time", "from_station_name",
-			"to_station_name", "ypInfoDetail" };
+
 		
 		String[] bookButtonParams = this._bookButtonParameter.split("#");
+
+		//let SubmitOrder#getCurrParamMap to check
+//		String[] trainParams = { "station_train_code", "lishi", "train_start_time", "trainno",
+//			"from_station_telecode", "to_station_telecode", "arrive_time", "from_station_name",
+//			"to_station_name", "ypInfoDetail" };
+//		if(bookButtonParams.length != trainParams.length)
+//		{
+//			log.error("[parseOtherFields]: Book Button Parameter length is unexpected. bookButtonParams.length="
+//				+ bookButtonParams.length);
+//			return;
+//		}
 		
-		if(bookButtonParams.length != trainParams.length)
+		if(bookButtonParams.length < 9)
 		{
-			log.error("[parseOtherFields]: Book Button Parameter length is unexpected. bookButtonParams.length="
+			log.error("[parseOtherFields]: Book Button Parameter length is too short. bookButtonParams.length="
 				+ bookButtonParams.length);
 			return;
 		}
 		
 		_station_train_code = bookButtonParams[0];
+		
+		_start_time = bookButtonParams[2];
+		_end_time = bookButtonParams[6];
+		
 		_from_station_name = bookButtonParams[7];
 		_to_station_name = bookButtonParams[8];
 	}
@@ -312,6 +327,15 @@ public class TrainTicketInfo implements Columnable
 	public String getToStationName()
 	{
 		return this._to_station_name;
+	}
+	
+	public String getStartTime()
+	{
+		return this._start_time;
+	}
+	public String getEndTime()
+	{
+		return this._end_time;
 	}
 	
 	@Override

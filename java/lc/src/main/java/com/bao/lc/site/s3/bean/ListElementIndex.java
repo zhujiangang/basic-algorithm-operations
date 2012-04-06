@@ -40,4 +40,9 @@ public class ListElementIndex implements ComparableFilter<TrainTicketInfo, ListE
 	{
 		return valueList.indexOf(value) >= 0;
 	}
+	@Override
+	public Object getValue()
+	{
+		return value;
+	}
 }

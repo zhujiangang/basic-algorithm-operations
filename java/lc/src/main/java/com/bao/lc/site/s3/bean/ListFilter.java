@@ -29,5 +29,10 @@ public class ListFilter implements ComparableFilter
 	{
 		return values.indexOf(value) >= 0;
 	}
+	@Override
+	public Object getValue()
+	{
+		return value;
+	}
 
 }

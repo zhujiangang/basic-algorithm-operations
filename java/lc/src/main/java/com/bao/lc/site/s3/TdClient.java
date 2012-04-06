@@ -3,6 +3,8 @@ package com.bao.lc.site.s3;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
@@ -12,9 +14,9 @@ import org.apache.commons.chain.Chain;
 import org.apache.commons.chain.Command;
 import org.apache.commons.chain.Context;
 import org.apache.commons.chain.impl.ChainBase;
+import org.apache.commons.chain.impl.ContextBase;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.http.client.methods.HttpGet;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
@@ -27,12 +29,12 @@ import com.bao.lc.httpcommand.CommandCompleteListener;
 import com.bao.lc.httpcommand.impl.DirectorBuilder;
 import com.bao.lc.httpcommand.impl.LogCompleteListener;
 import com.bao.lc.httpcommand.params.HttpCommandPNames;
-import com.bao.lc.httpcommand.utils.HttpCommandUtils;
+import com.bao.lc.site.s3.bean.PassengerInfo;
+import com.bao.lc.site.s3.commands.BookTicket;
 import com.bao.lc.site.s3.commands.DoLogout;
 import com.bao.lc.site.s3.commands.GetTicketBookInitPage;
 import com.bao.lc.site.s3.commands.Login;
-import com.bao.lc.site.s3.commands.QueryLeftTicket;
-import com.bao.lc.site.s3.commands.SubmitOrder;
+import com.bao.lc.site.s3.commands.WelComePage;
 import com.bao.lc.site.s3.params.TdPNames;
 import com.bao.lc.util.MiscUtils;
 
@@ -123,15 +125,42 @@ public class TdClient
 		}
 	}
 	
-	private Context createContext()
+	private List<PassengerInfo> getPassengerList(int passengerCount)
 	{
-		// Startup URI
-		String loginUrl = AppConfig.getInstance().getPropInternal("td.login.url");
-		String refererUrl = AppConfig.getInstance().getPropInternal("td.login.referer");
+		List<PassengerInfo> passengerList = new ArrayList<PassengerInfo>(passengerCount);
+		for(int i = 0; i < passengerCount; i++)
+		{
+			String content = AppConfig.getInstance().getPropInput("td.passenger" + (i + 1));
+			String[] fields = content.split(",");
+			if(fields.length < 6)
+			{
+				log.fatal("passenger info is incomplete. content=" + content);
+				System.exit(-2);
+			}
+			PassengerInfo passenger = new PassengerInfo();
+			passenger.name = fields[0];
+			passenger.cardType = TdUtils.getCardTypeValue(fields[1]);
+			passenger.cardNo = fields[2];
+			passenger.tiketType = TdUtils.getTicketTypeValue(fields[3]);
+			passenger.phone = fields[4];
+			passenger.isSave = fields[5];
+			
+			passengerList.add(passenger);
+		}
 		
+		return passengerList;
+	}
+	
+	private Context createContext()
+	{		
 		HttpContext httpContext = new BasicHttpContext();
-		Context context = HttpCommandUtils.createContext(session, httpContext, new HttpGet(loginUrl));
-		context.put(HttpCommandPNames.TARGET_REFERER, refererUrl);
+//		String loginUrl = AppConfig.getInstance().getPropInternal("td.login.url");
+//		String refererUrl = AppConfig.getInstance().getPropInternal("td.login.referer");
+//		Context context = HttpCommandUtils.createContext(session, httpContext, new HttpGet(loginUrl));
+//		context.put(HttpCommandPNames.TARGET_REFERER, refererUrl);
+		Context context = new ContextBase();
+		context.put(HttpCommandPNames.HTTP_CLIENT, session);
+		context.put(HttpCommandPNames.HTTP_CONTEXT, httpContext);
 
 		// Input Parameters
 		context.put(HttpCommandPNames.RESPONSE_DEFAULT_CHARSET, "UTF-8");
@@ -143,7 +172,7 @@ public class TdClient
 		String toStation = AppConfig.getInstance().getPropInput("td.to_station");
 		String ticketDate = AppConfig.getInstance().getPropInput("td.ticket.date");
 		String ticketTimeRange = AppConfig.getInstance().getPropInput("td.ticket.time_range");
-		Integer userCount = MiscUtils.toInt(AppConfig.getInstance().getPropInput("td.user.count"));
+		Integer passengerCount = MiscUtils.toInt(AppConfig.getInstance().getPropInput("td.user.count"));
 		
 		context.put(TdPNames.PARAM_USER, user);
 		context.put(TdPNames.PARAM_PASSWORD, pwd);
@@ -151,9 +180,22 @@ public class TdClient
 		context.put(TdPNames.PARAM_TO_STATION, toStation);
 		context.put(TdPNames.PARAM_TICKET_DATE, ticketDate);
 		context.put(TdPNames.PARAM_TICKET_TIME_RANGE, ticketTimeRange);
-		context.put(TdPNames.PARAM_USER_COUNT, userCount);
+		context.put(TdPNames.PARAM_PASSENGER_COUNT, passengerCount);
+		context.put(TdPNames.PARAM_PASSENGER_LIST, getPassengerList(passengerCount));
 		
 		// Internal parameters
+		//Welcome page
+		String welComeURL = AppConfig.getInstance().getPropInternal("td.welcome.url");
+		String welComeReferer = AppConfig.getInstance().getPropInternal("td.welcome.referer");
+		context.put(TdPNames.PARAM_WELCOME_URL, welComeURL);
+		context.put(TdPNames.PARAM_WELCOME_REFERER, welComeReferer);
+		
+		//Login page
+		String loginURL = AppConfig.getInstance().getPropInternal("td.login.url");
+		String loginReferer = AppConfig.getInstance().getPropInternal("td.login.referer");
+		context.put(TdPNames.PARAM_LOGIN_URL, loginURL);
+		context.put(TdPNames.PARAM_LOGIN_REFERER, loginReferer);
+				
 		//Init page
 		String ticketBookInitURL = AppConfig.getInstance().getPropInternal("td.ticket_booking.init.url");
 		String ticketBookInitReferer = AppConfig.getInstance().getPropInternal("td.ticket_booking.init.referer");
@@ -172,11 +214,11 @@ public class TdClient
 		context.put(TdPNames.PARAM_SUBMIT_ORDER_URL, submitOrderURL);
 		context.put(TdPNames.PARAM_SUBMIT_ORDER_REFERER, submitOrderReferer);
 		
-		//confirm passenger page
-		String confirmPassengerURL = AppConfig.getInstance().getPropInternal("td.confirmPassenger.url");
-		String confirmPassengerReferer = AppConfig.getInstance().getPropInternal("td.confirmPassenger.referer");
-		context.put(TdPNames.PARAM_CONFIRM_PASSENGER_URL, confirmPassengerURL);
-		context.put(TdPNames.PARAM_CONFIRM_PASSENGER_REFERER, confirmPassengerReferer);
+		//confirm passenger init page
+		String confirmPassengerURL = AppConfig.getInstance().getPropInternal("td.confirmPassenger.init.url");
+		String confirmPassengerReferer = AppConfig.getInstance().getPropInternal("td.confirmPassenger.init.referer");
+		context.put(TdPNames.PARAM_CONFIRM_PASSENGER_INIT_URL, confirmPassengerURL);
+		context.put(TdPNames.PARAM_CONFIRM_PASSENGER_INIT_REFERER, confirmPassengerReferer);
 		
 		return context;
 	}
@@ -185,10 +227,10 @@ public class TdClient
 	{
 		// 2. Init Command chain
 		Chain chain = new ChainBase();
+		chain.addCommand(new WelComePage());
 		chain.addCommand(new Login());
 		chain.addCommand(new GetTicketBookInitPage());
-		chain.addCommand(new QueryLeftTicket());
-		chain.addCommand(new SubmitOrder());
+		chain.addCommand(new BookTicket());
 		return chain;
 	}
 	
