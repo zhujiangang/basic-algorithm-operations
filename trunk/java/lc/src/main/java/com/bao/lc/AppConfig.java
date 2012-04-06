@@ -160,6 +160,12 @@ public class AppConfig
 			log.warn("key [" + propName + "] not found.");
 			propValue = propName;
 		}
+		if(propValue.startsWith(" ") || propValue.endsWith(" "))
+		{
+			log.warn("The value of key [" + propName + "] contains WHITESPACE at the begin or end.");
+			propValue = propValue.trim();
+		}
+		
 		return propValue;
 	}
 

@@ -7,10 +7,16 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.apache.commons.chain.Context;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.bao.lc.site.s3.TdUtils;
+import com.bao.lc.site.s3.bean.ComparableFilter;
+import com.bao.lc.site.s3.bean.PassengerInfo;
 import com.bao.lc.site.s3.bean.TrainTicketInfo;
+import com.bao.lc.site.s3.params.TdPNames;
+import com.bao.lc.site.s3.params.TdParams;
 import com.bao.lc.util.SortFilter;
 
 public class TrainTicketSelector
@@ -18,6 +24,7 @@ public class TrainTicketSelector
 	private static Log log = LogFactory.getLog(TrainTicketSelector.class);
 
 	private List<TrainTicketInfo> tickets = null;
+	private Context context = null;
 	private int passengerCount = 1;
 
 	private List<SortFilter<TrainTicketInfo>> filter = null;
@@ -28,7 +35,8 @@ public class TrainTicketSelector
 		this.tickets.addAll(ticketList);
 
 		// @TODO: get from context
-		this.passengerCount = 2;
+		this.context = context;
+		this.passengerCount = MapUtils.getIntValue(context, TdPNames.PARAM_PASSENGER_COUNT, 1);
 
 		TrainTicketSortFilterBuilder fb = new TrainTicketSortFilterBuilder(context);
 		this.filter = fb.build();
@@ -60,7 +68,55 @@ public class TrainTicketSelector
 
 		Collections.sort(tickets, new TrainTicketComparator(filter, passengerCount));
 
-		return tickets.get(0);
+		TrainTicketInfo selectedTicket = tickets.get(0);
+		
+		updatePassengerSeatClass(context, selectedTicket);
+		
+		return selectedTicket;
+	}
+	
+	private void updatePassengerSeatClass(Context context, TrainTicketInfo ticket)
+	{		
+		SortFilter<TrainTicketInfo> seatClassCond = null;
+		for(SortFilter<TrainTicketInfo> cond : filter)
+		{
+			if(cond.getCategory() == TrainTicketInfo.CAT_SEAT_CLASS)
+			{
+				seatClassCond = cond;
+				break;
+			}
+		}
+		if(seatClassCond == null)
+		{
+			log.warn("Can't find the seat class filter");
+			return;
+		}
+
+		List<Integer> seatClassList = (List<Integer>) seatClassCond.getValues();
+
+		ComparableFilter columnFilter = ticket.getColumn(seatClassCond.getCategory(),
+			seatClassList, this.passengerCount);
+
+		List<Integer> seatCountList = (List<Integer>) columnFilter.getValue();
+		
+		String passengerSeatClass = TdUtils.getSeatClassValue(TrainTicketInfo.HARD_SEAT);
+		
+		for(int i = 0, size = seatCountList.size(); i < size; i++)
+		{
+			int seatCount = seatCountList.get(i);
+			if(seatCount >= this.passengerCount)
+			{
+				int seatClass = seatClassList.get(i);
+				passengerSeatClass = TdUtils.getSeatClassValue(seatClass);
+				log.info("Select seatClass: index=" + seatClass + ", value=" + passengerSeatClass);
+			}
+		}
+		
+		List<PassengerInfo> passengers = TdParams.getPassengerList(context);
+		for(PassengerInfo passenger: passengers)
+		{
+			passenger.seatClass = passengerSeatClass;
+		}
 	}
 
 	private static class TrainTicketComparator implements Comparator<TrainTicketInfo>

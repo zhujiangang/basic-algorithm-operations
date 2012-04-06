@@ -77,7 +77,7 @@ public class TrainTicketSortFilterBuilder
 		}
 		else if("4".equalsIgnoreCase(category))
 		{
-			int passengerCount = MapUtils.getIntValue(context, TdPNames.PARAM_USER_COUNT, 1);
+			int passengerCount = MapUtils.getIntValue(context, TdPNames.PARAM_PASSENGER_COUNT, 1);
 			result = new SeatClassCondition(Arrays.asList(value.split(",")), passengerCount);
 		}
 		else

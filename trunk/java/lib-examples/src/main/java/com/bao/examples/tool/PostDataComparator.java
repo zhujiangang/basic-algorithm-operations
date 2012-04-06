@@ -9,6 +9,7 @@ import java.util.Scanner;
 import java.util.TreeMap;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.message.BasicNameValuePair;
@@ -110,6 +111,15 @@ public class PostDataComparator
 				log.warn("null name, raw: " + input.toHtml());
 				continue;
 			}
+			String type = input.getAttribute("type");
+			if("radio".equals(type))
+			{
+				String checked = input.getAttribute("checked");
+				if(!"checked".equals(checked))
+				{
+					continue;
+				}
+			}
 			String value = input.getAttribute("value");
 			parameters.add(new BasicNameValuePair(name, value));
 		}
@@ -130,6 +140,25 @@ public class PostDataComparator
 		}
 		return sb.toString();
 	}
+	
+	private static void showParamList(List<NameValuePair> paramList)
+	{
+		for(int i = 0, size = paramList.size(); i < size; i++)
+		{
+			NameValuePair input = paramList.get(i);
+			
+//			if(StringUtils.containsIgnoreCase(input.getName(), "passenger"))
+//			{
+//				continue;
+//			}
+//			if(StringUtils.containsIgnoreCase(input.getName(), "checkbox"))
+//			{
+//				continue;
+//			}
+
+			System.out.printf("[%02d]:%s=%s\n", i, input.getName(), input.getValue());
+		}
+	}
 
 	public static void main(String[] args) throws Exception
 	{
@@ -143,10 +172,13 @@ public class PostDataComparator
 
 		log.info("GetInputs");
 		List<NameValuePair> formInputs = getInputs(formFile, formEncoding, formId, formName);
+		showParamList(formInputs);
+		
 		Map<String, String> formMap = toMap(formInputs);
 
 		log.info("getPost");
 		List<NameValuePair> postParams = getPost(postFile, postEncoding);
+		showParamList(postParams);
 		Map<String, String> postMap = toMap(postParams);
 
 		MapOperation<String, String> mapOper = new MapOperation<String, String>(formMap, postMap);

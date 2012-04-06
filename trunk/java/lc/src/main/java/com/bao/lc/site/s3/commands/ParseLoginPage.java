@@ -6,7 +6,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.chain.Command;
 import org.apache.commons.chain.Context;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.logging.Log;
@@ -31,6 +30,7 @@ import com.bao.lc.client.RequestBuilder;
 import com.bao.lc.httpcommand.AbstractCommand;
 import com.bao.lc.httpcommand.params.HttpCommandPNames;
 import com.bao.lc.httpcommand.params.HttpCommandParams;
+import com.bao.lc.site.GetRandCode;
 import com.bao.lc.site.s3.params.TdPNames;
 import com.bao.lc.util.MiscUtils;
 
@@ -191,12 +191,7 @@ public class ParseLoginPage extends AbstractCommand
 	
 	private String getVerificationCode(Context context, String vCodeLocation) throws Exception
 	{
-		// Save the current context
-		HttpUriRequest currRequest = HttpCommandParams.getTargetRequest(context);
-		String currReferer = MapUtils.getString(context, HttpCommandPNames.TARGET_REFERER);
-
-		URI baseURI = currRequest.getURI();
-
+		URI baseURI = HttpCommandParams.getTargetRequestURI(context);
 		boolean isFirstLogin = MapUtils.getBooleanValue(context, TdPNames._IS_FIRST_LOGIN, true);
 		if(!isFirstLogin)
 		{
@@ -207,19 +202,12 @@ public class ParseLoginPage extends AbstractCommand
 		rb.baseURI(baseURI).reference(vCodeLocation);
 		HttpUriRequest nextRequest = rb.create();
 
-		context.put(HttpCommandPNames.TARGET_REQUEST, nextRequest);
-		context.put(HttpCommandPNames.TARGET_REFERER, baseURI.toString());
-
 		// Do execute GetVerificationCode
-		Command childCommand = new GetVerificationCode();
-		childCommand.execute(context);
-
+		GetRandCode randCode = new GetRandCode(context, nextRequest, baseURI.toString());
 		// Get the result
-		String vCode = MapUtils.getString(context, TdPNames._LOGIN_VOCDE);
-
-		// Restore
-		context.put(HttpCommandPNames.TARGET_REQUEST, currRequest);
-		context.put(HttpCommandPNames.TARGET_REFERER, currReferer);
+		String vCode = randCode.get();
+		
+		context.put(TdPNames._LOGIN_VOCDE, vCode);
 
 		return vCode;
 	}
