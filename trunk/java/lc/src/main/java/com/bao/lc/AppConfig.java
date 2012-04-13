@@ -24,6 +24,7 @@ public class AppConfig
 	private Properties propInternal = new Properties();
 	private Properties propConfig = new Properties();
 	private Properties propInput = new Properties();
+	private Properties propResource = new Properties();
 
 	private String baseDir = null;
 	private String outputDir = null;
@@ -65,6 +66,7 @@ public class AppConfig
 			loadFile("internal.properties", "UTF-8", propInternal);
 			loadFile("config.properties", "UTF-8", propConfig);
 			loadFile("input.properties", "UTF-8", propInput);
+			loadFile("res_zh_CN.properties", "UTF-8", propResource);
 
 			outputDir = getFolderPath(getPropConfig("dir.output"), true);
 			tmpDir = getFolderPath(getPropConfig("dir.temp"), true);
@@ -137,6 +139,11 @@ public class AppConfig
 	public String getPropInput(String propName)
 	{
 		return getProperty(propInput, propName);
+	}
+	
+	public String getPropResource(String propName)
+	{
+		return getProperty(propResource, propName);
 	}
 
 	private String getResourceFullName(String baseName, String name)
