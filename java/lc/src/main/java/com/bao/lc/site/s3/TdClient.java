@@ -4,6 +4,7 @@ import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.net.ssl.KeyManager;
@@ -17,25 +18,31 @@ import org.apache.commons.chain.impl.ChainBase;
 import org.apache.commons.chain.impl.ContextBase;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.http.client.params.ClientPNames;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
+import org.apache.http.params.BasicHttpParams;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
 
 import com.bao.lc.AppConfig;
+import com.bao.lc.ResMgr;
 import com.bao.lc.client.BrowserClient;
 import com.bao.lc.httpcommand.CommandCompleteListener;
 import com.bao.lc.httpcommand.impl.DirectorBuilder;
 import com.bao.lc.httpcommand.impl.LogCompleteListener;
 import com.bao.lc.httpcommand.params.HttpCommandPNames;
 import com.bao.lc.site.s3.bean.PassengerInfo;
+import com.bao.lc.site.s3.bean.TicketFilterCondition;
 import com.bao.lc.site.s3.commands.BookTicket;
 import com.bao.lc.site.s3.commands.DoLogout;
 import com.bao.lc.site.s3.commands.GetTicketBookInitPage;
 import com.bao.lc.site.s3.commands.Login;
 import com.bao.lc.site.s3.commands.WelComePage;
+import com.bao.lc.site.s3.params.InputParameter;
 import com.bao.lc.site.s3.params.TdPNames;
+import com.bao.lc.site.s3.params.TdParams;
 import com.bao.lc.util.MiscUtils;
 
 public class TdClient
@@ -96,12 +103,15 @@ public class TdClient
 		tcm.getSchemeRegistry().register(sch);
 		
 		//5. Create client
-		session = new BrowserClient(tcm);
+		BasicHttpParams params = new BasicHttpParams();
+		params.setBooleanParameter(ClientPNames.ALLOW_CIRCULAR_REDIRECTS, Boolean.TRUE);
+		
+		session = new BrowserClient(tcm, params);
 
 		return true;
 	}
 	
-	public void execute(Command mainCommand, Context context) throws Exception
+	private void execute(Command mainCommand, Context context) throws Exception
 	{
 		// 3. Fire!
 		CommandCompleteListener listener = new LogCompleteListener(log);
@@ -116,72 +126,36 @@ public class TdClient
 		}
 		finally
 		{
-			// free context space
-			context.clear();
-			context = null;
-
 			// shutdown connections
 			session.getConnectionManager().shutdown();
 		}
 	}
-	
-	private List<PassengerInfo> getPassengerList(int passengerCount)
-	{
-		List<PassengerInfo> passengerList = new ArrayList<PassengerInfo>(passengerCount);
-		for(int i = 0; i < passengerCount; i++)
-		{
-			String content = AppConfig.getInstance().getPropInput("td.passenger" + (i + 1));
-			String[] fields = content.split(",");
-			if(fields.length < 6)
-			{
-				log.fatal("passenger info is incomplete. content=" + content);
-				System.exit(-2);
-			}
-			PassengerInfo passenger = new PassengerInfo();
-			passenger.name = fields[0];
-			passenger.cardType = TdUtils.getCardTypeValue(fields[1]);
-			passenger.cardNo = fields[2];
-			passenger.tiketType = TdUtils.getTicketTypeValue(fields[3]);
-			passenger.phone = fields[4];
-			passenger.isSave = fields[5];
-			
-			passengerList.add(passenger);
-		}
 		
-		return passengerList;
-	}
-	
-	private Context createContext()
+	private Context createContext(InputParameter parameter, Log uiLog)
 	{		
 		HttpContext httpContext = new BasicHttpContext();
-//		String loginUrl = AppConfig.getInstance().getPropInternal("td.login.url");
-//		String refererUrl = AppConfig.getInstance().getPropInternal("td.login.referer");
-//		Context context = HttpCommandUtils.createContext(session, httpContext, new HttpGet(loginUrl));
-//		context.put(HttpCommandPNames.TARGET_REFERER, refererUrl);
 		Context context = new ContextBase();
 		context.put(HttpCommandPNames.HTTP_CLIENT, session);
 		context.put(HttpCommandPNames.HTTP_CONTEXT, httpContext);
 
 		// Input Parameters
 		context.put(HttpCommandPNames.RESPONSE_DEFAULT_CHARSET, "UTF-8");
-		context.put(TdPNames._USER_INTERFACE, LogFactory.getLog("TdClient.UI"));
 		
-		String user = AppConfig.getInstance().getPropInput("td.user");
-		String pwd = AppConfig.getInstance().getPropInput("td.password");
-		String fromStation = AppConfig.getInstance().getPropInput("td.from_station");
-		String toStation = AppConfig.getInstance().getPropInput("td.to_station");
-		String ticketDate = AppConfig.getInstance().getPropInput("td.ticket.date");
-		String ticketTimeRange = AppConfig.getInstance().getPropInput("td.ticket.time_range");
-		Integer passengerCount = MiscUtils.toInt(AppConfig.getInstance().getPropInput("td.user.count"));
+		if(uiLog == null)
+		{
+			uiLog = LogFactory.getLog("TdClient.UI");
+		}
+		context.put(TdPNames._USER_INTERFACE, uiLog);
 		
-		context.put(TdPNames.PARAM_USER, user);
-		context.put(TdPNames.PARAM_PASSWORD, pwd);
-		context.put(TdPNames.PARAM_FROM_STATION, fromStation);
-		context.put(TdPNames.PARAM_TO_STATION, toStation);
-		context.put(TdPNames.PARAM_TICKET_DATE, ticketDate);
-		context.put(TdPNames.PARAM_TICKET_TIME_RANGE, ticketTimeRange);
-		context.put(TdPNames.PARAM_PASSENGER_COUNT, passengerCount);
-		context.put(TdPNames.PARAM_PASSENGER_LIST, getPassengerList(passengerCount));
+		context.put(TdPNames.PARAM_USER, parameter.user);
+		context.put(TdPNames.PARAM_PASSWORD, parameter.pwd);
+		context.put(TdPNames.PARAM_FROM_STATION, parameter.fromStation);
+		context.put(TdPNames.PARAM_TO_STATION, parameter.toStation);
+		context.put(TdPNames.PARAM_TICKET_DATE, parameter.ticketDate);
+		context.put(TdPNames.PARAM_PASSENGER_COUNT, parameter.passengers.size());
+		context.put(TdPNames.PARAM_PASSENGER_LIST, parameter.passengers);
+		context.put(TdPNames.PARAM_FILTER_CONDITION, parameter.filterCond);
+		context.put(TdPNames.PARAM_TICKET_TIME_RANGE, parameter.ticketTimeRange);
 		
 		// Internal parameters
 		//Welcome page
@@ -234,28 +208,107 @@ public class TdClient
 		return chain;
 	}
 	
-	public void action1()
+	public void bookTicket(InputParameter parameter, Log uiLog)
 	{
-		Context context = createContext();
+		Context context = createContext(parameter, uiLog);
 		Chain chain = createChain1();
 		
 		// 3. Execute
+		TdParams.getUI(context).info(ResMgr.getString("td.msg.start.book"));
 		try
 		{
 			execute(chain, context);
 		}
 		catch(Exception e)
 		{
-			log.error(e.getMessage(), e);
+			TdParams.getUI(context).error(e.getMessage(), e);
 		}
+		
+		TdParams.getUI(context).info(ResMgr.getString("td.msg.finish.book"));
+		
+		// free context space
+		context.clear();
+		context = null;
+	}
+	
+	private static List<PassengerInfo> getPassengerList(int passengerCount)
+	{
+		List<PassengerInfo> passengerList = new ArrayList<PassengerInfo>(passengerCount);
+		for(int i = 0; i < passengerCount; i++)
+		{
+			String content = AppConfig.getInstance().getPropInput("td.passenger" + (i + 1));
+			String[] fields = content.split(",");
+			if(fields.length < 6)
+			{
+				log.fatal("passenger info is incomplete. content=" + content);
+				System.exit(-2);
+			}
+			PassengerInfo passenger = new PassengerInfo();
+			passenger.name = fields[0];
+			passenger.cardType = TdUtils.getCardTypeValue(fields[1]);
+			passenger.cardNo = fields[2];
+			passenger.tiketType = TdUtils.getTicketTypeValue(fields[3]);
+			passenger.phone = fields[4];
+			passenger.isSave = fields[5];
+			
+			passengerList.add(passenger);
+		}
+		
+		return passengerList;
+	}
+	
+	private static TicketFilterCondition getFilterCond()
+	{
+		TicketFilterCondition cond = new TicketFilterCondition();
+		
+		String conditions = AppConfig.getInstance().getPropInput("td.ticket.sort.conditions");
+		String[] args = conditions.split(",");
+
+		for(String category : args)
+		{
+			String propName = "td.ticket.sort.cond." + category;
+			String value = AppConfig.getInstance().getPropInput(propName);
+			
+			//Seat Class
+			if("4".equalsIgnoreCase(category))
+			{
+				cond.seatClassList = Arrays.asList(value.split(","));
+			}
+			//Train Class
+			else if("2".equalsIgnoreCase(category))
+			{
+				cond.trainClassList = Arrays.asList(value.split(","));
+			}
+		}
+		
+		return cond;
 	}
 	/**
 	 * @param args
 	 */
 	public static void main(String[] args)
 	{
+		String user = AppConfig.getInstance().getPropInput("td.user");
+		String pwd = AppConfig.getInstance().getPropInput("td.password");
+		String fromStation = AppConfig.getInstance().getPropInput("td.from_station");
+		String toStation = AppConfig.getInstance().getPropInput("td.to_station");
+		String ticketDate = AppConfig.getInstance().getPropInput("td.ticket.date");
+		
+		String ticketTimeRange = AppConfig.getInstance().getPropInput("td.ticket.time_range");
+		Integer passengerCount = MiscUtils.toInt(AppConfig.getInstance().getPropInput("td.user.count"));
+		
+		InputParameter param = new InputParameter();
+		param.user = user;
+		param.pwd = pwd;
+		param.fromStation = fromStation;
+		param.toStation = toStation;
+		param.ticketDate = ticketDate;
+		param.passengers = getPassengerList(passengerCount);
+		param.ticketTimeRange = ticketTimeRange;
+		param.filterCond = getFilterCond();
+		
 		TdClient client = new TdClient();
-		client.action1();
+		client.bookTicket(param, null);
 		
 		System.exit(0);
 	}

@@ -5,6 +5,9 @@ import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.Window;
 
+import javax.swing.JTextField;
+
+
 public class GUIUtils
 {
 	private GUIUtils()
@@ -26,5 +29,15 @@ public class GUIUtils
 		centerHeight = centerHeight < screenInsets.top ? screenInsets.top : centerHeight;
 
 		f.setLocation(centerWidth, centerHeight);
+	}
+	
+	public static String getFieldText(JTextField field)
+	{
+		String text = field.getText();
+		if(text == null)
+		{
+			return "";
+		}
+		return text.trim();
 	}
 }

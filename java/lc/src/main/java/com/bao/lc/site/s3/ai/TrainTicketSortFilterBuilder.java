@@ -11,8 +11,10 @@ import org.apache.commons.logging.LogFactory;
 
 import com.bao.lc.AppConfig;
 import com.bao.lc.site.s3.bean.ComparableFilter;
+import com.bao.lc.site.s3.bean.TicketFilterCondition;
 import com.bao.lc.site.s3.bean.TrainTicketInfo;
 import com.bao.lc.site.s3.params.TdPNames;
+import com.bao.lc.site.s3.params.TdParams;
 import com.bao.lc.util.SortFilter;
 
 public class TrainTicketSortFilterBuilder
@@ -29,6 +31,32 @@ public class TrainTicketSortFilterBuilder
 	}
 
 	private void init(Context context)
+	{
+		TicketFilterCondition filterCond = TdParams.getFilterCond(context);
+		if(filterCond == null)
+		{
+			log.error("filterCond is null.");
+			return;
+		}
+		
+		SortFilter<TrainTicketInfo> filter = null;
+		
+		//Seat Class
+		int passengerCount = MapUtils.getIntValue(context, TdPNames.PARAM_PASSENGER_COUNT, 1);
+		filter = new SeatClassCondition(filterCond.seatClassList, passengerCount);
+		sortFilters.add(filter);
+		
+		//Train Class
+		if(filterCond.trainClassList != null && !filterCond.trainClassList.isEmpty())
+		{
+			filter = new TrainClassCondition(filterCond.trainClassList);
+			sortFilters.add(filter);
+		}
+		
+		//Train No: TODO
+	}
+	//TODO: delete
+	protected void init_old(Context context)
 	{
 		String conditions = AppConfig.getInstance().getPropConfig("td.ticket.sort.conditions");
 		String[] args = conditions.split(",");

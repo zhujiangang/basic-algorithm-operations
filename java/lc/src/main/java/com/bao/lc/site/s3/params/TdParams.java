@@ -7,6 +7,7 @@ import org.apache.commons.chain.Context;
 import org.apache.commons.logging.Log;
 
 import com.bao.lc.site.s3.bean.PassengerInfo;
+import com.bao.lc.site.s3.bean.TicketFilterCondition;
 import com.bao.lc.site.s3.bean.TrainTicketInfo;
 
 public class TdParams
@@ -39,5 +40,10 @@ public class TdParams
 	public static List<PassengerInfo> getPassengerList(Context context)
 	{
 		return (List<PassengerInfo>)context.get(TdPNames.PARAM_PASSENGER_LIST);
+	}
+	
+	public static TicketFilterCondition getFilterCond(Context context)
+	{
+		return (TicketFilterCondition)context.get(TdPNames.PARAM_FILTER_CONDITION);
 	}
 }

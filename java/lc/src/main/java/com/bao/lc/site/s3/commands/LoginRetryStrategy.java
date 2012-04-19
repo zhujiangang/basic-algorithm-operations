@@ -42,10 +42,10 @@ public class LoginRetryStrategy implements CommandRetryStrategy
 			//retry without user's input
 			ret = true;
 		}
-		//retry with all the other results
+		//do not retry with all the other results
 		else
 		{
-			ret = true;
+			ret = false;
 		}
 
 		if(ret)

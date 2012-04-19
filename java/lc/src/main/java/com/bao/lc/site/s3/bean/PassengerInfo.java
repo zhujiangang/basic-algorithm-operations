@@ -33,4 +33,38 @@ public class PassengerInfo
 		builder.append(name).append(",").append(cardType).append(",").append(cardNo);
 		return builder.toString();
 	}
+	
+	public String saveToString()
+	{
+		StringBuilder sb = new StringBuilder();
+		sb.append(name).append(",").append(cardType).append(",").append(cardNo);
+		sb.append(",").append(tiketType).append(",").append(phone).append(",").append(isSave);
+		return sb.toString();
+	}
+	
+	public void loadFromString(String str)
+	{
+		if(str == null)
+		{
+			return;
+		}
+		String[] fields = str.split(",");
+		for(int i = 0; i < fields.length; i++)
+		{
+			fields[i] = fields[i].trim();
+		}
+		
+		if(fields.length < 6)
+		{
+			return;
+		}
+		
+		int i = 0;
+		name = fields[i++];
+		cardType = fields[i++];
+		cardNo = fields[i++];
+		tiketType = fields[i++];
+		phone = fields[i++];
+		isSave = fields[i++];
+	}
 }

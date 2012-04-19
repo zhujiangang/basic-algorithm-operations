@@ -1,6 +1,7 @@
 package com.bao.lc.site.s3.commands;
 
 import java.io.FileOutputStream;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -30,6 +31,7 @@ import org.htmlparser.util.NodeList;
 import org.htmlparser.util.ParserException;
 
 import com.bao.lc.AppConfig;
+import com.bao.lc.ResMgr;
 import com.bao.lc.bean.IDValuePair;
 import com.bao.lc.bean.ResultCode;
 import com.bao.lc.client.utils.HttpClientUtils;
@@ -49,6 +51,8 @@ public class DoLogin extends BasicHttpCommand
 	private static final String JS_ERROR_MSG_REGEX = "var message = \"(.+?)\";";
 
 	private static final String JS_LOGIN_REGEX = "var isLogin(.*?)=(.+?)var u_name = '(.*?)';";
+	
+	private String loginName = null;
 
 	@Override
 	protected IDValuePair postExecute(Context context) throws Exception
@@ -76,7 +80,9 @@ public class DoLogin extends BasicHttpCommand
 		{
 			context.put(TdPNames._LOGIN_STATE, Boolean.TRUE);
 
-			TdParams.getUI(context).info("User [" + user + "] login successfully.");
+			String message = MessageFormat.format(ResMgr.getString("td.msg.user.login.ok"), user, loginName);
+			TdParams.getUI(context).info(message);
+			log.info("User [" + user + "] login successfully.");
 			
 			return ResultCode.RC_OK;
 		}
@@ -148,7 +154,7 @@ public class DoLogin extends BasicHttpCommand
 		}
 
 		String loginStatus = valueList.get(2).trim();
-		String loginName = valueList.get(3).trim();
+		loginName = valueList.get(3).trim();
 		log.info("Javascript code: loginStatus=" + loginStatus + ", loginName=" + loginName);
 		if(StringUtils.equalsIgnoreCase(loginStatus, "true") && !loginName.isEmpty())
 		{
@@ -227,7 +233,10 @@ public class DoLogin extends BasicHttpCommand
 		}
 
 		Text msgText = (Text) msgList.elementAt(0);
-		log.info("The welcome message: " + msgText.getText());
+		String lastLoginMsg = msgText.getText();
+		
+		TdParams.getUI(context).info(lastLoginMsg);
+		log.info("The welcome message: " + lastLoginMsg);
 
 		return true;
 	}
@@ -337,7 +346,10 @@ public class DoLogin extends BasicHttpCommand
 		}
 		while(false);
 		
-		TdParams.getUI(context).error("Login failed: [" + outErrorMsg + "], rc=" + rc);
+		String failMsg = "[" + outErrorMsg + "], rc=" + rc;
+		String message = MessageFormat.format(ResMgr.getString("td.msg.user.login.failed"),
+			MapUtils.getString(context, TdPNames.PARAM_USER), failMsg);
+		TdParams.getUI(context).error(message);
 		
 		return rc;
 	}

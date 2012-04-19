@@ -24,6 +24,7 @@ import org.htmlparser.tags.InputTag;
 import org.htmlparser.util.NodeList;
 import org.htmlparser.util.ParserException;
 
+import com.bao.lc.ResMgr;
 import com.bao.lc.bean.IDValuePair;
 import com.bao.lc.bean.ResultCode;
 import com.bao.lc.client.RequestBuilder;
@@ -32,6 +33,7 @@ import com.bao.lc.httpcommand.params.HttpCommandPNames;
 import com.bao.lc.httpcommand.params.HttpCommandParams;
 import com.bao.lc.site.GetRandCode;
 import com.bao.lc.site.s3.params.TdPNames;
+import com.bao.lc.site.s3.params.TdParams;
 import com.bao.lc.util.MiscUtils;
 
 public class ParseLoginPage extends AbstractCommand
@@ -89,6 +91,12 @@ public class ParseLoginPage extends AbstractCommand
 		if(vCode == null)
 		{
 			vCode = getVerificationCode(context, this.vCodeImage.extractImageLocn());
+			
+			if(vCode == null)
+			{
+				TdParams.getUI(context).info(ResMgr.getString("td.msg.vcode.input.null"));
+				return ResultCode.RC_INPUT_NULL_VCODE;
+			}
 		}
 
 		// 3. Get all input parameters

@@ -17,6 +17,11 @@ public class AppUtils
 		return AppConfig.getInstance().getTempDir() + File.separator + fileName;
 	}
 	
+	public static String getUserFilePath(String fileName)
+	{
+		return AppConfig.getInstance().getUserDir() + File.separator + fileName;
+	}
+	
 	public static String digitToCNWord(int dayOfWeek)
 	{
 		if(dayOfWeek < 1 || dayOfWeek > 7)

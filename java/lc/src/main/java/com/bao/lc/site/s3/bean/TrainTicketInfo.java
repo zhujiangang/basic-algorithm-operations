@@ -15,6 +15,7 @@ import org.htmlparser.util.NodeList;
 import org.htmlparser.util.ParserException;
 
 import com.bao.lc.AppConfig;
+import com.bao.lc.site.s3.TdUtils;
 import com.bao.lc.util.MiscUtils;
 
 public class TrainTicketInfo implements Columnable
@@ -26,7 +27,7 @@ public class TrainTicketInfo implements Columnable
 	public static final int PARSE_ERROR = -2;
 	public static final int NONE_EXIST = -1;	//--
 	public static final int HAVE_NOT = 0;	//无
-	public static final int HAVE = Integer.MAX_VALUE;	//有
+	public static final int HAVE = 1024;	//有
 	
 	private static Map<String, Integer> ticketNumMap = new HashMap<String, Integer>();
 	static
@@ -66,19 +67,6 @@ public class TrainTicketInfo implements Columnable
 	private String toStation; //到站
 	private String timeCost; //历时
 	
-	//余票信息
-	private int buss_seat; // 商务座
-	private int best_seat;// 特等座
-	private int one_seat;// 一等座
-	private int two_seat;// 二等座
-	private int vag_sleeper;// 高级软卧
-	private int soft_sleeper;// 软卧
-	private int hard_sleeper;// 硬卧
-	private int soft_seat;// 软座
-	private int hard_seat;// 硬座
-	private int none_seat;// 无座
-	private int other_seat;// 其他
-	
 	private int[] seats;
 	
 	//购票
@@ -113,29 +101,15 @@ public class TrainTicketInfo implements Columnable
 		}
 		this.bookButton = args[startIndex++];
 		
-		//Legacy
-		int seatIndex = BUSINESS_SEAT;
-		this.buss_seat = this.seats[seatIndex++];
-		this.best_seat = this.seats[seatIndex++];
-		this.one_seat = this.seats[seatIndex++];
-		this.two_seat = this.seats[seatIndex++];
-		this.vag_sleeper = this.seats[seatIndex++];
-		this.soft_sleeper = this.seats[seatIndex++];
-		this.hard_sleeper = this.seats[seatIndex++];
-		this.soft_seat = this.seats[seatIndex++];
-		this.hard_seat = this.seats[seatIndex++];
-		this.none_seat = this.seats[seatIndex++];
-		this.other_seat = this.seats[seatIndex++];
-		
 		//distilled
 		distill();
 	}
 	
 	private void distill()
 	{
-		//
+		parseGeneralInfo();
 		parseBookButtonParameter();
-		parseOtherFields();
+		parseGeneralInfoByBookParameter();
 	}
 	
 	private int parseSeat(String seatContent)
@@ -165,10 +139,6 @@ public class TrainTicketInfo implements Columnable
 				seatNum = PARSE_ERROR;
 			}
 		}
-//		if(log.isDebugEnabled())
-//		{
-//			log.debug("Parse seatContent from [" + seatContent + "] to [" + seatNum + "]");
-//		}
 		return seatNum;
 	}
 	
@@ -178,40 +148,20 @@ public class TrainTicketInfo implements Columnable
 		StringBuilder sb = new StringBuilder();
 		sb.append("index=").append(index);
 		
-		if(this._bookButtonParameter == null)
+		sb.append(", TrainNo=").append(getStationTrainCode()).append(": ");
+		sb.append(getFromStationName()).append("(").append(getStartTime()).append(")");
+		sb.append(" --> ");
+		sb.append(getToStationName()).append("(").append(getEndTime()).append(")");
+		
+		sb.append(", Seats={");
+		for(int i = BUSINESS_SEAT; i <= OTHER_SEAT; i++)
 		{
-			sb.append(",trainNo=").append(trainNo);
-			sb.append(",fromStation=").append(fromStation);
-			sb.append(",toStation=").append(toStation);
-			sb.append(",timeCost=").append(timeCost);
-			
-			sb.append(",buss_seat=").append(buss_seat);
-			sb.append(",best_seat=").append(best_seat);
-			sb.append(",one_seat=").append(one_seat);
-			sb.append(",two_seat=").append(two_seat);
-			sb.append(",vag_sleeper=").append(vag_sleeper);
-			sb.append(",soft_sleeper=").append(soft_sleeper);
-			sb.append(",hard_sleeper=").append(hard_sleeper);
-			sb.append(",soft_seat=").append(soft_seat);
-			sb.append(",hard_seat=").append(hard_seat);
-			sb.append(",none_seat=").append(none_seat);
-			sb.append(",other_seat=").append(other_seat);
-			
-			sb.append(",bookButton=").append(bookButton);
-		}
-		else
-		{
-			sb.append(",bookButtonParameter=").append(_bookButtonParameter);
-			sb.append(",seats:{");
-			for(int i = BUSINESS_SEAT; i <= OTHER_SEAT; i++)
+			if(this.seats[i] > 0)
 			{
-				if(this.seats[i] > 0)
-				{
-					sb.append(i).append("=").append(this.seats[i]).append(" ");
-				}
+				sb.append(TdUtils.getSeatClassName(i)).append("=").append(this.seats[i]).append(" ");
 			}
-			sb.append("}");
 		}
+		sb.append("}");
 
 		return sb.toString();
 	}
@@ -219,6 +169,25 @@ public class TrainTicketInfo implements Columnable
 	public String getBookButtonParameter()
 	{
 		return this._bookButtonParameter;
+	}
+	
+	private void parseGeneralInfo()
+	{
+		this._station_train_code = MiscUtils.getPlainText(this.trainNo, "UTF-8");
+		
+		String[] fromInfo = this.fromStation.split("<br>");
+		this._from_station_name = fromInfo[0].trim();
+		if(fromInfo.length >= 2)
+		{
+			this._start_time = fromInfo[1].trim();
+		}
+		
+		String[] toInfo = this.toStation.split("<br>");
+		this._to_station_name = toInfo[0].trim();
+		if(toInfo.length >= 2)
+		{
+			this._end_time = toInfo[1].trim();
+		}
 	}
 	
 	private void parseBookButtonParameter()
@@ -261,7 +230,7 @@ public class TrainTicketInfo implements Columnable
 		log.info("index=" + index + ", bookButtonParameter=" + _bookButtonParameter);
 	}
 	
-	private void parseOtherFields()
+	private void parseGeneralInfoByBookParameter()
 	{
 		if(this._bookButtonParameter == null)
 		{

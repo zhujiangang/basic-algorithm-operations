@@ -1,5 +1,6 @@
 package com.bao.lc.site.s3.commands;
 
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -13,6 +14,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpUriRequest;
 
+import com.bao.lc.ResMgr;
 import com.bao.lc.bean.IDValuePair;
 import com.bao.lc.bean.ResultCode;
 import com.bao.lc.client.RequestBuilder;
@@ -159,17 +161,29 @@ public class QueryLeftTicket extends BasicHttpCommand
 			log.debug("ticketInfoList=" + ticketInfoList);
 		}
 		
+		StringBuilder sb = new StringBuilder();
+		for(TrainTicketInfo ticket : ticketInfoList)
+		{
+			sb.append("\n").append(ticket.toString());
+		}
+		String message = null;
+		message = MessageFormat.format(ResMgr.getString("td.msg.ticket.found.count"),
+			String.valueOf(ticketInfoList.size()), sb.toString());
+		TdParams.getUI(context).info(message);
+		
 		TrainTicketSelector selector = new TrainTicketSelector(ticketInfoList, context);
 		TrainTicketInfo ticket = selector.select();
 		if(ticket == null)
 		{
-			TdParams.getUI(context).info("No avalable ticket with current filter!");
+			TdParams.getUI(context).info(ResMgr.getString("td.msg.ticket.filter.all"));
 			return ResultCode.RC_TD_NO_AVAILABLE_TICKET_WITH_FILTER;
 		}
 		
 		context.put(TdPNames._ORDER_TICKET_INFO, ticket);
-		TdParams.getUI(context).info("Found the best matched ticket: " + ticket);
-		
+
+		message = MessageFormat.format(ResMgr.getString("td.msg.ticket.filter.best.match"),
+			ticket.toString());
+		TdParams.getUI(context).info(message);
 		
 		return ResultCode.RC_OK;
 	}

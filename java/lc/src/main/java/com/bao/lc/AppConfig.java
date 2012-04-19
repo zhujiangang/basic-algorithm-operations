@@ -29,6 +29,7 @@ public class AppConfig
 	private String baseDir = null;
 	private String outputDir = null;
 	private String tmpDir = null;
+	private String userDir = null;
 	
 	private boolean isDebug = false;
 
@@ -62,6 +63,7 @@ public class AppConfig
 				break;
 			}
 			baseDir = path;
+			userDir = getFolderPath(baseDir + "/" + RES_LOCATIONS[0], true);
 
 			loadFile("internal.properties", "UTF-8", propInternal);
 			loadFile("config.properties", "UTF-8", propConfig);
@@ -119,6 +121,11 @@ public class AppConfig
 	public String getTempDir()
 	{
 		return tmpDir;
+	}
+	
+	public String getUserDir()
+	{
+		return userDir;
 	}
 	
 	public boolean isDebug()

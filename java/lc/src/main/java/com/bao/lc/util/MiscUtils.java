@@ -29,6 +29,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.builder.CompareToBuilder;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.htmlparser.filters.NodeClassFilter;
 import org.htmlparser.lexer.Lexer;
 import org.htmlparser.lexer.Page;
 import org.htmlparser.nodes.TextNode;
@@ -504,5 +505,42 @@ public class MiscUtils
 	public static String getDatePart(Calendar cal)
 	{
 		return datePartFormat.format(cal.getTime());
+	}
+	
+	public static String getPlainText(String html, String charset)
+	{
+		Parser parser = Parser.createParser(html, charset);
+		
+		NodeList nodes = null;
+		try
+		{
+			nodes = parser.parse(new NodeClassFilter(TextNode.class));
+		}
+		catch(ParserException e)
+		{
+			log.error("Failed to parse the content.", e);
+			return null;
+		}
+		
+		StringBuilder sb = new StringBuilder();
+		
+		String text = null;
+		for(int i = 0, size = nodes.size(); i < size; i++)
+		{
+			TextNode textNode = (TextNode)nodes.elementAt(i);
+			if(textNode != null)
+			{
+				text = textNode.getText();
+				if(text != null)
+				{
+					text = text.trim();
+					if(!text.isEmpty())
+					{
+						sb.append(text);
+					}
+				}
+			}
+		}
+		return sb.toString();
 	}
 }

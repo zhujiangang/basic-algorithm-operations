@@ -14,6 +14,8 @@ public interface TdPNames
 	public static final String PARAM_PASSENGER_COUNT = "td.param.user.count";
 	public static final String PARAM_PASSENGER_LIST = "td.param.passenger.list";
 	
+	public static final String PARAM_FILTER_CONDITION = "td.param.filter.condition";
+	
 	public static final String PARAM_WELCOME_URL = "td.param.welcome_url";
 	public static final String PARAM_WELCOME_REFERER = "td.param.welcome_referer";
 	
