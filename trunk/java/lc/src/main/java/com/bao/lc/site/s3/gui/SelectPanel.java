@@ -1,22 +1,38 @@
 package com.bao.lc.site.s3.gui;
 
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.FlowLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.swing.*;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
 import javax.swing.border.TitledBorder;
 
-import com.bao.lc.ResMgr;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
-@SuppressWarnings("rawtypes")
-public class SelectDialog extends JDialog
+import com.bao.lc.ResMgr;
+import com.bao.lc.site.s3.TdUtils;
+
+@SuppressWarnings("serial")
+public class SelectPanel extends JPanel implements ValueBean<List>
 {
+	private static Log log = LogFactory.getLog(SelectPanel.class);
+	
 	private List<?> rawData = null;
+	private List<Integer> checkedList = null;
+	
 	private List selData = new ArrayList();
-	private List value = null;
+	private List currValue = null;
 
 	private JPanel selectedItemPanel = null;
 	private JTextField selectedField = null;
@@ -31,19 +47,14 @@ public class SelectDialog extends JDialog
 	private JButton okBtn = null;
 	private JButton closeBtn = null;
 
-	public SelectDialog(Frame owner, boolean modal, List<?> dataList)
+	public SelectPanel(List<?> dataList, List<Integer> checkedList)
 	{
-		this(owner, null, modal, dataList);
-	}
-
-	public SelectDialog(Frame owner, String title, boolean modal, List<?> dataList)
-	{
-		super(owner, title, modal);
-		super.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 		this.rawData = dataList;
-
+		this.checkedList = checkedList;
+		
 		initGUI();
 		addListeners();
+		initData();
 	}
 
 	private void initGUI()
@@ -52,16 +63,17 @@ public class SelectDialog extends JDialog
 		initOptionsPanel();
 		initConfirmBtnPanel();
 
-		this.getContentPane().setLayout(new BorderLayout());
+		this.setLayout(new BorderLayout());
 
-		this.getContentPane().add(selectedItemPanel, BorderLayout.NORTH);
-		this.getContentPane().add(optionsPanel, BorderLayout.CENTER);
-		this.getContentPane().add(confirmBtnPanel, BorderLayout.SOUTH);
+		this.add(selectedItemPanel, BorderLayout.NORTH);
+		this.add(optionsPanel, BorderLayout.CENTER);
+		this.add(confirmBtnPanel, BorderLayout.SOUTH);
 	}
 
 	private void initSelectedItemPanel()
 	{
 		selectedField = new JTextField();
+		selectedField.setEditable(false);
 
 		selectedItemPanel = new JPanel();
 		selectedItemPanel.setLayout(new GridBagLayout());
@@ -183,17 +195,10 @@ public class SelectDialog extends JDialog
 		{
 			public void actionPerformed(ActionEvent e)
 			{
-				if(value == null)
-				{
-					value = new ArrayList(selData.size());
-				}
-				else
-				{
-					value.clear();
-				}
-				value.addAll(selData);
+				List newValue = new ArrayList(selData.size());
+				newValue.addAll(selData);
 				
-				SelectDialog.this.dispose();
+				setValue(newValue);
 			}
 		});
 		
@@ -201,33 +206,52 @@ public class SelectDialog extends JDialog
 		{
 			public void actionPerformed(ActionEvent e)
 			{
-				SelectDialog.this.dispose();
+				setValue(null);
 			}
 		});
 	}
 	
-	private void updateSelectedField()
+	private void initData()
 	{
+		if(checkedList != null)
+		{
+			for(int i : checkedList)
+			{
+				if(i < 0 || i >= checkboxs.size())
+				{
+					log.error("checkedList contains invalid index: " + i);
+					continue;
+				}
+				checkboxs.get(i).setSelected(true);
+				
+				selData.add(rawData.get(i));
+			}
+			updateSelectedField();
+		}
+	}
+	
+	private void updateSelectedField()
+	{		
+		//Then update the model data to field of the view
 		if(selData.isEmpty())
 		{
 			selectedField.setText("");
 			return;
 		}
-		
-		StringBuilder sb = new StringBuilder();
-		for(int i = 0, size = selData.size(); i < size; i++)
-		{
-			if(i > 0)
-			{
-				sb.append(",");
-			}
-			sb.append(selData.get(i));
-		}
-		selectedField.setText(sb.toString());
+		selectedField.setText(TdUtils.toString(selData, ","));
+	}
+	
+	@Override
+	public void setValue(List newValue)
+	{
+		List oldValue = currValue;
+		currValue = newValue;
+		firePropertyChange(VALUE_PROPERTY, oldValue, currValue);
 	}
 
-	public List<?> getSelects()
+	@Override
+	public List getValue()
 	{
-		return value;
+		return currValue;
 	}
 }

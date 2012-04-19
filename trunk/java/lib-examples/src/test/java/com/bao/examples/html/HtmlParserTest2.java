@@ -13,6 +13,7 @@ import org.htmlparser.filters.AndFilter;
 import org.htmlparser.filters.HasAttributeFilter;
 import org.htmlparser.filters.NodeClassFilter;
 import org.htmlparser.filters.OrFilter;
+import org.htmlparser.nodes.TextNode;
 import org.htmlparser.tags.FormTag;
 import org.htmlparser.tags.InputTag;
 import org.htmlparser.tags.TableColumn;
@@ -122,5 +123,25 @@ public class HtmlParserTest2 extends TestCase
 			System.out.printf(Locale.CHINESE, "%02d: name=%s,value=%s\n", i, input.getAttribute("name"),
 				input.getAttribute("value"));
 		}
+	}
+	
+	public void testPlainText() throws ParserException
+	{
+		String content = "<span id='id_550000K56002' class='base_txtdiv' onmouseover=javascript:onStopHover('550000K56002#SHH#XAY') onmouseout='onStopOut()'>K560</span>";
+		
+		Parser myParser = Parser.createParser(content, "UTF-8");
+		
+		NodeList nodes = myParser.parse(new NodeClassFilter(TextNode.class));
+		
+		StringBuilder sb = new StringBuilder();
+		
+		for(int i = 0, size = nodes.size(); i < size; i++)
+		{
+			TextNode text = (TextNode)nodes.elementAt(i);
+			
+			sb.append(text.getText().trim());
+		}
+		
+		System.out.println(sb.toString());
 	}
 }

@@ -24,7 +24,7 @@ public class BookTicketRetryStrategy implements CommandRetryStrategy
 		{
 			ret = false;
 		}
-		else if(rc == ResultCode.RC_TD_CONFIRM_PASSENGER_RAND_CODE_ERROR)
+		else if(rc == ResultCode.RC_RAND_CODE_ERROR)
 		{
 			// retry with newly input verification code
 			context.remove(TdPNames._CONFIRM_PASSENGER_VOCDE);

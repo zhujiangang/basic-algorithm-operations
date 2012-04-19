@@ -1,5 +1,6 @@
 package com.bao.lc.site.s3.ai;
 
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -11,6 +12,7 @@ import org.apache.commons.collections.MapUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.bao.lc.ResMgr;
 import com.bao.lc.site.s3.TdUtils;
 import com.bao.lc.site.s3.bean.ComparableFilter;
 import com.bao.lc.site.s3.bean.PassengerInfo;
@@ -55,6 +57,12 @@ public class TrainTicketSelector
 
 					log.info("The ticket has been filtered by filter: " + cond.getCategory()
 						+ ", ticket=" + ticket);
+					
+					String message = MessageFormat.format(
+						ResMgr.getString("td.msg.ticket.filtered"),
+						TdUtils.getFilterCatName(cond.getCategory()), ticket.toString());
+					TdParams.getUI(context).info(message);
+					
 					break;
 				}
 			}

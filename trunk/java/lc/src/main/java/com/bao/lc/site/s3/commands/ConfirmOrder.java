@@ -1,5 +1,6 @@
 package com.bao.lc.site.s3.commands;
 
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -22,6 +23,7 @@ import org.htmlparser.util.NodeList;
 import org.htmlparser.util.ParserException;
 
 import com.bao.lc.AppConfig;
+import com.bao.lc.ResMgr;
 import com.bao.lc.bean.IDValuePair;
 import com.bao.lc.bean.ResultCode;
 import com.bao.lc.client.utils.HttpClientUtils;
@@ -73,14 +75,14 @@ public class ConfirmOrder extends BasicHttpCommand
 	{
 		if(isSuccess(context, content, charset))
 		{
-			TdParams.getUI(context).info("Book tickets result: Success");
+			TdParams.getUI(context).info(ResMgr.getString("td.msg.ticket.book.ok"));
 			return ResultCode.RC_OK;
 		}
 		
 		
 		IDValuePair rc = parseFailReason(context, content, charset);
 		
-		TdParams.getUI(context).info("Book tickets result: " + rc);
+		log.info("Book tickets result: " + rc);
 		
 		return rc;
 	}
@@ -220,6 +222,7 @@ public class ConfirmOrder extends BasicHttpCommand
 		if(nodeList.size() < 1)
 		{
 			log.info("Can't find the 'message' script.");
+			TdParams.getUI(context).error("Can't find the 'message' script.");
 			return ResultCode.RC_TD_CONFIRM_PASSENGER_UNKOWN_ERROR;
 		}
 		ScriptTag js = (ScriptTag) nodeList.elementAt(0);
@@ -240,7 +243,7 @@ public class ConfirmOrder extends BasicHttpCommand
 		{
 			if(message.contains(AppConfig.getInstance().getPropInternal("td.order.nok.rand_code_error")))
 			{
-				rc = ResultCode.RC_TD_CONFIRM_PASSENGER_RAND_CODE_ERROR;
+				rc = ResultCode.RC_RAND_CODE_ERROR;
 				if(!isConfirmPassengerFormExist)
 				{
 					log.info("Rand Code error, but the Confirm Passenger Form doesn't exist");
@@ -265,6 +268,9 @@ public class ConfirmOrder extends BasicHttpCommand
 				rc = ResultCode.RC_TD_CONFIRM_PASSENGER_OTHER_ERROR;
 			}
 		}
+		
+		String infoMsg = MessageFormat.format(ResMgr.getString("td.msg.ticket.book.failed"), message);
+		TdParams.getUI(context).error(infoMsg + ", rc = " + rc);
 
 		return rc;
 	}

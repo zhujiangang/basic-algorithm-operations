@@ -45,12 +45,10 @@ public class GetLoginPage extends BasicHttpCommand
 	@Override
 	protected IDValuePair postExecute(Context context) throws Exception
 	{		
-		parse(context);
-		
-		return ResultCode.RC_OK;
+		return parse(context);
 	}
 
-	private void parse(Context context) throws Exception
+	private IDValuePair parse(Context context) throws Exception
 	{
 		// 1. parse response
 		HttpResponse rsp = HttpCommandParams.getResponse(context);
@@ -69,5 +67,7 @@ public class GetLoginPage extends BasicHttpCommand
 		// Do execute GetVerificationCode
 		Command childCommand = new ParseLoginPage();
 		childCommand.execute(context);
+		
+		return HttpCommandParams.getResultCode(context);
 	}
 }

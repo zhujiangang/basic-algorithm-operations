@@ -21,6 +21,7 @@ import org.htmlparser.tags.InputTag;
 import org.htmlparser.util.NodeList;
 import org.htmlparser.util.ParserException;
 
+import com.bao.lc.ResMgr;
 import com.bao.lc.bean.IDValuePair;
 import com.bao.lc.bean.ResultCode;
 import com.bao.lc.client.ParamListBuilder;
@@ -83,8 +84,8 @@ public class ParseSubmitOrderPage extends AbstractCommand
 		}
 		if(randCode == null)
 		{
-			log.error("The rand code is null.");
-			return ResultCode.RC_RAND_CODE_ERROR;
+			TdParams.getUI(context).info(ResMgr.getString("td.msg.vcode.input.null"));
+			return ResultCode.RC_INPUT_NULL_VCODE;
 		}
 		context.put(TdPNames._CONFIRM_PASSENGER_VOCDE, randCode);
 

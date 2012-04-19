@@ -5,12 +5,14 @@ import java.awt.Dimension;
 import java.awt.Insets;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 
@@ -20,14 +22,17 @@ import com.bao.lc.ResMgr;
 public class MainFrame extends JFrame
 {
 	private JMenuBar menuBar = null;
+	private MainPanel mainPanel = null;
 
 	public MainFrame()
 	{
 		super(ResMgr.getString("td.main.window.title"));
-		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+		setDefaultCloseOperation(EXIT_ON_CLOSE);
 		// set the layout
 		setLayout(new BorderLayout());
-		getContentPane().add(new MainPanel(), BorderLayout.CENTER);
+		
+		mainPanel = new MainPanel();
+		getContentPane().add(mainPanel, BorderLayout.CENTER);
 		initMenuBar();
 	}
 
@@ -66,17 +71,59 @@ public class MainFrame extends JFrame
 
 		// ***** create File menu
 		JMenu fileMenu = menuBar.add(new JMenu(ResMgr.getString("td.menu.file")));
-		createMenuItem(fileMenu, ResMgr.getString("td.menu.file.add_passenger"), null);
-		createMenuItem(fileMenu, ResMgr.getString("td.menu.file.start_login"), null);
-		createMenuItem(fileMenu, ResMgr.getString("td.menu.file.start_book"), null);
+		createMenuItem(fileMenu, ResMgr.getString("td.menu.file.add_passenger"), new ActionListener()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				mainPanel.addPassenger();
+			}
+		});
+		createMenuItem(fileMenu, ResMgr.getString("td.menu.file.start_login"), new ActionListener()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				
+			}
+		});
+		createMenuItem(fileMenu, ResMgr.getString("td.menu.file.start_book"), new ActionListener()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				
+			}
+		});
+		
+		createMenuItem(fileMenu, ResMgr.getString("td.menu.file.save_param"), new ActionListener()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				boolean result = mainPanel.saveParameter();
+				String message = ResMgr.getString("td.save.parameter")
+					+ (result ? ResMgr.getString("td.success") : ResMgr.getString("td.failed"));
+				JOptionPane.showMessageDialog(getParent(), message,
+					ResMgr.getString("td.save.parameter.result.title"), JOptionPane.PLAIN_MESSAGE);
+			}
+		});
 
 		// ***** create Tools menu
 		JMenu toolsMenu = menuBar.add(new JMenu(ResMgr.getString("td.menu.tools")));
-		createMenuItem(toolsMenu, ResMgr.getString("td.menu.tools.options"), null);
+		createMenuItem(toolsMenu, ResMgr.getString("td.menu.tools.options"), new ActionListener()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				
+			}
+		});
 
 		// ***** create Help menu
 		JMenu helpMenu = menuBar.add(new JMenu(ResMgr.getString("td.menu.help")));
-		createMenuItem(helpMenu, ResMgr.getString("td.menu.help.about"), null);
+		createMenuItem(helpMenu, ResMgr.getString("td.menu.help.about"), new ActionListener()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				
+			}
+		});
 
 		setJMenuBar(menuBar);
 	}

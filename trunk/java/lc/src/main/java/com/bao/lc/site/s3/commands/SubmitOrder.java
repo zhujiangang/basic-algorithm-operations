@@ -25,6 +25,7 @@ import com.bao.lc.common.URI2NameBuilder;
 import com.bao.lc.httpcommand.BasicHttpCommand;
 import com.bao.lc.httpcommand.params.HttpCommandPNames;
 import com.bao.lc.httpcommand.params.HttpCommandParams;
+import com.bao.lc.site.s3.TdUtils;
 import com.bao.lc.site.s3.bean.TrainTicketInfo;
 import com.bao.lc.site.s3.params.TdPNames;
 import com.bao.lc.site.s3.params.TdParams;
@@ -209,7 +210,19 @@ public class SubmitOrder extends BasicHttpCommand
 		if(finalReq == null || finalReq.getURI() == null)
 		{
 			log.error("Can't find redirect req or uri when submit order.");
-			return new BasicIDValuePair(ResultCode.RC_CANT_FIND_REDIRECTS, "submit order");
+			
+			IDValuePair rc = null;
+			String jsErrorMsg = TdUtils.getJsErrorMsg(submitOrderPage, charset);
+			if(jsErrorMsg != null)
+			{
+				TdParams.getUI(context).error(jsErrorMsg);
+				rc = new BasicIDValuePair(ResultCode.RC_CANT_FIND_REDIRECTS, jsErrorMsg);
+			}
+			else
+			{
+				rc = new BasicIDValuePair(ResultCode.RC_CANT_FIND_REDIRECTS, "submit order");
+			}
+			return rc;
 		}
 		URI redirectURI = finalReq.getURI();
 		String expectedURI = MapUtils.getString(context, TdPNames.PARAM_CONFIRM_PASSENGER_INIT_URL);
