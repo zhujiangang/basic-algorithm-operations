@@ -1,5 +1,6 @@
 package com.bao.lc.util;
 
+import java.awt.Component;
 import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
@@ -188,6 +189,11 @@ public class MiscUtils
 	}
 
 	public static String getValidationCode(String filePath)
+	{		
+		return getValidationCode(filePath, "Please input validation code:", null);
+	}
+	
+	public static String getValidationCode(String filePath, String prompt, Component parentComponent)
 	{
 		File file = new File(filePath);
 		String fileURL = null;
@@ -203,9 +209,9 @@ public class MiscUtils
 		}
 		String message = String.format(
 			"<html><img src=\"%s\" width=\33\" height=\55\"><br><center>%s</center><br></html>",
-			fileURL, "Please input validation code:");
+			fileURL, prompt);
 
-		String result = JOptionPane.showInputDialog(null, message);
+		String result = JOptionPane.showInputDialog(parentComponent, message);
 		return result;
 	}
 

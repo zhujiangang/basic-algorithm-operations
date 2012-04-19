@@ -1,5 +1,7 @@
 package com.bao.lc.site;
 
+import java.awt.Component;
+
 import org.apache.commons.chain.Command;
 import org.apache.commons.chain.Context;
 import org.apache.commons.chain.impl.ContextBase;
@@ -12,58 +14,108 @@ import org.apache.http.client.methods.HttpUriRequest;
 import com.bao.lc.bean.IDValuePair;
 import com.bao.lc.bean.ResultCode;
 import com.bao.lc.client.utils.HttpClientUtils;
+import com.bao.lc.common.Builder;
 import com.bao.lc.httpcommand.BasicHttpCommand;
 import com.bao.lc.httpcommand.params.HttpCommandPNames;
 import com.bao.lc.httpcommand.params.HttpCommandParams;
 import com.bao.lc.util.AppUtils;
 import com.bao.lc.util.MiscUtils;
 
-public class GetRandCode
+public class RandCodeBuilder implements Builder<String>
 {
-	private static Log log = LogFactory.getLog(GetRandCode.class);
-	
-	private static final String RAND_CODE_RESULT = "lc.rand.code.result___";
+	private static Log log = LogFactory.getLog(RandCodeBuilder.class);
 
+	private static final String RAND_CODE_RESULT = "lc.rand.code.result";
+
+	// Required
 	private Context origContext = null;
 	private HttpUriRequest req = null;
-	private String referer = null;
 
-	public GetRandCode(Context context, HttpUriRequest req)
+	// Optional
+	private String referer = null;
+	private String prompt = null;
+	private Component parentComponent;
+
+	public RandCodeBuilder()
 	{
-		this(context, req, null);
+		reset();
 	}
-	public GetRandCode(Context context, HttpUriRequest req, String referer)
+
+	private void reset()
+	{
+		origContext = null;
+		req = null;
+		referer = null;
+		prompt = null;
+		parentComponent = null;
+	}
+
+	public RandCodeBuilder context(Context context)
 	{
 		this.origContext = context;
-		this.req = req;
+		return this;
+	}
+
+	public RandCodeBuilder request(HttpUriRequest request)
+	{
+		this.req = request;
+		return this;
+	}
+
+	public RandCodeBuilder referer(String referer)
+	{
 		this.referer = referer;
-	}
-	
-	public void setRequest(HttpUriRequest req)
-	{
-		this.req = req;
-	}
-	public void setReferer(String referer)
-	{
-		this.referer = referer;
+		return this;
 	}
 
-	public String get()
+	public RandCodeBuilder prompt(String str)
 	{
-		if(this.req == null)
+		this.prompt = str;
+		return this;
+	}
+
+	public RandCodeBuilder parent(Component parentComponent)
+	{
+		this.parentComponent = parentComponent;
+		return this;
+	}
+
+	@Override
+	public String build()
+	{
+		String vCode = null;
+		try
 		{
-			throw new IllegalArgumentException("request can't be null");
-		}
-		
-		Context context = new ContextBase();
-		context.putAll(this.origContext);
+			//Check parameters
+			if(this.req == null)
+			{
+				throw new IllegalArgumentException("'request' can't be null");
+			}
 
-		context.put(HttpCommandPNames.TARGET_REQUEST, this.req);
-		if(referer != null)
+			// Prepare context
+			Context context = new ContextBase();
+			context.putAll(this.origContext);
+			context.put(HttpCommandPNames.TARGET_REQUEST, this.req);
+			if(referer != null)
+			{
+				context.put(HttpCommandPNames.TARGET_REFERER, this.referer);
+			}
+
+			// Execute
+			vCode = executeCommand(context);
+
+			// Remove the copied items to let GC happy
+			context.clear();
+		}
+		finally
 		{
-			context.put(HttpCommandPNames.TARGET_REFERER, this.referer);
+			reset();
 		}
+		return vCode;
+	}
 
+	private String executeCommand(Context context)
+	{
 		// Do execute GetVerificationCode
 		Command childCommand = new GetVerificationCode();
 		try
@@ -78,14 +130,10 @@ public class GetRandCode
 
 		// Get the result
 		String vCode = MapUtils.getString(context, RAND_CODE_RESULT);
-		
-		//Remove next hop
-		context.clear();
-
 		return vCode;
 	}
 
-	private static class GetVerificationCode extends BasicHttpCommand
+	private class GetVerificationCode extends BasicHttpCommand
 	{
 		@Override
 		protected IDValuePair postExecute(Context context) throws Exception
@@ -97,7 +145,7 @@ public class GetRandCode
 			HttpClientUtils.saveToFile(rsp.getEntity(), fileName);
 
 			// show validation code
-			String validationCode = MiscUtils.getValidationCode(fileName);
+			String validationCode = MiscUtils.getValidationCode(fileName, prompt, parentComponent);
 			context.put(RAND_CODE_RESULT, validationCode);
 
 			// Remove next hop

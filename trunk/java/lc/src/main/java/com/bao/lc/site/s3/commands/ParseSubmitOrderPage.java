@@ -29,9 +29,10 @@ import com.bao.lc.client.RequestBuilder;
 import com.bao.lc.httpcommand.AbstractCommand;
 import com.bao.lc.httpcommand.params.HttpCommandPNames;
 import com.bao.lc.httpcommand.params.HttpCommandParams;
-import com.bao.lc.site.GetRandCode;
+import com.bao.lc.site.RandCodeBuilder;
 import com.bao.lc.site.s3.bean.PassengerInfo;
 import com.bao.lc.site.s3.bean.TrainTicketInfo;
+import com.bao.lc.site.s3.gui.GUIUtils;
 import com.bao.lc.site.s3.params.TdPNames;
 import com.bao.lc.site.s3.params.TdParams;
 
@@ -161,10 +162,11 @@ public class ParseSubmitOrderPage extends AbstractCommand
 		RequestBuilder rb = new RequestBuilder();
 		URI baseURI = HttpCommandParams.getTargetRequestURI(context);
 		rb.baseURI(baseURI).reference(location).encoding(charset);
-
-		GetRandCode getRandCode = new GetRandCode(context, rb.create(), baseURI.toString());
-
-		return getRandCode.get();
+		
+		RandCodeBuilder rcb = new RandCodeBuilder();
+		rcb.context(context).request(rb.create()).referer(baseURI.toString());
+		rcb.prompt(ResMgr.getString("td.rand.code.input")).parent(GUIUtils.getMainFrame());
+		return rcb.build();
 	}
 
 	private void getNonPassengerParams(Context context, FormTag form, String randCode,

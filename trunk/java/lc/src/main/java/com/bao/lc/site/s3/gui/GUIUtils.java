@@ -5,11 +5,14 @@ import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.Window;
 
+import javax.swing.JFrame;
 import javax.swing.JTextField;
 
 
 public class GUIUtils
 {
+	private static JFrame mainFrame = null;
+	
 	private GUIUtils()
 	{
 	}
@@ -39,5 +42,15 @@ public class GUIUtils
 			return "";
 		}
 		return text.trim();
+	}
+	
+	public static JFrame getMainFrame()
+	{
+		return mainFrame;
+	}
+	
+	public static void setMainFrame(JFrame frame)
+	{
+		mainFrame = frame;
 	}
 }
