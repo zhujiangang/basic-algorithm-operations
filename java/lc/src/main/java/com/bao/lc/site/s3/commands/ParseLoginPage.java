@@ -31,7 +31,8 @@ import com.bao.lc.client.RequestBuilder;
 import com.bao.lc.httpcommand.AbstractCommand;
 import com.bao.lc.httpcommand.params.HttpCommandPNames;
 import com.bao.lc.httpcommand.params.HttpCommandParams;
-import com.bao.lc.site.GetRandCode;
+import com.bao.lc.site.RandCodeBuilder;
+import com.bao.lc.site.s3.gui.GUIUtils;
 import com.bao.lc.site.s3.params.TdPNames;
 import com.bao.lc.site.s3.params.TdParams;
 import com.bao.lc.util.MiscUtils;
@@ -211,9 +212,10 @@ public class ParseLoginPage extends AbstractCommand
 		HttpUriRequest nextRequest = rb.create();
 
 		// Do execute GetVerificationCode
-		GetRandCode randCode = new GetRandCode(context, nextRequest, baseURI.toString());
-		// Get the result
-		String vCode = randCode.get();
+		RandCodeBuilder rcb = new RandCodeBuilder();
+		rcb.context(context).request(nextRequest).referer(baseURI.toString());
+		rcb.prompt(ResMgr.getString("td.rand.code.input")).parent(GUIUtils.getMainFrame());
+		String vCode = rcb.build();
 		
 		context.put(TdPNames._LOGIN_VOCDE, vCode);
 

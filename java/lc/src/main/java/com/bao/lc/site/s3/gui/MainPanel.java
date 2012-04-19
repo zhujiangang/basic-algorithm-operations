@@ -18,6 +18,8 @@ import com.bao.lc.util.AppUtils;
 @SuppressWarnings("serial")
 public class MainPanel extends JPanel
 {
+	private JMenuBar menuBar = null;
+
 	private JToolBar toolBar = null;
 	private JButton addPassenger = null;
 	private JButton startLogin = null;
@@ -41,11 +43,85 @@ public class MainPanel extends JPanel
 
 	private void initGUI()
 	{
+		initMenuBar();
 		initToolBar();
 		initMessageWindow();
 		initMainPanel();
 	}
 
+	private void initMenuBar()
+	{
+		menuBar = new JMenuBar();
+
+		// ***** create File menu
+		JMenu fileMenu = menuBar.add(new JMenu(ResMgr.getString("td.menu.file")));
+		createMenuItem(fileMenu, ResMgr.getString("td.menu.file.add_passenger"), new ActionListener()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				addPassenger();
+			}
+		});
+		createMenuItem(fileMenu, ResMgr.getString("td.menu.file.start_login"), new ActionListener()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				
+			}
+		});
+		createMenuItem(fileMenu, ResMgr.getString("td.menu.file.start_book"), new ActionListener()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				bookActionPerformed();
+			}
+		});
+		
+		createMenuItem(fileMenu, ResMgr.getString("td.menu.file.save_param"), new ActionListener()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				boolean result = saveParameter();
+				String message = ResMgr.getString("td.save.parameter")
+					+ (result ? ResMgr.getString("td.success") : ResMgr.getString("td.failed"));
+				JOptionPane.showMessageDialog(GUIUtils.getMainFrame(), message,
+					ResMgr.getString("td.save.parameter.result.title"), JOptionPane.INFORMATION_MESSAGE);
+			}
+		});
+
+		// ***** create Tools menu
+		JMenu toolsMenu = menuBar.add(new JMenu(ResMgr.getString("td.menu.tools")));
+		createMenuItem(toolsMenu, ResMgr.getString("td.menu.tools.options"), new ActionListener()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				
+			}
+		});
+
+		// ***** create Help menu
+		JMenu helpMenu = menuBar.add(new JMenu(ResMgr.getString("td.menu.help")));
+		createMenuItem(helpMenu, ResMgr.getString("td.menu.help.about"), new ActionListener()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				
+			}
+		});
+	}
+	
+	private JMenuItem createMenuItem(JMenu menu, String text, ActionListener action)
+	{
+		JMenuItem mi = menu.add(new JMenuItem(text));
+		mi.addActionListener(action);
+		if(action == null)
+		{
+			mi.setEnabled(false);
+		}
+
+		return mi;
+	}
+	
 	private void initToolBar()
 	{
 		toolBar = new JToolBar();
@@ -105,20 +181,7 @@ public class MainPanel extends JPanel
 		{
 			public void actionPerformed(ActionEvent e)
 			{
-				if(bookThread != null && bookThread.isAlive())
-				{
-					return;
-				}
-				InputParameter param = inputInfoPanel.getInputParam();
-				if(!inputInfoPanel.checkParameter(param, true))
-				{
-					return;
-				}
-				
-				saveParameter();
-				
-				bookThread = new BookThread(param);
-				bookThread.start();
+				bookActionPerformed();
 			}
 		});
 		
@@ -146,6 +209,29 @@ public class MainPanel extends JPanel
 	{
 		InputParameter parameter = inputInfoPanel.getInputParam();
 		return inputInfoPanel.saveData(parameter, AppUtils.getUserFilePath("auto_input.xml"));
+	}
+	
+	private void bookActionPerformed()
+	{
+		if(bookThread != null && bookThread.isAlive())
+		{
+			return;
+		}
+		InputParameter param = inputInfoPanel.getInputParam();
+		if(!inputInfoPanel.checkParameter(param, true))
+		{
+			return;
+		}
+		
+		saveParameter();
+		
+		bookThread = new BookThread(param);
+		bookThread.start();
+	}
+	
+	public JMenuBar getMainMenuBar()
+	{
+		return this.menuBar;
 	}
 	
 	private class BookThread extends Thread

@@ -305,9 +305,10 @@ public class InputInfoPanel extends JPanel
 				SelectPanel contentPanel = new SelectPanel(seatClassList, selectedIndexList);
 
 				DialogValueBuilder<List> builder = new DialogValueBuilder<List>();
-				builder.content(contentPanel).valueBean(contentPanel);
+				builder.content(contentPanel).valueBean(contentPanel).owner(GUIUtils.getMainFrame());
 				builder.title(ResMgr.getString("td.seat_select"));
 				builder.preferredSize(new Dimension(640, 320));
+				builder.parent(GUIUtils.getMainFrame());
 
 				List selectedItems = builder.build();
 				if(selectedItems != null)
@@ -329,9 +330,10 @@ public class InputInfoPanel extends JPanel
 				SelectPanel contentPanel = new SelectPanel(trainClassList, selectedIndexList);
 
 				DialogValueBuilder<List> builder = new DialogValueBuilder<List>();
-				builder.content(contentPanel).valueBean(contentPanel);
+				builder.content(contentPanel).valueBean(contentPanel).owner(GUIUtils.getMainFrame());
 				builder.title(ResMgr.getString("td.train_class_select"));
 				builder.preferredSize(new Dimension(640, 320));
+				builder.parent(GUIUtils.getMainFrame());
 
 				List selectedItems = builder.build();
 				if(selectedItems != null)
@@ -391,9 +393,10 @@ public class InputInfoPanel extends JPanel
 
 		DialogValueBuilder<PassengerInfo> pb = new DialogValueBuilder<PassengerInfo>();
 
-		pb.content(pane).valueBean(pane);
+		pb.content(pane).valueBean(pane).owner(GUIUtils.getMainFrame());
 		pb.title(ResMgr.getString("td.main.toolbar.add_passenger"));
 		pb.preferredSize(new Dimension(480, 320));
+		pb.parent(GUIUtils.getMainFrame());
 
 		PassengerInfo passenger = pb.build();
 		if(passenger == null)
