@@ -1,5 +1,7 @@
 package com.bao.lc.site.s3.commands;
 
+import java.text.MessageFormat;
+
 import org.apache.commons.chain.Context;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.logging.Log;
@@ -8,6 +10,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpUriRequest;
 
 import com.bao.lc.AppConfig;
+import com.bao.lc.ResMgr;
 import com.bao.lc.bean.IDValuePair;
 import com.bao.lc.bean.ResultCode;
 import com.bao.lc.client.RequestBuilder;
@@ -16,6 +19,7 @@ import com.bao.lc.httpcommand.BasicHttpCommand;
 import com.bao.lc.httpcommand.params.HttpCommandPNames;
 import com.bao.lc.httpcommand.params.HttpCommandParams;
 import com.bao.lc.site.s3.params.TdPNames;
+import com.bao.lc.site.s3.params.TdParams;
 import com.bao.lc.util.AppUtils;
 
 public class DoLogout extends BasicHttpCommand
@@ -62,6 +66,8 @@ public class DoLogout extends BasicHttpCommand
 		
 		String user = MapUtils.getString(context, TdPNames.PARAM_USER);
 		log.info("User [" + user + "] logout successfully.");
+		
+		TdParams.getUI(context).info(MessageFormat.format(ResMgr.getString("td.msg.user.logout.ok"), user));
 		
 		return ResultCode.RC_OK;
 	}

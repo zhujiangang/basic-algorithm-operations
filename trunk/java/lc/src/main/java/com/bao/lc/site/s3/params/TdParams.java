@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.chain.Context;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.logging.Log;
 
 import com.bao.lc.site.s3.bean.PassengerInfo;
@@ -20,6 +21,11 @@ public class TdParams
 			throw new IllegalStateException("User interface log can't be null.");
 		}
 		return uiLog;
+	}
+	
+	public static boolean isLogin(Context context)
+	{
+		return MapUtils.getBooleanValue(context, TdPNames._LOGIN_STATE, false);
 	}
 	
 	public static List<TrainTicketInfo> getTicketInfoList(Context context)
