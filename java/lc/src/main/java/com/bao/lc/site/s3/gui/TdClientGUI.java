@@ -12,10 +12,13 @@ import com.bao.lc.ResMgr;
 public class TdClientGUI
 {
 	private JFrame mainFrame = null;
+	private MainPanel mainPanel = null;
 	
 	public TdClientGUI()
 	{
 		initGUI();
+		
+		Runtime.getRuntime().addShutdownHook(mainPanel.getAppShutdownHook());
 	}
 	
 	private void initGUI()
@@ -24,7 +27,8 @@ public class TdClientGUI
 		mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		
 		mainFrame.setLayout(new BorderLayout());
-		MainPanel mainPanel = new MainPanel();
+		
+		mainPanel = new MainPanel();
 		mainFrame.getContentPane().add(mainPanel, BorderLayout.CENTER);
 		mainFrame.setJMenuBar(mainPanel.getMainMenuBar());
 	}
@@ -47,6 +51,8 @@ public class TdClientGUI
 			}
 		});
 	}
+	
+	
 	
 	public static void main(String[] args)
 	{

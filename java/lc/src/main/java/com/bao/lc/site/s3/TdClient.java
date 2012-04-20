@@ -30,6 +30,8 @@ import com.bao.lc.AppConfig;
 import com.bao.lc.ResMgr;
 import com.bao.lc.client.BrowserClient;
 import com.bao.lc.httpcommand.CommandCompleteListener;
+import com.bao.lc.httpcommand.HttpCommandDirector;
+import com.bao.lc.httpcommand.impl.DefaultHttpCommandDirector;
 import com.bao.lc.httpcommand.impl.DirectorBuilder;
 import com.bao.lc.httpcommand.impl.LogCompleteListener;
 import com.bao.lc.httpcommand.params.HttpCommandPNames;
@@ -50,6 +52,7 @@ public class TdClient
 	private static Log log = LogFactory.getLog(TdClient.class);
 
 	private BrowserClient session = null;
+	private Context clientContext = null;
 
 	/**
 	 * Default constructor
@@ -58,8 +61,10 @@ public class TdClient
 	{
 		if(!initHttpClient())
 		{
-			System.exit(-1);
+			throw new IllegalArgumentException("Failed to init http client");
 		}
+		
+		clientContext = new ContextBase();
 	}
 
 	/**
@@ -130,6 +135,14 @@ public class TdClient
 			session.getConnectionManager().shutdown();
 		}
 	}
+	
+	private void execute1(Command mainCommand, Context context) throws Exception
+	{
+		CommandCompleteListener listener = new LogCompleteListener(log);
+		
+		HttpCommandDirector director = new DefaultHttpCommandDirector();
+		director.execute(mainCommand, context, listener);
+	}
 		
 	private Context createContext(InputParameter parameter, Log uiLog)
 	{		
@@ -197,7 +210,7 @@ public class TdClient
 		return context;
 	}
 	
-	private Chain createChain1()
+	private Chain createBookTicketChain()
 	{
 		// 2. Init Command chain
 		Chain chain = new ChainBase();
@@ -211,7 +224,7 @@ public class TdClient
 	public void bookTicket(InputParameter parameter, Log uiLog)
 	{
 		Context context = createContext(parameter, uiLog);
-		Chain chain = createChain1();
+		Chain chain = createBookTicketChain();
 		
 		// 3. Execute
 		TdParams.getUI(context).info(ResMgr.getString("td.msg.start.book"));
@@ -229,6 +242,107 @@ public class TdClient
 		// free context space
 		context.clear();
 		context = null;
+	}
+	
+	public void initContext(InputParameter parameter, Log uiLog)
+	{
+		if(isContextInitialed())
+		{
+			if(isLogin())
+			{
+				log.error("Assert Failure: make sure the user has logout");
+				logout();
+			}
+			clientContext.clear();
+		}
+		clientContext = createContext(parameter, uiLog);
+	}
+	
+	private boolean isContextInitialed()
+	{
+		if(clientContext != null)
+		{
+			Log uiLog = (Log)clientContext.get(TdPNames._USER_INTERFACE);
+			return uiLog != null;
+		}
+		return false;
+	}
+	
+	public boolean login()
+	{
+		Chain chain = new ChainBase();
+		chain.addCommand(new WelComePage());
+		chain.addCommand(new Login());
+		
+		// 3. Execute
+		TdParams.getUI(clientContext).info(ResMgr.getString("td.msg.start.login"));
+		
+		CommandCompleteListener listener = new LogCompleteListener(log);
+		DefaultHttpCommandDirector director = new DefaultHttpCommandDirector();
+		try
+		{
+			director.execute(chain, clientContext, listener);
+		}
+		catch(Exception e)
+		{
+			TdParams.getUI(clientContext).error(e.getMessage(), e);
+		}
+		
+		boolean isLogin = TdParams.isLogin(clientContext);
+		
+		return isLogin;
+	}
+	
+	public boolean isLogin()
+	{
+		return TdParams.isLogin(clientContext);
+	}
+	
+	public void bookTicket()
+	{
+		Chain chain = new ChainBase();
+		chain.addCommand(new GetTicketBookInitPage());
+		chain.addCommand(new BookTicket());
+		
+		// 3. Execute
+		TdParams.getUI(clientContext).info(ResMgr.getString("td.msg.start.book"));
+		
+		CommandCompleteListener listener = new LogCompleteListener(log);
+		DefaultHttpCommandDirector director = new DefaultHttpCommandDirector();
+		try
+		{
+			director.execute(chain, clientContext, listener);
+		}
+		catch(Exception e)
+		{
+			TdParams.getUI(clientContext).error(e.getMessage(), e);
+		}
+	}
+	
+	public void logout()
+	{		
+		// 3. Execute
+		TdParams.getUI(clientContext).info(ResMgr.getString("td.msg.start.logout"));
+		
+		CommandCompleteListener listener = new LogCompleteListener(log);
+		DefaultHttpCommandDirector director = new DefaultHttpCommandDirector();
+		try
+		{
+			director.execute(new DoLogout(), clientContext, listener);
+		}
+		catch(Exception e)
+		{
+			TdParams.getUI(clientContext).error(e.getMessage(), e);
+		}
+	}
+	
+	public void shutdown()
+	{
+		// shutdown connections
+		session.getConnectionManager().shutdown();
+		
+		clientContext.clear();
+		clientContext = null;
 	}
 	
 	private static List<PassengerInfo> getPassengerList(int passengerCount)
