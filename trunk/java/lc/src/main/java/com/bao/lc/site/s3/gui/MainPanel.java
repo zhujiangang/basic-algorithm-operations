@@ -22,15 +22,23 @@ public class MainPanel extends JPanel
 	private static Log log = LogFactory.getLog(MainPanel.class);
 
 	private JMenuBar menuBar = null;
+	private JMenuItem addPassengerMenuItem = null;
+	private JMenuItem loginMenuItem = null;
+	private JMenuItem bookMenuItem = null;
+	private JMenuItem logoutMenuItem = null;
+	private JMenuItem oneClickBookMenuItem = null;
+	private JMenuItem stopMenuItem = null;
+	private JMenuItem loginByIEMenuItem = null;
+	private JMenuItem saveParamMenuItem = null;
 
 	private JToolBar toolBar = null;
-	private JButton addPassenger = null;
-	private JButton startLogin = null;
-	private JButton startBook = null;
-	private JButton logout = null;
-	private JButton oneClikBook = null;
-	private JButton stop = null;
-	private JButton loginByIE = null;
+	private JButton addPassengerBtn = null;
+	private JButton loginBtn = null;
+	private JButton bookBtn = null;
+	private JButton logoutBtn = null;
+	private JButton oneClickBookBtn = null;
+	private JButton stopBtn = null;
+	private JButton loginByIEBtn = null;
 
 	private InputInfoPanel inputInfoPanel = new InputInfoPanel();
 
@@ -42,23 +50,30 @@ public class MainPanel extends JPanel
 
 	private TdClient client = null;
 
-	private static final int NOT_RUNNING = 0;
-	private static final int RUNNING = 1;
-
-	private WorkerState workerState = new WorkerState(NOT_RUNNING);
+	private StateChange workerState = new StateChange(StateChange.THREAD_NOT_RUNNING);
 
 	public MainPanel()
 	{
 		initGUI();
 		addListeners();
 
-		setButtonStatus();
+		setButtonStatus(false);
 
 		uiLog = new TextAreaLog(msgWindow);
 		client = new TdClient();
 
 		WatchDog dog = new WatchDog();
 		dog.start();
+	}
+
+	public JMenuBar getMainMenuBar()
+	{
+		return this.menuBar;
+	}
+
+	public Thread getAppShutdownHook()
+	{
+		return new SysCleanUpThread();
 	}
 
 	private void initGUI()
@@ -75,71 +90,33 @@ public class MainPanel extends JPanel
 
 		// ***** create File menu
 		JMenu fileMenu = menuBar.add(new JMenu(ResMgr.getString("td.menu.file")));
-		createMenuItem(fileMenu, ResMgr.getString("td.menu.file.add_passenger"),
-			new ActionListener()
-			{
-				public void actionPerformed(ActionEvent e)
-				{
-					addPassenger();
-				}
-			});
-		createMenuItem(fileMenu, ResMgr.getString("td.menu.file.start_login"), new ActionListener()
-		{
-			public void actionPerformed(ActionEvent e)
-			{
-
-			}
-		});
-		createMenuItem(fileMenu, ResMgr.getString("td.menu.file.start_book"), new ActionListener()
-		{
-			public void actionPerformed(ActionEvent e)
-			{
-			}
-		});
-
-		createMenuItem(fileMenu, ResMgr.getString("td.menu.file.save_param"), new ActionListener()
-		{
-			public void actionPerformed(ActionEvent e)
-			{
-				boolean result = saveParameter();
-				String message = ResMgr.getString("td.save.parameter")
-					+ (result ? ResMgr.getString("td.success") : ResMgr.getString("td.failed"));
-				JOptionPane.showMessageDialog(GUIUtils.getMainFrame(), message,
-					ResMgr.getString("td.save.parameter.result.title"),
-					JOptionPane.INFORMATION_MESSAGE);
-			}
-		});
+		addPassengerMenuItem = createMenuItem(fileMenu,
+			ResMgr.getString("td.menu.file.add_passenger"));
+		oneClickBookMenuItem = createMenuItem(fileMenu,
+			ResMgr.getString("td.main.toolbar.one_click_book"));
+		stopMenuItem = createMenuItem(fileMenu, ResMgr.getString("td.main.toolbar.stop"));
+		fileMenu.addSeparator();
+		loginMenuItem = createMenuItem(fileMenu, ResMgr.getString("td.menu.file.start_login"));
+		bookMenuItem = createMenuItem(fileMenu, ResMgr.getString("td.menu.file.start_book"));
+		logoutMenuItem = createMenuItem(fileMenu, ResMgr.getString("td.logout"));
+		fileMenu.addSeparator();
+		loginByIEMenuItem = createMenuItem(fileMenu,
+			ResMgr.getString("td.main.toolbar.login_by_ie"));
+		fileMenu.addSeparator();
+		saveParamMenuItem = createMenuItem(fileMenu, ResMgr.getString("td.menu.file.save_param"));
 
 		// ***** create Tools menu
 		JMenu toolsMenu = menuBar.add(new JMenu(ResMgr.getString("td.menu.tools")));
-		createMenuItem(toolsMenu, ResMgr.getString("td.menu.tools.options"), new ActionListener()
-		{
-			public void actionPerformed(ActionEvent e)
-			{
-
-			}
-		});
+		createMenuItem(toolsMenu, ResMgr.getString("td.menu.tools.options"));
 
 		// ***** create Help menu
 		JMenu helpMenu = menuBar.add(new JMenu(ResMgr.getString("td.menu.help")));
-		createMenuItem(helpMenu, ResMgr.getString("td.menu.help.about"), new ActionListener()
-		{
-			public void actionPerformed(ActionEvent e)
-			{
-
-			}
-		});
+		createMenuItem(helpMenu, ResMgr.getString("td.menu.help.about"));
 	}
 
-	private JMenuItem createMenuItem(JMenu menu, String text, ActionListener action)
+	private JMenuItem createMenuItem(JMenu menu, String text)
 	{
 		JMenuItem mi = menu.add(new JMenuItem(text));
-		mi.addActionListener(action);
-		if(action == null)
-		{
-			mi.setEnabled(false);
-		}
-
 		return mi;
 	}
 
@@ -147,26 +124,27 @@ public class MainPanel extends JPanel
 	{
 		toolBar = new JToolBar();
 
-		addPassenger = new JButton(ResMgr.getString("td.main.toolbar.add_passenger"));
-		toolBar.add(addPassenger);
+		addPassengerBtn = new JButton(ResMgr.getString("td.main.toolbar.add_passenger"));
+		loginBtn = new JButton(ResMgr.getString("td.main.toolbar.start_login"));
+		bookBtn = new JButton(ResMgr.getString("td.main.toolbar.start_book"));
+		logoutBtn = new JButton(ResMgr.getString("td.logout"));
+		oneClickBookBtn = new JButton(ResMgr.getString("td.main.toolbar.one_click_book"));
+		stopBtn = new JButton(ResMgr.getString("td.main.toolbar.stop"));
+		loginByIEBtn = new JButton(ResMgr.getString("td.main.toolbar.login_by_ie"));
 
-		startLogin = new JButton(ResMgr.getString("td.main.toolbar.start_login"));
-		toolBar.add(startLogin);
+		toolBar.add(addPassengerBtn);
+		toolBar.add(oneClickBookBtn);
+		toolBar.add(stopBtn);
 
-		startBook = new JButton(ResMgr.getString("td.main.toolbar.start_book"));
-		toolBar.add(startBook);
+		toolBar.addSeparator();
 
-		logout = new JButton(ResMgr.getString("td.logout"));
-		toolBar.add(logout);
+		toolBar.add(loginBtn);
+		toolBar.add(bookBtn);
+		toolBar.add(logoutBtn);
 
-		oneClikBook = new JButton(ResMgr.getString("td.main.toolbar.one_click_book"));
-		toolBar.add(oneClikBook);
+		toolBar.addSeparator();
 
-		stop = new JButton(ResMgr.getString("td.main.toolbar.stop"));
-		toolBar.add(stop);
-		
-		loginByIE = new JButton(ResMgr.getString("td.main.toolbar.login_by_ie"));
-		toolBar.add(loginByIE);
+		toolBar.add(loginByIEBtn);
 	}
 
 	private void initMessageWindow()
@@ -188,7 +166,7 @@ public class MainPanel extends JPanel
 		mainSplitPane.setOneTouchExpandable(true);
 
 		Dimension minSize = inputInfoPanel.getMinimumSize();
-		minSize.height += 100;
+		minSize.height += 80;
 		inputInfoPanel.setMinimumSize(minSize);
 		mainSplitPane.setDividerLocation(minSize.height + mainSplitPane.getDividerSize());
 
@@ -200,221 +178,254 @@ public class MainPanel extends JPanel
 
 	private void addListeners()
 	{
-		addPassenger.addActionListener(new ActionListener()
-		{
-			public void actionPerformed(ActionEvent e)
-			{
-				addPassenger();
-			}
-		});
-		startLogin.addActionListener(new ActionListener()
-		{
-			public void actionPerformed(ActionEvent e)
-			{
-				if(worker != null && worker.isAlive())
-				{
-					log.error("Assert failure: worker is alive.");
-					return;
-				}
+		addPassengerBtn.addActionListener(new AddPassengerListener());
+		loginBtn.addActionListener(new LoginListener());
+		bookBtn.addActionListener(new BookListener());
+		logoutBtn.addActionListener(new LogoutListener());
+		oneClickBookBtn.addActionListener(new OneClickBookListener());
+		stopBtn.addActionListener(new StopListener());
+		loginByIEBtn.addActionListener(new LoginByIEListener());
 
-				if(client.isLogin())
-				{
-					JOptionPane.showMessageDialog(GUIUtils.getMainFrame(),
-						ResMgr.getString("td.msg.user.already_login"));
-					return;
-				}
-
-				InputParameter param = inputInfoPanel.getInputParam();
-				if(!inputInfoPanel.checkParameter(param, true))
-				{
-					return;
-				}
-
-				saveParameter();
-
-				client.initContext(param, uiLog);
-
-				Runnable target = getDecoratedRunner(new Runnable()
-				{
-					public void run()
-					{
-						client.login();
-					}
-				});
-				worker = new WorkerThread(target);
-				worker.start();
-			}
-		});
-		startBook.addActionListener(new ActionListener()
-		{
-			public void actionPerformed(ActionEvent e)
-			{
-				if(worker != null && worker.isAlive())
-				{
-					return;
-				}
-
-				if(!client.isLogin())
-				{
-					JOptionPane.showMessageDialog(GUIUtils.getMainFrame(),
-						ResMgr.getString("td.msg.user.not_login"));
-					return;
-				}
-
-				Runnable target = getDecoratedRunner(new Runnable()
-				{
-					public void run()
-					{
-						client.bookTicket();
-					}
-				});
-
-				worker = new WorkerThread(target);
-				worker.start();
-			}
-		});
-
-		logout.addActionListener(new ActionListener()
-		{
-			public void actionPerformed(ActionEvent e)
-			{
-				if(worker != null && worker.isAlive())
-				{
-					return;
-				}
-
-				if(!client.isLogin())
-				{
-					JOptionPane.showMessageDialog(GUIUtils.getMainFrame(),
-						ResMgr.getString("td.msg.user.not_login"));
-					return;
-				}
-
-				Runnable target = getDecoratedRunner(new Runnable()
-				{
-					public void run()
-					{
-						client.logout();
-					}
-				});
-				worker = new WorkerThread(target);
-				worker.start();
-			}
-		});
-		oneClikBook.addActionListener(new ActionListener()
-		{
-			public void actionPerformed(ActionEvent e)
-			{
-				if(worker != null && worker.isAlive())
-				{
-					log.error("Assert failure: worker is alive.");
-					return;
-				}
-
-				if(client.isLogin())
-				{
-					JOptionPane.showMessageDialog(GUIUtils.getMainFrame(),
-						ResMgr.getString("td.msg.user.already_login"));
-					return;
-				}
-				
-				InputParameter param = inputInfoPanel.getInputParam();
-				if(!inputInfoPanel.checkParameter(param, true))
-				{
-					return;
-				}
-
-				saveParameter();
-
-				client.initContext(param, uiLog);
-
-				Runnable target = getDecoratedRunner(new Runnable()
-				{
-					public void run()
-					{
-						client.login();
-						client.bookTicket();
-					}
-				});
-				worker = new WorkerThread(target);
-				worker.start();
-			}
-		});
-
-		stop.addActionListener(new ActionListener()
-		{
-			public void actionPerformed(ActionEvent e)
-			{
-				if(worker != null && !worker.isAlive())
-				{
-					return;
-				}
-
-				worker.end();
-				worker = null;
-			}
-		});
+		addPassengerMenuItem.addActionListener(new AddPassengerListener());
+		loginMenuItem.addActionListener(new LoginListener());
+		bookMenuItem.addActionListener(new BookListener());
+		logoutMenuItem.addActionListener(new LogoutListener());
+		oneClickBookMenuItem.addActionListener(new OneClickBookListener());
+		stopMenuItem.addActionListener(new StopListener());
+		loginByIEMenuItem.addActionListener(new LoginByIEListener());
+		saveParamMenuItem.addActionListener(new SaveParameterListener());
 	}
 
-	public void addPassenger()
+	private void addPassenger()
 	{
 		this.inputInfoPanel.addPassenger();
 	}
 
-	public boolean saveParameter()
+	private boolean saveParameter()
 	{
 		InputParameter parameter = inputInfoPanel.getInputParam();
 		return inputInfoPanel.saveData(parameter, AppUtils.getUserFilePath("auto_input.xml"));
 	}
 
-	private void setButtonStatus()
+	private void setButtonStatus(boolean isRunning)
 	{
-		boolean isRunning = (worker != null && worker.isAlive());
+		// boolean isRunning = (worker != null && worker.isAlive());
 		boolean isLogin = (client != null && client.isLogin());
-		
-		addPassenger.setEnabled(!isRunning);
-		startLogin.setEnabled(!isRunning && !isLogin);
-		startBook.setEnabled(!isRunning && isLogin);
-		logout.setEnabled(!isRunning && isLogin);
-		oneClikBook.setEnabled(!isRunning && !isLogin);
 
-		stop.setEnabled(isRunning);
-		
-		loginByIE.setEnabled(!isRunning && isLogin);
+		addPassengerBtn.setEnabled(!isRunning);
+		addPassengerMenuItem.setEnabled(!isRunning);
+
+		loginBtn.setEnabled(!isRunning && !isLogin);
+		loginMenuItem.setEnabled(!isRunning && !isLogin);
+
+		bookBtn.setEnabled(!isRunning && isLogin);
+		bookMenuItem.setEnabled(!isRunning && isLogin);
+
+		logoutBtn.setEnabled(!isRunning && isLogin);
+		logoutMenuItem.setEnabled(!isRunning && isLogin);
+
+		oneClickBookBtn.setEnabled(!isRunning && !isLogin);
+		oneClickBookMenuItem.setEnabled(!isRunning && !isLogin);
+
+		stopBtn.setEnabled(isRunning);
+		stopMenuItem.setEnabled(isRunning);
+
+		loginByIEBtn.setEnabled(!isRunning && isLogin);
+		loginByIEMenuItem.setEnabled(!isRunning && isLogin);
+
+		saveParamMenuItem.setEnabled(!isRunning);
 	}
 
-	public JMenuBar getMainMenuBar()
+	private class AddPassengerListener implements ActionListener
 	{
-		return this.menuBar;
-	}
-
-	public Thread getAppShutdownHook()
-	{
-		return new SysCleanUpThread();
-	}
-
-	private Runnable getDecoratedRunner(final Runnable target)
-	{
-		Runnable runner = new Runnable()
+		public void actionPerformed(ActionEvent e)
 		{
-			public void run()
+			if(worker != null && worker.isAlive())
 			{
-				synchronized(workerState)
-				{
-					workerState.setState(RUNNING);
-					workerState.notifyAll();
-				}
-
-				target.run();
-
-				synchronized(workerState)
-				{
-					workerState.setState(NOT_RUNNING);
-					workerState.notifyAll();
-				}
+				log.error("Assert failure: worker is alive.");
+				return;
 			}
-		};
-		return runner;
+			addPassenger();
+		}
+	}
+
+	private class LoginListener implements ActionListener
+	{
+		public void actionPerformed(ActionEvent e)
+		{
+			if(worker != null && worker.isAlive())
+			{
+				log.error("Assert failure: worker is alive.");
+				return;
+			}
+
+			if(client.isLogin())
+			{
+				JOptionPane.showMessageDialog(GUIUtils.getMainFrame(),
+					ResMgr.getString("td.msg.user.already_login"));
+				return;
+			}
+
+			InputParameter param = inputInfoPanel.getInputParam();
+			if(!inputInfoPanel.checkParameter(param, true))
+			{
+				return;
+			}
+			saveParameter();
+
+			client.initContext(param, uiLog);
+
+			Runnable target = new Runnable()
+			{
+				public void run()
+				{
+					client.login();
+				}
+			};
+			worker = new WorkerThread(target);
+			worker.start();
+		}
+	}
+
+	private class BookListener implements ActionListener
+	{
+		public void actionPerformed(ActionEvent e)
+		{
+			if(worker != null && worker.isAlive())
+			{
+				log.error("Assert failure: worker is alive.");
+				return;
+			}
+
+			if(!client.isLogin())
+			{
+				JOptionPane.showMessageDialog(GUIUtils.getMainFrame(),
+					ResMgr.getString("td.msg.user.not_login"));
+				return;
+			}
+
+			Runnable target = new Runnable()
+			{
+				public void run()
+				{
+					client.bookTicket();
+				}
+			};
+
+			worker = new WorkerThread(target);
+			worker.start();
+		}
+	}
+
+	private class LogoutListener implements ActionListener
+	{
+		public void actionPerformed(ActionEvent e)
+		{
+			if(worker != null && worker.isAlive())
+			{
+				log.error("Assert failure: worker is alive.");
+				return;
+			}
+
+			if(!client.isLogin())
+			{
+				JOptionPane.showMessageDialog(GUIUtils.getMainFrame(),
+					ResMgr.getString("td.msg.user.not_login"));
+				return;
+			}
+
+			Runnable target = new Runnable()
+			{
+				public void run()
+				{
+					client.logout();
+				}
+			};
+			worker = new WorkerThread(target);
+			worker.start();
+		}
+	}
+
+	private class OneClickBookListener implements ActionListener
+	{
+		public void actionPerformed(ActionEvent e)
+		{
+			if(worker != null && worker.isAlive())
+			{
+				log.error("Assert failure: worker is alive.");
+				return;
+			}
+
+			if(client.isLogin())
+			{
+				JOptionPane.showMessageDialog(GUIUtils.getMainFrame(),
+					ResMgr.getString("td.msg.user.already_login"));
+				return;
+			}
+
+			InputParameter param = inputInfoPanel.getInputParam();
+			if(!inputInfoPanel.checkParameter(param, true))
+			{
+				return;
+			}
+
+			saveParameter();
+
+			client.initContext(param, uiLog);
+
+			Runnable target = new Runnable()
+			{
+				public void run()
+				{
+					client.login();
+					client.bookTicket();
+				}
+			};
+			worker = new WorkerThread(target);
+			worker.start();
+		}
+	}
+
+	private class StopListener implements ActionListener
+	{
+		public void actionPerformed(ActionEvent e)
+		{
+			synchronized(workerState)
+			{
+				workerState.setState(StateChange.THREAD_NOT_RUNNING);
+				workerState.notifyAll();
+			}
+			if(worker != null && !worker.isAlive())
+			{
+				log.error("Assert failure: worker is not alive.");
+				return;
+			}
+
+			worker.end();
+			worker = null;
+		}
+	}
+
+	private class SaveParameterListener implements ActionListener
+	{
+		public void actionPerformed(ActionEvent e)
+		{
+			boolean result = saveParameter();
+			String message = ResMgr.getString("td.save.parameter")
+				+ (result ? ResMgr.getString("td.success") : ResMgr.getString("td.failed"));
+			JOptionPane
+				.showMessageDialog(GUIUtils.getMainFrame(), message,
+					ResMgr.getString("td.save.parameter.result.title"),
+					JOptionPane.INFORMATION_MESSAGE);
+		}
+	}
+
+	private class LoginByIEListener implements ActionListener
+	{
+		public void actionPerformed(ActionEvent e)
+		{
+			// TODO
+		}
 	}
 
 	private class WorkerThread extends Thread
@@ -422,6 +433,23 @@ public class MainPanel extends JPanel
 		public WorkerThread(Runnable target)
 		{
 			super(target, "BookWorker");
+		}
+
+		public void run()
+		{
+			synchronized(workerState)
+			{
+				workerState.setState(StateChange.THREAD_RUNNING);
+				workerState.notifyAll();
+			}
+
+			super.run();
+
+			synchronized(workerState)
+			{
+				workerState.setState(StateChange.THREAD_NOT_RUNNING);
+				workerState.notifyAll();
+			}
 		}
 
 		public void end()
@@ -434,7 +462,7 @@ public class MainPanel extends JPanel
 
 			synchronized(workerState)
 			{
-				workerState.setState(NOT_RUNNING);
+				workerState.setState(StateChange.THREAD_NOT_RUNNING);
 				workerState.notifyAll();
 			}
 
@@ -453,7 +481,7 @@ public class MainPanel extends JPanel
 		{
 			if(client != null)
 			{
-//				client.logout();
+				// client.logout();
 				client.shutdown();
 			}
 		}
@@ -475,11 +503,12 @@ public class MainPanel extends JPanel
 				{
 					while(workerState.changed())
 					{
+						final boolean running = (workerState.getNewState() == StateChange.THREAD_RUNNING);
 						SwingUtilities.invokeLater((new Runnable()
 						{
 							public void run()
 							{
-								setButtonStatus();
+								setButtonStatus(running);
 							}
 						}));
 						workerState.reset();
@@ -498,37 +527,45 @@ public class MainPanel extends JPanel
 			}
 		}
 	}
+}
 
-	private static class WorkerState
+class StateChange
+{
+	public static final int THREAD_NOT_RUNNING = 0;
+	public static final int THREAD_RUNNING = 1;
+
+	private int oldState = THREAD_NOT_RUNNING;
+	private int newState = THREAD_NOT_RUNNING;
+
+	public StateChange()
 	{
-		private int oldState = NOT_RUNNING;
-		private int newState = NOT_RUNNING;
+		this(THREAD_NOT_RUNNING);
+	}
 
-		public WorkerState(int initState)
-		{
-			this.oldState = initState;
-			this.newState = initState;
-		}
+	public StateChange(int initState)
+	{
+		this.oldState = initState;
+		this.newState = initState;
+	}
 
-		public int getNewState()
-		{
-			return newState;
-		}
+	public int getNewState()
+	{
+		return newState;
+	}
 
-		public boolean changed()
-		{
-			return oldState != newState;
-		}
+	public boolean changed()
+	{
+		return oldState != newState;
+	}
 
-		public void reset()
-		{
-			this.oldState = this.newState;
-		}
+	public void reset()
+	{
+		this.oldState = this.newState;
+	}
 
-		public void setState(int state)
-		{
-			this.oldState = newState;
-			this.newState = state;
-		}
+	public void setState(int state)
+	{
+		this.oldState = newState;
+		this.newState = state;
 	}
 }
