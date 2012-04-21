@@ -18,6 +18,8 @@ import org.htmlparser.filters.HasAttributeFilter;
 import org.htmlparser.filters.NodeClassFilter;
 import org.htmlparser.tags.FormTag;
 import org.htmlparser.tags.InputTag;
+import org.htmlparser.tags.OptionTag;
+import org.htmlparser.tags.SelectTag;
 import org.htmlparser.util.NodeList;
 import org.htmlparser.util.ParserException;
 
@@ -30,6 +32,8 @@ import com.bao.lc.httpcommand.AbstractCommand;
 import com.bao.lc.httpcommand.params.HttpCommandPNames;
 import com.bao.lc.httpcommand.params.HttpCommandParams;
 import com.bao.lc.site.RandCodeBuilder;
+import com.bao.lc.site.s3.TdUtils;
+import com.bao.lc.site.s3.bean.GenericBean;
 import com.bao.lc.site.s3.bean.PassengerInfo;
 import com.bao.lc.site.s3.bean.TrainTicketInfo;
 import com.bao.lc.site.s3.gui.GUIUtils;
@@ -92,7 +96,7 @@ public class ParseSubmitOrderPage extends AbstractCommand
 
 		ParamListBuilder pb = new ParamListBuilder();
 		getNonPassengerParams(context, form, randCode, pb);
-		getPassengerParams(context, pb);
+		getPassengerParams(submitOrderPage, charset, context, pb);
 		List<NameValuePair> paramList = pb.build();
 
 		if(log.isDebugEnabled())
@@ -226,11 +230,12 @@ public class ParseSubmitOrderPage extends AbstractCommand
 		}
 	}
 
-	private IDValuePair getPassengerParams(Context context, ParamListBuilder pb)
+	private IDValuePair getPassengerParams(String submitOrderPage, String charset, Context context, ParamListBuilder pb)
 	{
 		List<PassengerInfo> passengers = TdParams.getPassengerList(context);
 		for(int i = 0, size = passengers.size(); i < size; i++)
 		{
+			int index = i + 1;
 			PassengerInfo passenger = passengers.get(i);
 
 			// checkbox i
@@ -243,12 +248,18 @@ public class ParseSubmitOrderPage extends AbstractCommand
 			pb.append("oldPassengers", passenger.getOldPassenger());
 
 			// passenger filed info
-			pb.append("passenger_" + i + "_seat", passenger.seatClass);
-			pb.append("passenger_" + i + "_ticket", passenger.tiketType);
-			pb.append("passenger_" + i + "_name", passenger.name);
-			pb.append("passenger_" + i + "_cardtype", passenger.cardType);
-			pb.append("passenger_" + i + "_cardno", passenger.cardNo);
-			pb.append("passenger_" + i + "_mobileno", passenger.phone);
+			String seatClassValue = passenger.seatClass;
+			String similarSeatClass = getPassengerSeat(submitOrderPage, charset, seatClassValue, index);
+			if(similarSeatClass != null)
+			{
+				seatClassValue = similarSeatClass;
+			}
+			pb.append("passenger_" + index + "_seat", seatClassValue);
+			pb.append("passenger_" + index + "_ticket", passenger.tiketType);
+			pb.append("passenger_" + index + "_name", passenger.name);
+			pb.append("passenger_" + index + "_cardtype", passenger.cardType);
+			pb.append("passenger_" + index + "_cardno", passenger.cardNo);
+			pb.append("passenger_" + index + "_mobileno", passenger.phone);
 			// save?
 			pb.append("checkbox9", passenger.isSave);
 		}
@@ -260,5 +271,84 @@ public class ParseSubmitOrderPage extends AbstractCommand
 		}
 
 		return ResultCode.RC_OK;
+	}
+	
+	private SelectTag getSeatSelect(String submitOrderPage, String charset, int index) throws ParserException
+	{
+		Parser myParser = Parser.createParser(submitOrderPage, charset);
+
+		NodeFilter[] a = new NodeFilter[0];
+
+		List<NodeFilter> filters = new ArrayList<NodeFilter>();
+		filters.add(new NodeClassFilter(SelectTag.class));
+		filters.add(new HasAttributeFilter("id", "passenger_" + index + "_seat"));
+
+		NodeFilter filter = new AndFilter(filters.toArray(a));
+		NodeList nodeList = myParser.parse(filter);
+
+		if(nodeList.size() <= 0)
+		{
+			log.error("Can't find the target form. id=passenger_" + index + "_seat");
+			return null;
+		}
+
+		SelectTag seatSelect = (SelectTag) nodeList.elementAt(0);
+		return seatSelect;
+	}
+	
+	private String getPassengerSeat(String submitOrderPage, String charset, String rawSeat, int index)
+	{
+		SelectTag seatSelect = null;
+		try
+		{
+			seatSelect = getSeatSelect(submitOrderPage, charset, index);
+		}
+		catch(ParserException e)
+		{
+			log.error("Can't find the seat select tag.", e);
+			return null;
+		}
+		
+		if(seatSelect == null)
+		{
+			return null;
+		}
+		
+		String seatName = GenericBean.getField(rawSeat, 2, 1, TdUtils.getSeatClasses());
+		OptionTag[] options = seatSelect.getOptionTags();
+		for(OptionTag option : options)
+		{
+			//Hit in our config file.
+			if(seatName.equals(option.getOptionText()))
+			{
+				return null;
+			}
+		}
+		
+		StringBuilder sb = new StringBuilder();
+		sb.append("seatName=").append(seatName);
+		sb.append(",rawSeat=").append(rawSeat).append(". ");
+		for(OptionTag option : options)
+		{
+			sb.append("option=").append(option.getOptionText()).append(",").append(option.getValue()).append(" ");
+		}
+		log.info("Can't find the exactly matched seat. Try to find a similar one. " + sb.toString());
+		// Errrrr..., no hit, try to find the best matched
+		for(OptionTag option : options)
+		{
+			String optionText = option.getOptionText();
+			if(seatName.length() >= 2 && optionText.length() >= 2)
+			{
+				// Found the similar seat
+				if(seatName.regionMatches(0, optionText, 0, 2))
+				{
+					log.info("Find the most similar requried seat. seatName=" + seatName
+						+ ", optionText=" + optionText + ", optionValue=" + option.getValue());
+					return option.getValue();
+				}
+			}
+		}
+		log.error("Can't find the similar matched seat. ");
+		return null;
 	}
 }

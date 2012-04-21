@@ -52,8 +52,6 @@ public class TdClientGUI
 		});
 	}
 	
-	
-	
 	public static void main(String[] args)
 	{
 		UIManager.put("swing.boldMetal", Boolean.FALSE);

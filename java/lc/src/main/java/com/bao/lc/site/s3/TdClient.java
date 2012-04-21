@@ -12,7 +12,6 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 
 import org.apache.commons.chain.Chain;
-import org.apache.commons.chain.Command;
 import org.apache.commons.chain.Context;
 import org.apache.commons.chain.impl.ChainBase;
 import org.apache.commons.chain.impl.ContextBase;
@@ -30,10 +29,7 @@ import com.bao.lc.AppConfig;
 import com.bao.lc.ResMgr;
 import com.bao.lc.client.BrowserClient;
 import com.bao.lc.httpcommand.CommandCompleteListener;
-import com.bao.lc.httpcommand.HttpCommandDirector;
 import com.bao.lc.httpcommand.impl.DefaultHttpCommandDirector;
-import com.bao.lc.httpcommand.impl.DirectorBuilder;
-import com.bao.lc.httpcommand.impl.LogCompleteListener;
 import com.bao.lc.httpcommand.params.HttpCommandPNames;
 import com.bao.lc.site.s3.bean.PassengerInfo;
 import com.bao.lc.site.s3.bean.TicketFilterCondition;
@@ -115,34 +111,6 @@ public class TdClient
 
 		return true;
 	}
-	
-	private void execute(Command mainCommand, Context context) throws Exception
-	{
-		// 3. Fire!
-		CommandCompleteListener listener = new LogCompleteListener(log);
-
-		DirectorBuilder builder = new DirectorBuilder();
-		builder.mainCommand(mainCommand).mainContext(context).mainListener(listener);
-		builder.finalCommand(new DoLogout()).finalContext(context).finalListener(listener);
-
-		try
-		{
-			builder.execute();
-		}
-		finally
-		{
-			// shutdown connections
-			session.getConnectionManager().shutdown();
-		}
-	}
-	
-	private void execute1(Command mainCommand, Context context) throws Exception
-	{
-		CommandCompleteListener listener = new LogCompleteListener(log);
-		
-		HttpCommandDirector director = new DefaultHttpCommandDirector();
-		director.execute(mainCommand, context, listener);
-	}
 		
 	private Context createContext(InputParameter parameter, Log uiLog)
 	{		
@@ -210,38 +178,19 @@ public class TdClient
 		return context;
 	}
 	
-	private Chain createBookTicketChain()
+	private boolean isContextInitialed()
 	{
-		// 2. Init Command chain
-		Chain chain = new ChainBase();
-		chain.addCommand(new WelComePage());
-		chain.addCommand(new Login());
-		chain.addCommand(new GetTicketBookInitPage());
-		chain.addCommand(new BookTicket());
-		return chain;
+		if(clientContext != null)
+		{
+			Log uiLog = (Log)clientContext.get(TdPNames._USER_INTERFACE);
+			return uiLog != null;
+		}
+		return false;
 	}
 	
-	public void bookTicket(InputParameter parameter, Log uiLog)
+	public boolean isLogin()
 	{
-		Context context = createContext(parameter, uiLog);
-		Chain chain = createBookTicketChain();
-		
-		// 3. Execute
-		TdParams.getUI(context).info(ResMgr.getString("td.msg.start.book"));
-		try
-		{
-			execute(chain, context);
-		}
-		catch(Exception e)
-		{
-			TdParams.getUI(context).error(e.getMessage(), e);
-		}
-		
-		TdParams.getUI(context).info(ResMgr.getString("td.msg.finish.book"));
-		
-		// free context space
-		context.clear();
-		context = null;
+		return TdParams.isLogin(clientContext);
 	}
 	
 	public void initContext(InputParameter parameter, Log uiLog)
@@ -258,16 +207,6 @@ public class TdClient
 		clientContext = createContext(parameter, uiLog);
 	}
 	
-	private boolean isContextInitialed()
-	{
-		if(clientContext != null)
-		{
-			Log uiLog = (Log)clientContext.get(TdPNames._USER_INTERFACE);
-			return uiLog != null;
-		}
-		return false;
-	}
-	
 	public boolean login()
 	{
 		Chain chain = new ChainBase();
@@ -277,7 +216,7 @@ public class TdClient
 		// 3. Execute
 		TdParams.getUI(clientContext).info(ResMgr.getString("td.msg.start.login"));
 		
-		CommandCompleteListener listener = new LogCompleteListener(log);
+		CommandCompleteListener listener = new TdWorkCompleteListener(TdParams.getUI(clientContext), log);
 		DefaultHttpCommandDirector director = new DefaultHttpCommandDirector();
 		try
 		{
@@ -292,12 +231,7 @@ public class TdClient
 		
 		return isLogin;
 	}
-	
-	public boolean isLogin()
-	{
-		return TdParams.isLogin(clientContext);
-	}
-	
+
 	public void bookTicket()
 	{
 		Chain chain = new ChainBase();
@@ -307,7 +241,7 @@ public class TdClient
 		// 3. Execute
 		TdParams.getUI(clientContext).info(ResMgr.getString("td.msg.start.book"));
 		
-		CommandCompleteListener listener = new LogCompleteListener(log);
+		CommandCompleteListener listener = new TdWorkCompleteListener(TdParams.getUI(clientContext), log);
 		DefaultHttpCommandDirector director = new DefaultHttpCommandDirector();
 		try
 		{
@@ -324,7 +258,7 @@ public class TdClient
 		// 3. Execute
 		TdParams.getUI(clientContext).info(ResMgr.getString("td.msg.start.logout"));
 		
-		CommandCompleteListener listener = new LogCompleteListener(log);
+		CommandCompleteListener listener = new TdWorkCompleteListener(TdParams.getUI(clientContext), log);
 		DefaultHttpCommandDirector director = new DefaultHttpCommandDirector();
 		try
 		{
@@ -422,7 +356,21 @@ public class TdClient
 		param.filterCond = getFilterCond();
 		
 		TdClient client = new TdClient();
-		client.bookTicket(param, null);
+		
+		try
+		{
+			client.initContext(param, null);
+			client.login();
+			client.bookTicket();
+		}
+		finally
+		{
+			if(client.isLogin())
+			{
+				client.logout();
+			}
+			client.shutdown();
+		}
 		
 		System.exit(0);
 	}

@@ -117,6 +117,7 @@ public class TrainTicketSelector
 				int seatClass = seatClassList.get(i);
 				passengerSeatClass = TdUtils.getSeatClassValue(seatClass);
 				log.info("Select seatClass: index=" + seatClass + ", value=" + passengerSeatClass);
+				break;
 			}
 		}
 		
