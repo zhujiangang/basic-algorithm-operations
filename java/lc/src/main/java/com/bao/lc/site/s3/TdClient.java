@@ -234,6 +234,9 @@ public class TdClient
 
 	public void bookTicket()
 	{
+		// retry with newly input verification code
+		clientContext.remove(TdPNames._CONFIRM_PASSENGER_VOCDE);
+		
 		Chain chain = new ChainBase();
 		chain.addCommand(new GetTicketBookInitPage());
 		chain.addCommand(new BookTicket());
