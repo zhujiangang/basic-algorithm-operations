@@ -490,6 +490,7 @@ public class MainPanel extends JPanel
 				currSetting.proxyServer = "127.0.0.1:" + TdOptions.proxyPort;
 				currSetting.proxyBypass = TdOptions.proxyByPass;
 				currSetting.setProxy(true);
+				currSetting.setDirect(true);
 				IEProxy.setProxySettings(currSetting);
 				
 				EnableIEPanel enableIEPanel = new EnableIEPanel();

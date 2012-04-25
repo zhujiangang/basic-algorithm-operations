@@ -272,6 +272,8 @@ public class IEProxy
 		ProxySettings replacements = new ProxySettings();
 		replacements.proxyServer = "https=localhost:3212;socks=localhost:1081";
 		replacements.setProxy(true);
+		replacements.setDirect(true);
+		
 		setProxySettings(replacements);
 		System.out.println(getProxySettings() + "\n\n");
 		setProxySettings(current);
