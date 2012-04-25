@@ -66,9 +66,11 @@
 		<log4j-version>1.2.16</log4j-version>
 		<slf4j-version>1.6.0</slf4j-version>
 		<junit-version>4.8.2</junit-version>
+    <jna-version>3.2.7</jna-version>
 		<htmlparser-version>2.1</htmlparser-version>
 		<httpclient-version>4.1.2</httpclient-version> 
 		<json-lib-version>2.3</json-lib-version>
+    <grinder-http-version>3.8</grinder-http-version>
   </properties>
 
   <dependencies>
@@ -119,6 +121,12 @@
       <version>${junit-version}</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>net.java.dev.jna</groupId>
+      <artifactId>jna</artifactId>
+      <version>${jna-version}</version>
+      <scope>compile</scope>
+    </dependency>
     
     <!-- htmlparser -->
 		<dependency>
@@ -139,5 +147,12 @@
       <classifier>jdk15</classifier>
       <scope>compile</scope>
     </dependency>
+    
+    <!-- grinder -->
+    <dependency>
+      <groupId>net.sf.grinder</groupId>
+      <artifactId>grinder-http</artifactId>
+      <version>${grinder-http-version}</version>
+    </dependency>    
   </dependencies>
 </project>

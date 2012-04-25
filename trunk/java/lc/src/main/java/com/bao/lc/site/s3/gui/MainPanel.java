@@ -12,6 +12,9 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.bao.lc.ResMgr;
+import com.bao.lc.proxy.HttpProxyServer;
+import com.bao.lc.proxy.IEProxy;
+import com.bao.lc.proxy.IEProxy.ProxySettings;
 import com.bao.lc.site.s3.TdClient;
 import com.bao.lc.site.s3.params.InputParameter;
 import com.bao.lc.util.AppUtils;
@@ -28,7 +31,6 @@ public class MainPanel extends JPanel
 	private JMenuItem logoutMenuItem = null;
 	private JMenuItem oneClickBookMenuItem = null;
 	private JMenuItem stopMenuItem = null;
-	private JMenuItem loginByIEMenuItem = null;
 	private JMenuItem saveParamMenuItem = null;
 
 	private JToolBar toolBar = null;
@@ -38,7 +40,7 @@ public class MainPanel extends JPanel
 	private JButton logoutBtn = null;
 	private JButton oneClickBookBtn = null;
 	private JButton stopBtn = null;
-	private JButton loginByIEBtn = null;
+	private JCheckBox enableIEBtn = null;
 
 	private InputInfoPanel inputInfoPanel = new InputInfoPanel();
 
@@ -49,6 +51,8 @@ public class MainPanel extends JPanel
 	private WorkerThread worker = null;
 
 	private TdClient client = null;
+	private HttpProxyServer proxyServer = null;
+	private ProxySettings origProxySettings = null;
 
 	private StateChange workerState = new StateChange(StateChange.THREAD_NOT_RUNNING);
 
@@ -64,6 +68,8 @@ public class MainPanel extends JPanel
 
 		WatchDog dog = new WatchDog();
 		dog.start();
+		
+		startProxyServer();
 	}
 
 	public JMenuBar getMainMenuBar()
@@ -74,6 +80,27 @@ public class MainPanel extends JPanel
 	public Thread getAppShutdownHook()
 	{
 		return new SysCleanUpThread();
+	}
+	
+	public void resoreProxySetting()
+	{
+		if(this.origProxySettings != null)
+		{
+			IEProxy.setProxySettings(this.origProxySettings);
+			this.origProxySettings = null;
+		}
+	}
+	
+	private void startProxyServer()
+	{
+		if(!TdOptions.enableOpenIE)
+		{
+			log.debug("Didn't start proxy server because 'enableLoginByIE' is disabled");
+			return;
+		}
+		String parameter = "-localport " + String.valueOf(TdOptions.proxyPort);
+		proxyServer = new HttpProxyServer(parameter);
+		proxyServer.start();
 	}
 
 	private void initGUI()
@@ -99,9 +126,7 @@ public class MainPanel extends JPanel
 		loginMenuItem = createMenuItem(fileMenu, ResMgr.getString("td.menu.file.start_login"));
 		bookMenuItem = createMenuItem(fileMenu, ResMgr.getString("td.menu.file.start_book"));
 		logoutMenuItem = createMenuItem(fileMenu, ResMgr.getString("td.logout"));
-		fileMenu.addSeparator();
-		loginByIEMenuItem = createMenuItem(fileMenu,
-			ResMgr.getString("td.main.toolbar.login_by_ie"));
+
 		fileMenu.addSeparator();
 		saveParamMenuItem = createMenuItem(fileMenu, ResMgr.getString("td.menu.file.save_param"));
 
@@ -130,8 +155,8 @@ public class MainPanel extends JPanel
 		logoutBtn = new JButton(ResMgr.getString("td.logout"));
 		oneClickBookBtn = new JButton(ResMgr.getString("td.main.toolbar.one_click_book"));
 		stopBtn = new JButton(ResMgr.getString("td.main.toolbar.stop"));
-		loginByIEBtn = new JButton(ResMgr.getString("td.main.toolbar.login_by_ie"));
-
+		enableIEBtn = new JCheckBox(ResMgr.getString("td.main.toolbar.enable_ie"));
+		
 		toolBar.add(addPassengerBtn);
 		toolBar.add(oneClickBookBtn);
 		toolBar.add(stopBtn);
@@ -142,9 +167,11 @@ public class MainPanel extends JPanel
 		toolBar.add(bookBtn);
 		toolBar.add(logoutBtn);
 
-		toolBar.addSeparator();
-
-		toolBar.add(loginByIEBtn);
+		if(TdOptions.enableOpenIE)
+		{
+			toolBar.addSeparator();
+			toolBar.add(enableIEBtn);
+		}
 	}
 
 	private void initMessageWindow()
@@ -184,7 +211,6 @@ public class MainPanel extends JPanel
 		logoutBtn.addActionListener(new LogoutListener());
 		oneClickBookBtn.addActionListener(new OneClickBookListener());
 		stopBtn.addActionListener(new StopListener());
-		loginByIEBtn.addActionListener(new LoginByIEListener());
 
 		addPassengerMenuItem.addActionListener(new AddPassengerListener());
 		loginMenuItem.addActionListener(new LoginListener());
@@ -192,8 +218,12 @@ public class MainPanel extends JPanel
 		logoutMenuItem.addActionListener(new LogoutListener());
 		oneClickBookMenuItem.addActionListener(new OneClickBookListener());
 		stopMenuItem.addActionListener(new StopListener());
-		loginByIEMenuItem.addActionListener(new LoginByIEListener());
 		saveParamMenuItem.addActionListener(new SaveParameterListener());
+		
+		if(TdOptions.enableOpenIE)
+		{			
+			enableIEBtn.addActionListener(new EnableIEListener());
+		}
 	}
 
 	private void addPassenger()
@@ -229,11 +259,22 @@ public class MainPanel extends JPanel
 
 		stopBtn.setEnabled(isRunning);
 		stopMenuItem.setEnabled(isRunning);
-
-		loginByIEBtn.setEnabled(!isRunning && isLogin);
-		loginByIEMenuItem.setEnabled(!isRunning && isLogin);
+		
+		enableIEBtn.setEnabled(!isRunning && isLogin);
 
 		saveParamMenuItem.setEnabled(!isRunning);
+	}
+	
+	private void login()
+	{
+		if(client != null)
+		{
+			client.login();
+			
+			System.setProperty("RequestCookieFilter.host", TdOptions.tdHost);
+			System.setProperty("RequestCookieFilter.port", String.valueOf(TdOptions.tdPort));
+			System.setProperty("RequestCookieFilter.cookie", client.getCookie());
+		}
 	}
 
 	private class AddPassengerListener implements ActionListener
@@ -279,7 +320,7 @@ public class MainPanel extends JPanel
 			{
 				public void run()
 				{
-					client.login();
+					login();
 				}
 			};
 			worker = new WorkerThread(target);
@@ -308,6 +349,9 @@ public class MainPanel extends JPanel
 			{
 				public void run()
 				{
+					InputParameter parameter = inputInfoPanel.getInputParam();
+					client.updateParameter(parameter, false);
+					
 					client.bookTicket();
 				}
 			};
@@ -338,6 +382,9 @@ public class MainPanel extends JPanel
 			{
 				public void run()
 				{
+					resoreProxySetting();
+					enableIEBtn.setSelected(false);
+					
 					client.logout();
 				}
 			};
@@ -377,7 +424,7 @@ public class MainPanel extends JPanel
 			{
 				public void run()
 				{
-					client.login();
+					login();
 					client.bookTicket();
 				}
 			};
@@ -419,12 +466,57 @@ public class MainPanel extends JPanel
 					JOptionPane.INFORMATION_MESSAGE);
 		}
 	}
-
-	private class LoginByIEListener implements ActionListener
+	
+	private class EnableIEListener implements ActionListener
 	{
 		public void actionPerformed(ActionEvent e)
 		{
-			// TODO
+			//Enabled
+			if(enableIEBtn.isSelected())
+			{
+				if(origProxySettings != null)
+				{
+					JOptionPane.showMessageDialog(GUIUtils.getMainFrame(),
+						ResMgr.getString("td.msg.warning.already_enable_ie"),
+						ResMgr.getString("td.main.window.title"), JOptionPane.WARNING_MESSAGE);
+					return;
+				}
+				
+				//Save original proxy setting
+				origProxySettings = IEProxy.getProxySettings();
+				
+				//Set the new setting
+				ProxySettings currSetting = new ProxySettings();
+				currSetting.proxyServer = "127.0.0.1:" + TdOptions.proxyPort;
+				currSetting.proxyBypass = TdOptions.proxyByPass;
+				currSetting.setProxy(true);
+				IEProxy.setProxySettings(currSetting);
+				
+				EnableIEPanel enableIEPanel = new EnableIEPanel();
+				DialogValueBuilder<String> builder = new DialogValueBuilder<String>();
+				builder.content(enableIEPanel).valueBean(enableIEPanel).owner(GUIUtils.getMainFrame());
+				builder.title(ResMgr.getString("td.main.window.title"));
+				builder.preferredSize(new Dimension(360, 200));
+				builder.parent(GUIUtils.getMainFrame());
+				builder.build();
+			}
+			//Disabled
+			else
+			{
+				if(origProxySettings == null)
+				{
+					JOptionPane.showMessageDialog(GUIUtils.getMainFrame(),
+						ResMgr.getString("td.msg.warning.not_enable_ie"),
+						ResMgr.getString("td.main.window.title"), JOptionPane.WARNING_MESSAGE);
+					return;
+				}
+				
+				resoreProxySetting();
+				
+				JOptionPane.showMessageDialog(GUIUtils.getMainFrame(),
+					ResMgr.getString("td.msg.ie_login_disabled"),
+					ResMgr.getString("td.main.window.title"), JOptionPane.PLAIN_MESSAGE);
+			}
 		}
 	}
 

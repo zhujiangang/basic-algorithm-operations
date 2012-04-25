@@ -31,4 +31,3 @@ java -cp %LOCALCLASSPATH% %JAVA_PARAMETERS%
 
 :END
 CD /d "%CUR_DIR%"
-pause
