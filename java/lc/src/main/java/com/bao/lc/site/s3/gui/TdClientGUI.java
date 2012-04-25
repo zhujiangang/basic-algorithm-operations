@@ -2,6 +2,8 @@ package com.bao.lc.site.s3.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
@@ -31,6 +33,14 @@ public class TdClientGUI
 		mainPanel = new MainPanel();
 		mainFrame.getContentPane().add(mainPanel, BorderLayout.CENTER);
 		mainFrame.setJMenuBar(mainPanel.getMainMenuBar());
+		
+		mainFrame.addWindowListener(new WindowAdapter()
+		{
+			public void windowClosing(WindowEvent e) 
+			{
+				mainPanel.resoreProxySetting();
+			}
+		});
 	}
 	
 	public JFrame getMainFrame()

@@ -11,7 +11,7 @@
     <!-- bootstrap -->
     <fileSet>
       <includes>
-        <include>${basedir}/bootstrap.bat</include>
+        <include>${basedir}/*.bat</include>
       </includes>
       <outputDirectory>/</outputDirectory>
     </fileSet>
@@ -19,6 +19,9 @@
     <fileSet>
       <directory>${basedir}/conf</directory>
       <outputDirectory>/conf</outputDirectory>
+      <excludes>
+        <exclude>usr/*</exclude>
+      </excludes>
     </fileSet>
     <fileSet>
       <directory>${basedir}/src/main/resources</directory>

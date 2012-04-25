@@ -14,6 +14,7 @@ import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -22,6 +23,7 @@ import java.util.Vector;
 import javax.swing.DefaultCellEditor;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
@@ -38,6 +40,7 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
+import javax.swing.text.MaskFormatter;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
@@ -64,9 +67,9 @@ public class InputInfoPanel extends JPanel
 	private JTextField pwdTextField = new JPasswordField();
 
 	private JPanel ticketCondPanel = new JPanel();
-	private JTextField fromStation = new JTextField(80);
-	private JTextField toStation = new JTextField(80);
-	private JTextField ticketDate = new JTextField(80);
+	private JTextField fromStation = new JTextField();
+	private JTextField toStation = new JTextField();
+	private JTextField ticketDate = null;
 
 	private JTextField seatClass = new JTextField(80);
 	private JButton seatSelectBtn = new JButton(ResMgr.getString("td.seat_select"));
@@ -217,7 +220,7 @@ public class InputInfoPanel extends JPanel
 		// GridBagConstraints.EAST, GridBagConstraints.HORIZONTAL,
 		// DEFAULT_INSECT_LABEL, 0, 0));
 
-		// from/to/date
+		// from/to
 		JLabel fromStationLabel = new JLabel(ResMgr.getString("td.label.from_station"));
 		requiredPanel.add(fromStationLabel, new GridBagConstraints(0, 1, 1, 1, 0.0, 1.0,
 			GridBagConstraints.EAST, GridBagConstraints.NONE, DEFAULT_INSECT_LABEL, 0, 0));
@@ -230,12 +233,30 @@ public class InputInfoPanel extends JPanel
 		requiredPanel.add(toStation, new GridBagConstraints(3, 1, 1, 1, 1.0, 1.0,
 			GridBagConstraints.WEST, GridBagConstraints.HORIZONTAL, DEFAULT_INSECT_FIELD, 0, 0));
 
+		//Date
 		JLabel ticketDateLabel = new JLabel(ResMgr.getString("td.label.ticket_date"));
 		requiredPanel.add(ticketDateLabel, new GridBagConstraints(4, 1, 1, 1, 0.0, 1.0,
 			GridBagConstraints.EAST, GridBagConstraints.NONE, DEFAULT_INSECT_LABEL, 0, 0));
+		MaskFormatter mf = null;
+		try
+		{
+			mf = new MaskFormatter("####-##-##");
+		}
+		catch(ParseException e)
+		{
+			log.error("MaskFormatter init failed.", e);
+		}
+		if(mf != null)
+		{
+			ticketDate = new JFormattedTextField(mf);
+		}
+		else
+		{
+			ticketDate = new JTextField();
+		}
 		requiredPanel.add(ticketDate, new GridBagConstraints(5, 1, 1, 1, 1.0, 1.0,
 			GridBagConstraints.WEST, GridBagConstraints.HORIZONTAL, DEFAULT_INSECT_FIELD, 0, 0));
-
+		
 		// seat class
 		JLabel seatClassLabel = new JLabel(ResMgr.getString("td.label.seat_class"));
 		requiredPanel.add(seatClassLabel, new GridBagConstraints(0, 2, 1, 1, 0.0, 1.0,

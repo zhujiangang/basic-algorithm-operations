@@ -28,6 +28,7 @@ import org.apache.http.protocol.HttpContext;
 import com.bao.lc.AppConfig;
 import com.bao.lc.ResMgr;
 import com.bao.lc.client.BrowserClient;
+import com.bao.lc.client.utils.HttpClientUtils;
 import com.bao.lc.httpcommand.CommandCompleteListener;
 import com.bao.lc.httpcommand.impl.DefaultHttpCommandDirector;
 import com.bao.lc.httpcommand.params.HttpCommandPNames;
@@ -111,7 +112,23 @@ public class TdClient
 
 		return true;
 	}
-		
+	
+	private void updateParameter(Context context, InputParameter parameter, boolean includeUserInfo)
+	{
+		if(includeUserInfo)
+		{
+			context.put(TdPNames.PARAM_USER, parameter.user);
+			context.put(TdPNames.PARAM_PASSWORD, parameter.pwd);			
+		}
+		context.put(TdPNames.PARAM_FROM_STATION, parameter.fromStation);
+		context.put(TdPNames.PARAM_TO_STATION, parameter.toStation);
+		context.put(TdPNames.PARAM_TICKET_DATE, parameter.ticketDate);
+		context.put(TdPNames.PARAM_PASSENGER_COUNT, parameter.passengers.size());
+		context.put(TdPNames.PARAM_PASSENGER_LIST, parameter.passengers);
+		context.put(TdPNames.PARAM_FILTER_CONDITION, parameter.filterCond);
+		context.put(TdPNames.PARAM_TICKET_TIME_RANGE, parameter.ticketTimeRange);
+	}
+	
 	private Context createContext(InputParameter parameter, Log uiLog)
 	{		
 		HttpContext httpContext = new BasicHttpContext();
@@ -128,15 +145,7 @@ public class TdClient
 		}
 		context.put(TdPNames._USER_INTERFACE, uiLog);
 		
-		context.put(TdPNames.PARAM_USER, parameter.user);
-		context.put(TdPNames.PARAM_PASSWORD, parameter.pwd);
-		context.put(TdPNames.PARAM_FROM_STATION, parameter.fromStation);
-		context.put(TdPNames.PARAM_TO_STATION, parameter.toStation);
-		context.put(TdPNames.PARAM_TICKET_DATE, parameter.ticketDate);
-		context.put(TdPNames.PARAM_PASSENGER_COUNT, parameter.passengers.size());
-		context.put(TdPNames.PARAM_PASSENGER_LIST, parameter.passengers);
-		context.put(TdPNames.PARAM_FILTER_CONDITION, parameter.filterCond);
-		context.put(TdPNames.PARAM_TICKET_TIME_RANGE, parameter.ticketTimeRange);
+		updateParameter(context, parameter, true);
 		
 		// Internal parameters
 		//Welcome page
@@ -205,6 +214,15 @@ public class TdClient
 			clientContext.clear();
 		}
 		clientContext = createContext(parameter, uiLog);
+	}
+	
+	public void updateParameter(InputParameter parameter, boolean includeUserInfo)
+	{
+		if(!isContextInitialed())
+		{
+			throw new IllegalArgumentException("Context doesn't init yet");
+		}
+		updateParameter(clientContext, parameter, includeUserInfo);
 	}
 	
 	public boolean login()
@@ -280,6 +298,16 @@ public class TdClient
 		
 		clientContext.clear();
 		clientContext = null;
+	}
+	
+	public String getCookie()
+	{
+		if(session == null)
+		{
+			return null;
+		}
+		
+		return HttpClientUtils.assemblyCookie(session.getCookieStore().getCookies());
 	}
 	
 	private static List<PassengerInfo> getPassengerList(int passengerCount)

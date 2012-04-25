@@ -25,7 +25,7 @@ public class TdWorkCompleteListener implements CommandCompleteListener
 		Context context)
 	{
 		internalListener.commandComplete(commandResult, rc, command, context);
-		if(rc != ResultCode.RC_OK && rc.getID() == ResultCode.RC_HTTP_ERROR.getID())
+		if(rc != ResultCode.RC_OK)
 		{
 			StringBuilder sb = new StringBuilder();
 			String commandName = getCommandName(command, context);

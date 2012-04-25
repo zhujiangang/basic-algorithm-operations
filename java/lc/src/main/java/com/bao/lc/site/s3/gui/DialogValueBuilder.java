@@ -84,15 +84,14 @@ public class DialogValueBuilder<T> implements Builder<T>
 			{
 				throw new IllegalArgumentException("'valueBean' can't be null");
 			}
-			if(preferredSize == null)
-			{
-				preferredSize = new Dimension(480, 320);
-			}
 
 			JDialog dialog = new JDialog(owner, title, modal);
 			initDialog(dialog);
 
-			dialog.setPreferredSize(preferredSize);
+			if(preferredSize != null)
+			{
+				dialog.setPreferredSize(preferredSize);
+			}
 			dialog.pack();
 			GUIUtils.centerInScreen(dialog);
 			dialog.setVisible(true);
