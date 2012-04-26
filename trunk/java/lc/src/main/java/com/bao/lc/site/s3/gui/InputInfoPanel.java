@@ -14,16 +14,20 @@ import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.text.DateFormat;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.Properties;
 import java.util.Vector;
 
 import javax.swing.DefaultCellEditor;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
-import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
@@ -40,7 +44,6 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
-import javax.swing.text.MaskFormatter;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
@@ -53,11 +56,14 @@ import com.bao.lc.site.s3.bean.PassengerInfo;
 import com.bao.lc.site.s3.bean.TicketFilterCondition;
 import com.bao.lc.site.s3.params.InputParameter;
 import com.bao.lc.util.AppUtils;
+import com.toedter.calendar.JDateChooser;
 
 @SuppressWarnings({ "rawtypes", "serial" })
 public class InputInfoPanel extends JPanel
 {
 	private static Log log = LogFactory.getLog(InputInfoPanel.class);
+	
+	private static final DateFormat ticketDateFormat = new SimpleDateFormat("yyyy-MM-dd");
 	
 	private static final Insets DEFAULT_INSECT_LABEL = new Insets(2, 5, 3, 5);
 	private static final Insets DEFAULT_INSECT_FIELD = new Insets(2, 10, 3, 10);
@@ -69,7 +75,8 @@ public class InputInfoPanel extends JPanel
 	private JPanel ticketCondPanel = new JPanel();
 	private JTextField fromStation = new JTextField();
 	private JTextField toStation = new JTextField();
-	private JTextField ticketDate = null;
+//	private JTextField ticketDate = null;
+	private JDateChooser ticketDateChooser = null;
 
 	private JTextField seatClass = new JTextField(80);
 	private JButton seatSelectBtn = new JButton(ResMgr.getString("td.seat_select"));
@@ -237,6 +244,8 @@ public class InputInfoPanel extends JPanel
 		JLabel ticketDateLabel = new JLabel(ResMgr.getString("td.label.ticket_date"));
 		requiredPanel.add(ticketDateLabel, new GridBagConstraints(4, 1, 1, 1, 0.0, 1.0,
 			GridBagConstraints.EAST, GridBagConstraints.NONE, DEFAULT_INSECT_LABEL, 0, 0));
+		/*
+		 * Replaced by JDateChooser
 		MaskFormatter mf = null;
 		try
 		{
@@ -255,6 +264,12 @@ public class InputInfoPanel extends JPanel
 			ticketDate = new JTextField();
 		}
 		requiredPanel.add(ticketDate, new GridBagConstraints(5, 1, 1, 1, 1.0, 1.0,
+			GridBagConstraints.WEST, GridBagConstraints.HORIZONTAL, DEFAULT_INSECT_FIELD, 0, 0));
+		*/
+		ticketDateChooser = new JDateChooser();
+		ticketDateChooser.setLocale(Locale.SIMPLIFIED_CHINESE);
+		ticketDateChooser.setDateFormatString("yyyy-MM-dd");
+		requiredPanel.add(ticketDateChooser, new GridBagConstraints(5, 1, 1, 1, 1.0, 1.0,
 			GridBagConstraints.WEST, GridBagConstraints.HORIZONTAL, DEFAULT_INSECT_FIELD, 0, 0));
 		
 		// seat class
@@ -454,7 +469,7 @@ public class InputInfoPanel extends JPanel
 		param.pwd = GUIUtils.getFieldText(pwdTextField);
 		param.fromStation = GUIUtils.getFieldText(fromStation);
 		param.toStation = GUIUtils.getFieldText(toStation);
-		param.ticketDate = GUIUtils.getFieldText(ticketDate);
+		param.ticketDate = getTicketDateStr();
 		
 		param.passengers = getPassengerList();
 		param.filterCond = getFilterCondition();
@@ -588,7 +603,7 @@ public class InputInfoPanel extends JPanel
 				pwdTextField.setText(parameter.pwd);
 				fromStation.setText(parameter.fromStation);
 				toStation.setText(parameter.toStation);
-				ticketDate.setText(parameter.ticketDate);
+				setTicketDateStr(parameter.ticketDate);
 				
 				if(parameter.passengers != null && !parameter.passengers.isEmpty())
 				{
@@ -709,6 +724,42 @@ public class InputInfoPanel extends JPanel
 		}
 		
 		return passengers;
+	}
+	
+	private String getTicketDateStr()
+	{
+		Calendar calendar = ticketDateChooser.getCalendar();
+		if(calendar == null)
+		{
+			return "";
+		}
+		
+		return ticketDateFormat.format(calendar.getTime());
+	}
+	private void setTicketDateStr(String str)
+	{
+		if(str == null)
+		{
+			return;
+		}
+		
+		Date date = null;
+		try
+		{
+			date = ticketDateFormat.parse(str);
+		}
+		catch(ParseException e)
+		{
+			log.warn("Failed to parse the str to date: " + str, e);
+		}
+		if(date == null)
+		{
+			return;
+		}
+		
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTime(date);
+		ticketDateChooser.setCalendar(calendar);
 	}
 
 	private static class CheckBoxCellRenderer extends JCheckBox implements TableCellRenderer

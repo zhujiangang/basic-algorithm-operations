@@ -43,22 +43,19 @@ public class HttpClientUtils
 	 * @param cookies
 	 * @return
 	 */
-	public static String assemblyCookie(List<Cookie> cookies)
+	public static String formatCookie(List<Cookie> cookies)
 	{
 		StringBuilder sb = new StringBuilder();
-		for(Cookie cookie : cookies)
+		for(int i = 0, size = cookies.size(); i < size; i++)
 		{
+			Cookie cookie = cookies.get(i);
+			if(i > 0)
+			{
+				sb.append("; ");
+			}
 			sb.append(cookie.getName()).append("=").append(cookie.getValue());
-			sb.append("; ");
 		}
-		if(sb.length() > 2)
-		{
-			return sb.substring(0, sb.length() - 2);
-		}
-		else
-		{
-			return "";
-		}
+		return sb.toString();
 	}
 
 	public static void closeStream(Closeable stream)

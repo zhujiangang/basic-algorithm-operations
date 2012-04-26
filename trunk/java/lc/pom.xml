@@ -71,6 +71,7 @@
 		<httpclient-version>4.1.2</httpclient-version> 
 		<json-lib-version>2.3</json-lib-version>
     <grinder-http-version>3.8</grinder-http-version>
+    <jcalendar-version>1.3.2</jcalendar-version>
   </properties>
 
   <dependencies>
@@ -153,6 +154,12 @@
       <groupId>net.sf.grinder</groupId>
       <artifactId>grinder-http</artifactId>
       <version>${grinder-http-version}</version>
-    </dependency>    
+    </dependency>
+    
+    <dependency>
+      <groupId>com.toedter</groupId>
+      <artifactId>jcalendar</artifactId>
+      <version>${jcalendar-version}</version>
+    </dependency>  
   </dependencies>
 </project>
