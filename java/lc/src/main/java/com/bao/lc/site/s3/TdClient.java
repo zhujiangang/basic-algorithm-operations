@@ -307,7 +307,7 @@ public class TdClient
 			return null;
 		}
 		
-		return HttpClientUtils.assemblyCookie(session.getCookieStore().getCookies());
+		return HttpClientUtils.formatCookie(session.getCookieStore().getCookies());
 	}
 	
 	private static List<PassengerInfo> getPassengerList(int passengerCount)

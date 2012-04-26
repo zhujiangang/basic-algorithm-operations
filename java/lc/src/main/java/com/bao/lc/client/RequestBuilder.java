@@ -253,7 +253,7 @@ public class RequestBuilder
 			// Headers
 			if(null != headers)
 			{
-				get.setHeaders(assemblyHeader(headers));
+				get.setHeaders(toHeaders(headers));
 			}
 
 		}
@@ -307,7 +307,7 @@ public class RequestBuilder
 			// Headers
 			if(null != headers)
 			{
-				post.setHeaders(assemblyHeader(headers));
+				post.setHeaders(toHeaders(headers));
 			}
 		}
 		finally
@@ -331,7 +331,7 @@ public class RequestBuilder
 	 * @param headers
 	 * @return
 	 */
-	private static Header[] assemblyHeader(Map<String, String> headers)
+	private static Header[] toHeaders(Map<String, String> headers)
 	{
 		Header[] allHeader = new BasicHeader[headers.size()];
 		int i = 0;
