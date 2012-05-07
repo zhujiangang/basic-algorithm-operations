@@ -76,7 +76,7 @@ public class CnetDownload
 
 	private String extractDirectLink(String content) throws ParseException
 	{
-		String regex = "<div class=\"dlLinkWrapper\"> <a href=\"(.+?)\" id=(.+?)>Direct Download Link</a>";
+		String regex = "<div class=\"dlLinkWrapper\"> <a href=\"(.+?)\" (.*?)>Direct Download Link</a>";
 		
 		List<String> valueList = new ArrayList<String>();
 		int matchCount = MiscUtils.getRegexValue(content, regex, valueList, true, 0);
