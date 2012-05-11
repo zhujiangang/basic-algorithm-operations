@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<environment>
+    <variable name="WindowsSdkDir" type="set" scope="process">
+        <value>c:\Program Files\Microsoft SDKs\Windows\v7.0A\</value>    
+    </variable>
+    <variable name="FrameworkDir" type="set" scope="process">
+        <value>c:\WINDOWS\Microsoft.NET\Framework\</value>    
+    </variable>
+    <variable name="FrameworkVersion" type="set" scope="process">
+        <value>v4.0.30319</value>    
+    </variable>
+    <variable name="Framework35Version" type="set" scope="process">
+        <value>v3.5</value>    
+    </variable>
+    
+    <variable name="VS10_Path" type="set" scope="system" separator=";">
+        <value expand="false">%VS10_HOME%\VSTSDB\Deploy</value>
+        <value expand="false">%VS10_HOME%\Common7\IDE</value>
+        <value expand="false">%VS10_HOME%\VC\BIN</value>
+        <value expand="false">%VS10_HOME%\Common7\Tools</value>
+        <value expand="true">%FrameworkDir%%FrameworkVersion%</value>
+        <value expand="true">%FrameworkDir%%Framework35Version%</value>
+        <value expand="false">%VS10_HOME%\VC\VCPackages</value>
+        <value expand="true">%ProgramFiles(x86)%\HTML Help Workshop</value>
+        <value expand="true">%ProgramFiles%\HTML Help Workshop</value>
+        <value expand="false">%VS10_HOME%\Team Tools\Performance Tools</value>
+        <value expand="true">%WindowsSdkDir%bin\NETFX 4.0 Tools</value>
+        <value expand="true">%WindowsSdkDir%bin</value>
+    </variable>
+    <variable name="VS10_INCLUDE" type="set" scope="system" separator=";">
+        <value expand="false">%VS10_HOME%\VC\INCLUDE</value>
+        <value expand="false">%VS10_HOME%\VC\ATLMFC\INCLUDE</value>
+        <value expand="true">%WindowsSdkDir%include</value>
+    </variable>
+    <variable name="VS10_LIB" type="set" scope="system" separator=";">
+        <value expand="false">%VS10_HOME%\VC\LIB</value>
+        <value expand="false">%VS10_HOME%\VC\ATLMFC\LIB</value>
+        <value expand="true">%WindowsSdkDir%lib</value>
+    </variable>
+    <variable name="VS10_LIBPATH" type="set" scope="system" separator=";">
+        <value expand="true">%FrameworkDir%%FrameworkVersion%</value>
+        <value expand="true">%FrameworkDir%%Framework35Version%</value>
+        <value expand="false">%VS10_HOME%\VC\LIB</value>
+        <value expand="false">%VS10_HOME%\VC\ATLMFC\LIB</value>
+    </variable>
+    
+    <variable name="Path" type="prepend" scope="system" separator=";">
+        <value>%VS10_Path%</value>    
+    </variable>
+    <variable name="INCLUDE" type="prepend" scope="system" separator=";">
+        <value>%VS10_INCLUDE%</value>    
+    </variable>
+    <variable name="LIB" type="prepend" scope="system" separator=";">
+        <value>%VS10_LIB%</value>    
+    </variable>
+    <variable name="LIBPATH" type="prepend" scope="system" separator=";">
+        <value>%VS10_LIBPATH%</value>    
+    </variable>
+</environment>
