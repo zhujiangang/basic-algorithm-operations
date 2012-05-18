@@ -1,0 +1,42 @@
+cmake -G "NMake Makefiles" -D CMAKE_BUILD_TYPE=RELEASE ..
+
+@REM VC6 nmake file
+
+set VS6_HOME=%VS6_HOME:\=/%
+call "%VS6_HOME%/VC98/Bin/VCVARS32.BAT"
+cmake -G "NMake Makefiles" -D CMAKE_BUILD_TYPE=RELEASE -D CMAKE_C_COMPILER="%VS6_HOME%/VC98/Bin/CL.EXE" -D CMAKE_CXX_COMPILER="%VS6_HOME%/VC98/Bin/CL.EXE" ..
+
+cmake -G "NMake Makefiles" -D CMAKE_C_COMPILER="C:/Program Files/Microsoft Visual Studio/VC98/Bin/CL.EXE" -D CMAKE_CXX_COMPILER="C:/Program Files/Microsoft Visual Studio/VC98/Bin/CL.EXE" ..
+
+
+@REM VC8 nmake file
+set VS8_HOME=%VS8_HOME:\=/%
+call "%VS8_HOME%/Common7/Tools/vsvars32.bat"
+cmake -G "NMake Makefiles" -D CMAKE_BUILD_TYPE=RELEASE -D CMAKE_C_COMPILER="%VS8_HOME%/VC/bin/CL.EXE" -D CMAKE_CXX_COMPILER="%VS8_HOME%/VC/bin/CL.EXE" ..
+cmake -G "NMake Makefiles" -D CMAKE_BUILD_TYPE=RELEASE -D CMAKE_C_COMPILER="CL.exe" -D CMAKE_CXX_COMPILER="CL.exe" ..
+cmake -G "NMake Makefiles" -D CMAKE_BUILD_TYPE=RELEASE ..
+
+@REM VC10 nmake file
+set VS10_HOME=%VS10_HOME:\=/%
+call "%VS10_HOME%/VC/vcvarsall.bat"
+cmake -G "NMake Makefiles" -D CMAKE_BUILD_TYPE=RELEASE -D CMAKE_C_COMPILER="%VS10_HOME%/VC/bin/CL.EXE" -D CMAKE_CXX_COMPILER="%VS10_HOME%/VC/bin/CL.EXE" ..
+cmake -G "NMake Makefiles" -D CMAKE_BUILD_TYPE=RELEASE -D CMAKE_C_COMPILER="CL.exe" -D CMAKE_CXX_COMPILER="CL.exe" ..
+cmake -G "NMake Makefiles" -D CMAKE_BUILD_TYPE=RELEASE ..
+
+
+@REM MinGW Makefiles
+ren %MSYS_HOME%\bin\sh.exe __sh.exe
+set MINGW_HOME=%MINGW_HOME:\=/%
+cmake -G "MinGW Makefiles" -D CMAKE_BUILD_TYPE=RELEASE -D CMAKE_C_COMPILER="%MINGW_HOME%/bin/mingw32-gcc.exe" -D CMAKE_CXX_COMPILER="%MINGW_HOME%/bin/mingw32-g++.exe" ..
+ren %MSYS_HOME%\bin\__sh.exe sh.exe
+
+"%MINGW_HOME%/bin/mingw32-make.exe"
+
+
+@REM MSYS Makefiles
+cmake -G "MSYS Makefiles" -D CMAKE_BUILD_TYPE=RELEASE -D CMAKE_C_COMPILER="%MINGW_HOME%/bin/mingw32-gcc.exe" -D CMAKE_CXX_COMPILER="%MINGW_HOME%/bin/mingw32-g++.exe" ..
+cmake -G "MSYS Makefiles" -D CMAKE_BUILD_TYPE=RELEASE ..
+
+
+@REM UNIX
+cmake -G "Unix Makefiles" -D CMAKE_BUILD_TYPE=RELEASE ..
