@@ -344,4 +344,9 @@ public class TdUtils
 		
 		return errorMsg;
 	}
+	
+	public static String getVersion()
+	{
+		return "1.1";
+	}
 }
