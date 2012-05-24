@@ -16,6 +16,7 @@ import com.bao.lc.proxy.HttpProxyServer;
 import com.bao.lc.proxy.IEProxy;
 import com.bao.lc.proxy.IEProxy.ProxySettings;
 import com.bao.lc.site.s3.TdClient;
+import com.bao.lc.site.s3.TdUtils;
 import com.bao.lc.site.s3.params.InputParameter;
 import com.bao.lc.util.AppUtils;
 
@@ -32,6 +33,7 @@ public class MainPanel extends JPanel
 	private JMenuItem oneClickBookMenuItem = null;
 	private JMenuItem stopMenuItem = null;
 	private JMenuItem saveParamMenuItem = null;
+	private JMenuItem helpMenuItem = null;
 
 	private JToolBar toolBar = null;
 	private JButton addPassengerBtn = null;
@@ -136,7 +138,7 @@ public class MainPanel extends JPanel
 
 		// ***** create Help menu
 		JMenu helpMenu = menuBar.add(new JMenu(ResMgr.getString("td.menu.help")));
-		createMenuItem(helpMenu, ResMgr.getString("td.menu.help.about"));
+		helpMenuItem = createMenuItem(helpMenu, ResMgr.getString("td.menu.help.about"));
 	}
 
 	private JMenuItem createMenuItem(JMenu menu, String text)
@@ -219,6 +221,7 @@ public class MainPanel extends JPanel
 		oneClickBookMenuItem.addActionListener(new OneClickBookListener());
 		stopMenuItem.addActionListener(new StopListener());
 		saveParamMenuItem.addActionListener(new SaveParameterListener());
+		helpMenuItem.addActionListener(new AboutListener());
 		
 		if(TdOptions.enableOpenIE)
 		{			
@@ -518,6 +521,16 @@ public class MainPanel extends JPanel
 					ResMgr.getString("td.msg.ie_login_disabled"),
 					ResMgr.getString("td.main.window.title"), JOptionPane.PLAIN_MESSAGE);
 			}
+		}
+	}
+	
+	private class AboutListener implements ActionListener
+	{
+		public void actionPerformed(ActionEvent e)
+		{
+			String message = ResMgr.getString("td.main.window.title") + " " + TdUtils.getVersion();
+			JOptionPane.showMessageDialog(GUIUtils.getMainFrame(), message,
+				ResMgr.getString("td.main.window.title"), JOptionPane.PLAIN_MESSAGE);
 		}
 	}
 
