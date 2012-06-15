@@ -17,7 +17,7 @@ goto VS_END
 
 :VS8
 set VS8_HOME=%VS8_HOME:\=/%
-call "%VS8_HOME%/Common7/Tools/vsvars32.bat"
+call "%VS8_HOME%/VC/vcvarsall.bat"
 goto VS_END
 
 :VS10
