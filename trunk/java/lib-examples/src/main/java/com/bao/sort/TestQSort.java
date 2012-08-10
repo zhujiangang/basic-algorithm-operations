@@ -18,13 +18,16 @@ public class TestQSort implements Sort
 			return;
 		}
 		int pivotIndex = i + (j - i)/20;
+		pivotIndex = SortUtil.mid3(array, i, j, (i + j) / 2);
 		
+		SortUtil.logSwap(array, pivotIndex, j);
 		//stick pivot at end
 		SortUtil.swap(array, pivotIndex, j);
 		
 		//k wiil be the first position in the right subarray
 		int k = partition(array, i, j - 1, array[j]);
 		
+		SortUtil.logSwap(array, k, j);
 		SortUtil.swap(array, k, j);
 		
 		if((k - i) > 1)
@@ -39,6 +42,7 @@ public class TestQSort implements Sort
 	
 	public static int partition(int[] array, int i, int j, int pivot)
 	{
+		SortUtil.logPartitionStart(array, i, j, pivot);
 		/*
 		if(i == j)
 		{
@@ -65,11 +69,14 @@ public class TestQSort implements Sort
 			}
 			if(lo <= hi)
 			{
+				SortUtil.logSwap(array, lo, hi);
 				SortUtil.swap(array, lo, hi);
 				lo++;
 				hi--;
 			}
 		}
+		
+		SortUtil.logPartition(array, i, j, lo, hi);
 		return lo;
 	}
 }
