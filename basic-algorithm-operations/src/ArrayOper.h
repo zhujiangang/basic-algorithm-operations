@@ -28,5 +28,25 @@ int binarySearch(int a[], int from, int to, int key);
 /************************************************************************/
 int maxsumsub(int array[], int n, int* pStart = NULL, int* pEnd = NULL);
 
+/*
+5. http://blog.csdn.net/hackbuteer1/article/details/6889217
+There are 2 numbers only occur in the array once, and other numbers occur twice.
+The 2 numbers are different from each other. Find out them.
+*/
+void find2distinct(int a[], int n, int* x, int* y);
+
+/*
+6. http://blog.csdn.net/hackbuteer1/article/details/6889217
+Same to the question "find2distinct", but there are 3 numbers only occur in once,
+find out them
+*/
+void find3distinct(int a[], int n, int* x, int* y, int* z);
+
+/*
+7. http://blog.csdn.net/jcwkyl/article/details/3957941
+Find the missing 2 numbers of the array
+*/
+void find2miss(int a[], int n, int* x, int* y);
+
 void testArrayOper();
 #endif

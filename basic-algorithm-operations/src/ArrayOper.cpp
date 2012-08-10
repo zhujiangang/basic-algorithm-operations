@@ -169,6 +169,117 @@ int maxsumsub(int array[], int n, int* pStart, int* pEnd)
 	return maxsum;
 }
 
+int lowest_bit(int x)
+{
+	return x & ~(x - 1);
+}
+
+void find2distinct(int a[], int n, int* x, int* y)
+{
+	int i, s = 0;
+	for(i = 0; i < n; i++)
+	{
+		s ^= a[i];
+	}
+
+	*x = 0, *y = 0;
+	int lowbit = lowest_bit(s);
+	for(i = 0; i < n; i++)
+	{
+		if( (a[i] & lowbit) != 0)
+		{
+			*x ^= a[i];
+		}
+		else
+		{
+			*y ^= a[i];
+		}
+	}
+}
+
+void find3distinct(int a[], int n, int* x, int* y, int* z)
+{
+	int i, s = 0;
+	for(i = 0; i < n; i++)
+	{
+		s ^= a[i];
+	}
+
+	*x = 0, *y = 0, *z = 0;
+	int lowbit = lowest_bit(s);
+	int flip = 0;
+
+	for(i = 0; i < n; i++)
+	{
+		flip ^= lowest_bit(s ^ a[i]);
+	}
+
+	//flip = lowest_bit(x ^ y) ^ lowest_bit(x ^ z) ^ lowest_bit(y ^ z);
+	for(i = 0; i < n; i++)
+	{
+		if(lowest_bit(s ^ a[i]) == flip)
+		{
+			*x ^= a[i];
+		}
+	}
+
+	//swap out the first value
+	for(i = 0; i < n; i++)
+	{
+		if(a[i] == *x)
+		{
+			int tmp = a[i];
+			a[i] = a[n - 1];
+			a[n - 1] = tmp;
+			break;
+		}
+	}
+
+	find2distinct(a, n - 1, y, z);
+}
+
+void find2miss(int a[], int n, int* x, int* y)
+{
+	int i, curr_xor = 0, full_xor = 0;
+	for(i = 0; i < n - 2; i++)
+	{
+		curr_xor ^= a[i];
+	}
+	for(i = 1; i <= n; i++)
+	{
+		full_xor ^= i;
+	}
+
+	//t = x ^ y
+	int t = curr_xor ^ full_xor;
+	int lowbit_t = lowest_bit(t);
+	//split the array into 2 part, 
+	//the 1st part elements with same low bit of t, 
+	//the 2nd part elements without same low bit of t
+	int a1 = 0, a2 = 0;
+
+	//a1 including x
+	for(i = 1; i <= n; i++)
+	{
+		if(i & lowbit_t)
+		{
+			a1 ^= i;
+		}
+	}
+
+	//a2 excluding y
+	for(i = 0; i < n - 2; i++)
+	{
+		if((a[i] & lowbit_t) == 0)
+		{
+			a2 ^= a[i];
+		}
+	}
+
+	*x = (a1^a2^curr_xor);
+	*y = ((*x) ^ t);
+}
+
 
 void testArrayOper()
 {
@@ -203,6 +314,22 @@ void testArrayOper()
 	
 	i = binarySearch(b, 0, n - 1, 2);
 	cout<<i<<endl;
+
+	int c[] = {1, 10, 20, 9, 20, 8, 9, 1};
+	int x = 0, y = 0;
+	find2distinct(c, sizeof(c)/sizeof(c[0]), &x, &y);
+	printf("The 2 distinct number: x=%d, y=%d\n", x, y);
+
+	int d[] = {1, 10, 20, 9, 20, 8, 9, 1, 23, 23, 4};
+	int z = 0;
+	find3distinct(d, sizeof(d)/sizeof(d[0]), &x, &y, &z);
+	printf("The 3 distinct number: x=%d, y=%d, z=%d\n", x, y, z);
+
+
+	int e[] = {1, /*2,*/ 3, 4, 5, 6, 7, 8, 9, /*10*/};
+	find2miss(e, 10, &x, &y);
+	printf("The 2 missing number: x=%d, y=%d\n", x, y);
+
 	printSep(__FILE__);
 #endif
 }

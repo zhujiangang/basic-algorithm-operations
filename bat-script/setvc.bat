@@ -5,6 +5,7 @@ if not "%1" == "" set VS_VERSION=%1
 
 if "%VS_VERSION%"=="6" goto VS6
 if "%VS_VERSION%"=="8" goto VS8
+if "%VS_VERSION%"=="9" goto VS9
 if "%VS_VERSION%"=="10" goto VS10
 
 echo Invalid version number: VS_VERSION=%VS_VERSION%
@@ -18,6 +19,11 @@ goto VS_END
 :VS8
 set VS8_HOME=%VS8_HOME:\=/%
 call "%VS8_HOME%/VC/vcvarsall.bat"
+goto VS_END
+
+:VS9
+set VS9_HOME=%VS9_HOME:\=/%
+call "%VS9_HOME%/VC/vcvarsall.bat"
 goto VS_END
 
 :VS10
