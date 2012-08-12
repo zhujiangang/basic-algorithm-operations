@@ -48,5 +48,10 @@ Find the missing 2 numbers of the array
 */
 void find2miss(int a[], int n, int* x, int* y);
 
+/*
+8. Longest Increasing Subsequence
+*/
+int lis(int a[], int n, int d[], int mem[]);
+
 void testArrayOper();
 #endif

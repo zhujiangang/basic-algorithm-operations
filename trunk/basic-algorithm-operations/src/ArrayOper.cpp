@@ -280,6 +280,46 @@ void find2miss(int a[], int n, int* x, int* y)
 	*y = ((*x) ^ t);
 }
 
+/*
+http://www.felix021.com/blog/read.php?1587
+http://www.iteye.com/topic/1054321
+http://yzmduncan.iteye.com/blog/1546503
+*/
+int lis(int a[], int n, int d[], int mem[])
+{
+	d[0] = a[0];
+	mem[0] = 1;
+
+	int i, j, len = 1;
+	for(i = 1; i < n; i++)
+	{
+		if(a[i] > d[len - 1])
+		{
+			j = len++;
+		}
+		else
+		{
+			int lo = 0, hi = len - 1, mid;
+			while(lo <= hi)
+			{
+				mid = (lo + hi) / 2;
+				if(a[i] > d[mid])
+				{
+					lo = mid + 1;
+				}
+				else
+				{
+					hi = mid - 1;
+				}
+			}
+			j = lo;
+		}
+		d[j] = a[i];
+		mem[i] = j + 1;
+	}
+	return len;
+}
+
 
 void testArrayOper()
 {
@@ -329,6 +369,22 @@ void testArrayOper()
 	int e[] = {1, /*2,*/ 3, 4, 5, 6, 7, 8, 9, /*10*/};
 	find2miss(e, 10, &x, &y);
 	printf("The 2 missing number: x=%d, y=%d\n", x, y);
+
+	int f[] = {2,1,5,3,6,4,8,9,7};
+	int tmp1[20], tmp2[20];
+	n = sizeof(f)/sizeof(f[0]);
+	result = lis(f, n, tmp1, tmp2);
+	printf("lis length = %d\n", result);
+	printf("lis content = ");
+	for(i = n - 1; i >= 0 && result > 0; i--)
+	{
+		if(tmp2[i] == result)
+		{
+			printf("%d ", f[i]);
+			result--;
+		}
+	}
+	printf("\n");
 
 	printSep(__FILE__);
 #endif
