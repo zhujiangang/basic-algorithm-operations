@@ -113,6 +113,10 @@ SOURCE=.\FileOper.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\FindClosestPoints.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\LinkedList.cpp
 # End Source File
 # Begin Source File
@@ -170,6 +174,10 @@ SOURCE=.\config.h
 # Begin Source File
 
 SOURCE=.\FileOper.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\FindClosestPoints.h
 # End Source File
 # Begin Source File
 
