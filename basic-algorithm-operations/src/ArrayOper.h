@@ -27,6 +27,7 @@ int binarySearch(int a[], int from, int to, int key);
 /* 4. max sum of continuous sub-array                                   */
 /************************************************************************/
 int maxsumsub(int array[], int n, int* pStart = NULL, int* pEnd = NULL);
+int maxsumsub_dp(int array[], int n, int* pStart = NULL, int* pEnd = NULL);
 
 /*
 5. http://blog.csdn.net/hackbuteer1/article/details/6889217

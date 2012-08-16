@@ -12,5 +12,6 @@
 #define POINT24_TEST 0
 #define STACK_QUEUE_TEST 0
 #define STRING_OPER_TEST 0
-
+#define FIND_CLOSEST_POINTS 0
+#define LCS 0
 #endif
