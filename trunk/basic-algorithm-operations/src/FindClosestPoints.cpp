@@ -1,10 +1,12 @@
 // FindClosestPoints.cpp: implementation of the CFindClosestPoints class.
 //
 //////////////////////////////////////////////////////////////////////
-
+#include "config.h"
 #include "FindClosestPoints.h"
+#include "MyUtil.h"
 #include <math.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
@@ -38,7 +40,7 @@ int __cdecl CFindClosestPoints::compare_y(const void *elem1, const void *elem2 )
 {
 	const PointEx* pt1 = (const PointEx*)elem1;
 	const PointEx* pt2 = (const PointEx*)elem2;
-	return pt1->pt.x - pt2->pt.x;
+	return pt1->pt.y - pt2->pt.y;
 }
 
 double CFindClosestPoints::closest_points(Point points[], int n, Point* p1, Point* p2)
@@ -70,7 +72,7 @@ double CFindClosestPoints::closest_points(Point points[], int n, Point* p1, Poin
 		y[i] = x[i];
 	}
 	//2. Sort by y
-	qsort(x, n, sizeof(PointEx), CFindClosestPoints::compare_y);
+	qsort(y, n, sizeof(PointEx), CFindClosestPoints::compare_y);
 
 	PointEx* z = new PointEx[n];
 	//3. copy y into z
@@ -79,7 +81,38 @@ double CFindClosestPoints::closest_points(Point points[], int n, Point* p1, Poin
 		z[i] = y[i];
 	}
 
-	return closest_points(x, y, z, 0, n - 1, p1, p2);
+	double d = closest_points(x, y, z, 0, n - 1, p1, p2);
+
+	delete [] z;
+	delete [] y;
+	delete [] x;
+	delete [] posBuffer;
+
+	return d;
+}
+
+void CFindClosestPoints::merge(PointEx src[], PointEx dst[], int l, int m, int r)
+{
+	int yl, yr, k;
+	for(yl = l, yr = m + 1, k = l; yl <= m && yr <= r; k++)
+	{
+		if(src[yl].pt.y <= src[yr].pt.y)
+		{
+			dst[k] = src[yl++];
+		}
+		else
+		{
+			dst[k] = src[yr++];
+		}
+	}
+	while(yl <= m)
+	{
+		dst[k++] = src[yl++];
+	}
+	while(yr <= r)
+	{
+		dst[k++] = src[yr++];
+	}
 }
 
 double CFindClosestPoints::closest_points(PointEx x[], PointEx y[], PointEx z[], int l, int r, Point* p1, Point* p2)
@@ -91,18 +124,19 @@ double CFindClosestPoints::closest_points(PointEx x[], PointEx y[], PointEx z[],
 		d = distance(x[l].pt, x[r].pt);
 		*p1 = x[l].pt;
 		*p2 = x[r].pt;
+		return d;
 	}
 	if(r - l == 2)
 	{
 		int i, j;
-		d = 100000;
+		d = -1;
 		double dist = 0;
 		for(i = l; i < r; i++)
 		{
 			for(j = i + 1; j <= r; j++)
 			{
 				dist = distance(x[i].pt, x[j].pt);
-				if(dist < d)
+				if(d < 0 || dist < d)
 				{
 					d = dist;
 					*p1 = x[i].pt;
@@ -110,6 +144,7 @@ double CFindClosestPoints::closest_points(PointEx x[], PointEx y[], PointEx z[],
 				}
 			}
 		}
+		return d;
 	}
 
 	int m = (l + r) / 2;
@@ -137,30 +172,11 @@ double CFindClosestPoints::closest_points(PointEx x[], PointEx y[], PointEx z[],
 		d = dr;
 	}
 
-	int k;
-	//TODO: merge z into y
-	for(yl = l, yr = m + 1, k = l; yl <= m && yr <= r; k++)
-	{
-		if(z[yl].pt.y <= z[yr].pt.y)
-		{
-			y[k] = z[yl++];
-		}
-		else
-		{
-			y[k] = z[yr++];
-		}
-	}
-	while(yl <= m)
-	{
-		y[k++] = z[yl++];
-	}
-	while(yr <= r)
-	{
-		y[k++] = z[yr++];
-	}
+	//merge z into y
+	merge(z, y, l, m, r);
 
 	//exclude the points far from distance d
-	k = l;
+	int k = l;
 	for(i = l; i <= r; i++)
 	{
 		if(abs(y[i].pt.x - x[m].pt.x) < d)
@@ -185,4 +201,95 @@ double CFindClosestPoints::closest_points(PointEx x[], PointEx y[], PointEx z[],
 	}
 
 	return d;
+}
+
+double CFindClosestPoints::closest_points_n2(Point points[], int n, Point* p1, Point* p2)
+{
+	double d = -1, dist;
+	int i, j;
+	for(i = 0; i < n - 1; i++)
+	{
+		for(j = i + 1; j < n; j++)
+		{
+			dist = distance(points[i], points[j]);
+			if(d < 0 || dist < d)
+			{
+				d = dist;
+				*p1 = points[i];
+				*p2 = points[j];
+			}
+		}
+	}
+	return d;
+}
+
+void testFindClosestPoints()
+{
+#if FIND_CLOSEST_POINTS == 1
+	int i, j, test_count = 10;
+	bool is_rand = true;
+	const int n = 20;
+	int buf[n * 2];
+
+	//non-random
+	int x[n] = {-5, 0, 2, 5, 8, 8, 8, /*10, 10, 10,*/ 10, 10, 10, 12, 12, 12, 15, 19, 25, 30, 55, 66, 77};
+	int y[n] = {-3, 9, 6, 1, 8, 10, 12, /*8, 10, 12,*/ 8, 10, 12, 8, 10, 12, 1, 26, 45, 39, -55, -66, -77};
+	
+	for(j = 0; j < test_count; j++)
+	{
+		if(is_rand)
+		{
+			genrand(buf, n * 2, 100, j);
+			for(i = 0; i < n; i++)
+			{
+				x[i] = buf[i];
+			}
+			
+			for(i = 0; i < n; i++)
+			{
+				y[i] = buf[n + i];
+			}
+		}
+		CFindClosestPoints::Point points[n];
+		for(i = 0; i < n; i++)
+		{
+			points[i].x = x[i];
+			points[i].y = y[i];
+		}
+
+		for(i = 0; i < n; i++)
+		{
+			if(i > 0 && i % 5 == 0)
+			{
+				printf("\n");
+			}
+			printf("(%d,%d) ", points[i].x, points[i].y);
+		}
+		printf("\n");
+
+		CFindClosestPoints::Point p1, p2;
+		double d1 = CFindClosestPoints::closest_points(points, n, &p1, &p2);
+		printf("%f, p1=(%d,%d), p2=(%d,%d)\n", d1, p1.x, p1.y, p2.x, p2.y);
+
+		CFindClosestPoints::Point p3, p4;
+		double d2 = CFindClosestPoints::closest_points_n2(points, n, &p3, &p4);
+		printf("%f, p1=(%d,%d), p2=(%d,%d)\n", d2, p3.x, p3.y, p4.x, p4.y);
+		
+		if(CFindClosestPoints::abs(d1 - d2) < 0.000001)
+		{
+			printf("%2d: [Y]\n", j);
+		}
+		else
+		{
+			printf("%2d: [N]\n", j);
+		}
+
+		if(!is_rand)
+		{
+			break;
+		}
+	}
+
+	printSep(__FILE__);
+#endif
 }

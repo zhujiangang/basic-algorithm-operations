@@ -69,9 +69,9 @@ void swap(int& x, int& y)
 	y = t;
 }
 
-void genrand(int a[], int n, int limit)
+void genrand(int a[], int n, int limit, int seed)
 {
-	srand( (unsigned int)(time(NULL)) );
+	srand( (unsigned int)(time(NULL)) + seed);
 	
 	if(limit <= 0)
 	{

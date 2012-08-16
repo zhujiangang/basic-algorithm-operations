@@ -141,6 +141,7 @@ int binarySearch(int a[], int from, int to, int key)
 int maxsumsub(int array[], int n, int* pStart, int* pEnd)
 {
 	int maxsum = 0, sum = 0;
+	int from = 0, end = 0;
 	
 	int i;
 	for(i = 0; i < n; i++)
@@ -150,22 +151,71 @@ int maxsumsub(int array[], int n, int* pStart, int* pEnd)
 		if(sum > maxsum)
 		{
 			maxsum = sum;
+			end = i;
 			if(pEnd != NULL)
 			{
-				*pEnd = i;
+				*pStart = from;
+				*pEnd = end;
 			}
 		}
 		
 		if(sum < 0)
 		{
 			sum = 0;
-			if(pStart != NULL)
-			{
-				*pStart = i + 1;
-			}
+			from = i + 1;
 		}
 	}
 	
+	return maxsum;
+}
+int maxsumsub_dp(int a[], int n, int* pStart, int* pEnd)
+{
+	int maxsum = 0;
+
+	/*
+	int* c = new int[n];
+	c[0] = a[0];
+
+	for(int i = 1; i < n; i++)
+	{
+		if(c[i - 1] > 0)
+		{
+			c[i] = c[i - 1] + a[i];
+		}
+		else
+		{
+			c[i] = a[i];
+		}
+
+		if(c[i] > maxsum)
+		{
+			maxsum = c[i];
+		}
+	}
+	delete[] c;
+	*/
+	
+	//Optimized, without extra space
+	int sum = -1;
+	for(int i = 0; i < n; i++)
+	{
+		if(sum > 0)
+		{
+			sum += a[i];
+		}
+		else
+		{
+			sum = a[i];
+			*pStart = i;
+		}
+
+		if(sum > maxsum)
+		{
+			maxsum = sum;
+			*pEnd = i;
+		}
+	}
+
 	return maxsum;
 }
 
@@ -324,10 +374,8 @@ int lis(int a[], int n, int d[], int mem[])
 void testArrayOper()
 {
 #if ((ARRAY_OPER_TEST) == 1)
-	// 	const int n = 10;
-	// 	int a[n] = {3, 4, -5, 50, -90, 7, 6, -12, 80, -4};
-	
-	int a[] = {3, 4, -5, 50, -90, 7, 6, -12, 80, -4};
+	//int a[] = {3, 4, -5, 50, -90, 7, 6, -12, 80, -4};
+	int a[] = {-3, -4, -5, 50, -90, 7, 6, -12, 80, -40, 41};
 	int n = sizeof(a)/sizeof(int);
 	//	genseq(a, n);
 	//	genrand(a, n);
@@ -342,7 +390,16 @@ void testArrayOper()
 	
 	int start, end;
 	result = maxsumsub(a, n, &start, &end);
-	cout<<result<<endl;
+	cout<<"maxsumsub: "<<result<<endl;
+	for(i = start; i <= end; i++)
+	{
+		cout<<a[i]<<" ";
+	}
+	cout<<endl;
+	start = end = 0;
+
+	result = maxsumsub_dp(a, n, &start, &end);
+	cout<<"maxsumsub_dp: "<<result<<endl;
 	for(i = start; i <= end; i++)
 	{
 		cout<<a[i]<<" ";

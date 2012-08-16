@@ -14,6 +14,8 @@
 #include "LinkedListEx.h"
 #include "Point24.h"
 #include "BitOper.h"
+#include "FindClosestPoints.h"
+#include "Lcs.h"
 
 int main(int argc, char* argv[])
 {
@@ -28,6 +30,8 @@ int main(int argc, char* argv[])
 	testPoint24();
 	testStackQueue();
 	testStringOper();
+	testFindClosestPoints();
+	testLCS();
 	return 0;
 }
 

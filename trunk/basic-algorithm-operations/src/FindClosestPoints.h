@@ -27,7 +27,7 @@ public:
 		int id;
 		int* pPosX;
 	}PointEx;
-
+	static double closest_points_n2(Point points[], int n, Point* p1, Point* p2);
 	static double closest_points(Point points[], int n, Point* p1, Point* p2);
 	static int abs(int a)
 	{
@@ -42,6 +42,7 @@ public:
 		return (a >= b ? a : b);
 	}
 	static double distance(Point p1, Point p2);
+	static void merge(PointEx src[], PointEx dst[], int l, int m, int r);
 
 	static int __cdecl compare_x(const void *elem1, const void *elem2 );
 	static int __cdecl compare_y(const void *elem1, const void *elem2 );
@@ -49,5 +50,7 @@ private:
 
 	static double closest_points(PointEx x[], PointEx y[], PointEx z[], int l, int r, Point* p1, Point* p2);
 };
+
+void testFindClosestPoints();
 
 #endif // !defined(AFX_FINDCLOSESTPOINTS_H__6D492F5D_20EB_4E25_A782_8D32A556BDA1__INCLUDED_)
