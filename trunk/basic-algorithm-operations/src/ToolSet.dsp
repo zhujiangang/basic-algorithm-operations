@@ -101,6 +101,10 @@ SOURCE=.\BitOper.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\ChipTest.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\CombineMath.cpp
 # End Source File
 # Begin Source File
@@ -162,6 +166,10 @@ SOURCE=.\BinTree.h
 # Begin Source File
 
 SOURCE=.\BitOper.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\ChipTest.h
 # End Source File
 # Begin Source File
 

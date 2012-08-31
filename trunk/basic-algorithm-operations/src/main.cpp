@@ -16,6 +16,7 @@
 #include "BitOper.h"
 #include "FindClosestPoints.h"
 #include "Lcs.h"
+#include "ChipTest.h"
 
 int main(int argc, char* argv[])
 {
@@ -32,6 +33,7 @@ int main(int argc, char* argv[])
 	testStringOper();
 	testFindClosestPoints();
 	testLCS();
+	testChipTest();
 	return 0;
 }
 

@@ -1,7 +1,7 @@
 #ifndef _BAO_CONFIG_H_
 #define _BAO_CONFIG_H_
 
-#define ARRAY_OPER_TEST 1
+#define ARRAY_OPER_TEST 0
 #define ARRAY_SORT_TEST 0
 #define BIN_TREE_TEST 0
 #define BIT_OPER_TEST 0
@@ -14,4 +14,5 @@
 #define STRING_OPER_TEST 0
 #define FIND_CLOSEST_POINTS 0
 #define LCS 0
+#define CHIP_TEST 1
 #endif
