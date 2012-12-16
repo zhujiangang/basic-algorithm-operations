@@ -135,6 +135,17 @@ public:
 	int				nOptsParamCount;
 };
 
+class SubOptsParam
+{
+public:
+	const char*		szFindOptPropName;
+	const char*		szFindOptPropValue;
+	const char*		szSubOptPropName;
+	const char*		szSubOptCmdName;
+	const CmdParam*	pOptsParams;
+	int				nOptsParamCount;
+};
+
 class FilterParam
 {
 public:
@@ -171,6 +182,12 @@ public:
 	virtual ~CmdBuilder() {}
 	virtual bool Build(std::string& szCmdLine) = 0;
 };
+
+bool BuildCmdOption(std::string& option, const CmdParam* pParam, const char* sep, PropMap* pPropMap);
+bool BuildOptions(std::string& szCodecOpts, const CmdParam* pParams, int n, const char* sepInterOpt, 
+				  const char* sepOptKeyVal, PropMap* pPropMap);
+bool BuildSubOptions(std::string& option, const SubOptsParam* pSubOptParam, PropMap* pPropMap);
+bool BuildSubOptions(std::string& option, const SubOptsParam* pSubOptParam, int n, PropMap* pPropMap);
 
 bool ParseSize(const std::string& str, int& w, int& h);
 

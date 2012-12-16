@@ -21,8 +21,8 @@ static char THIS_FILE[]=__FILE__;
 
 static const CmdParam ipodParams[] = 
 {
-	{"-ss",			COF_OPTIONAL,		SEEK_TIME,		NULL		},
-	{"-endpos",		COF_OPTIONAL,		END_TIME,		NULL		},
+	{"-ss",			COF_OPTIONAL,		SEEK_TIME,		"0"			},
+	{"-endpos",		COF_OPTIONAL,		END_TIME,		"20"		},
 	{"-mc",			COF_DEFAULT,		MAX_AV_SYNC,	"0"			},
 	{"-noskip",		COF_FLAG_TYPE,		NO_SKIP,		NULL		},
 	{"-sws",		COF_OPTIONAL,		SWS,			NULL		},
@@ -37,12 +37,10 @@ static const CmdParam ipodParams[] =
 	{"-ofps",		COF_DEFAULT,		OFPS,			NULL		},
 
 	{"-oac",		COF_DEFAULT,		OAC,			NULL		},
-	//TODO: ac options?
 	{NULL,			COF_SUB_SET,		OAC_OPTS,		NULL		},
 
 	{"-ovc",		COF_DEFAULT,		OVC,			NULL		},
 	{"-ffourcc",	COF_OPTIONAL,		FOURCC,			NULL		},
-	//TODO: vc options?
 	{NULL,			COF_SUB_SET,		OVC_OPTS,		NULL		},
 
 	{"-o",			COF_DEFAULT,		OFILE,			NULL		}
