@@ -17,74 +17,6 @@ static char THIS_FILE[]=__FILE__;
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-#ifndef PATH_SEP
-#define PATH_SEP	"\\"
-#endif
-
-#ifndef ARG_SEP
-#define ARG_SEP		" "
-#endif
-
-//-lavcopts vcodec=mpeg4:mbd=2:trell:autoaspect:vbitrate=512:vhq
-#ifndef PROP_SEP
-#define PROP_SEP	"="
-#endif
-
-//-lavcopts vcodec=mpeg4:mbd=2:trell:autoaspect:vbitrate=512:vhq
-#ifndef OPTION_SEP
-#define OPTION_SEP	":"
-#endif
-
-//-vf-add scale=480:272,harddup
-#ifndef	FILTER_SEP
-#define FILTER_SEP	","
-#endif
-
-#define SEEK_TIME			"SeekTime"
-#define END_TIME			"EndTime"
-#define MAX_AV_SYNC			"MaxAVSync"
-#define NO_SKIP				"NoSkip"
-#define SWS					"SWS"
-#define AUDIO_FILTER		"AudioFilter"
-#define VIDEO_FILTER		"VideoFilter"
-#define VIDEO_SIZE			"Video Size"
-#define VIDEO_WIDTH			"VideoWidth"
-#define VIDEO_HEIGHT		"VideoHeight"
-#define OSRATE				"OutputSampleRate"
-#define OFPS				"OFPS"
-#define OAC					"OAC"
-#define OAC_OPTS			"__OACOpts__"
-#define OVC					"OVC"
-#define OVC_OPTS			"__OVCOpts__"
-#define FOURCC				"FourCC"
-
-#define OUT_FORMAT			"OutputFormat"
-#define OF_OPTS				"__OFOpts__"
-
-#define IFILE				"InputFile"
-#define OFILE				"OutputFile"
-
-#define VIDEO_BITRATE		"VideoBitrate"
-#define AUDIO_BITRATE		"AudioBitrate"
-#define MAX_B_FRAMES		"MaxBFrames"
-
-/*
-class OptionParam
-{
-public:
-const char*		szID;
-const char*		szName;
-const char*		szValue;
-const char*		szNameValueSep;
-const char*		szSubOptionSep;
-int				nEvaluateMode;
-int				nEvaluateFlag;
-
-OptionParam*	pSubOptions;
-int				nSubOptionCount;
-};
-*/
-
 static const OptionParam xvidParam1[] = 
 {
 	{VIDEO_BITRATE,	"bitrate",		"687",		PROP_SEP,	NULL,		OPTEM_DEFAULT,		OPT_CONFIGURABLE | OPTEF_MUST,	NULL},
@@ -123,48 +55,257 @@ static const OptionParam mpeg4Param1[] =
 	{NULL,			"trell",	"",			NULL,		NULL,		OPTEM_NAME_ONLY,	OPTEF_SELF,			NULL},
 	{NULL,			"autoaspect","",		NULL,		NULL,		OPTEM_NAME_ONLY,	OPTEF_SELF,			NULL},
 	{FOURCC,		NULL,		"DIVX",		NULL,		NULL,		MAKE_OPT_MODE(OPTEM_SET_CONTEXT, OPT_FIELD_VALUE, CONTEXT_VALUE),	OPTEF_NONE,			NULL},
-	{OVC,			"lavc",		NULL,		NULL,		NULL,		MAKE_OPT_MODE(OPTEM_SET_CONTEXT, OPT_FIELD_NAME, CONTEXT_VALUE),		OPTEF_NONE,		NULL}
+	{OVC,			"lavc",		NULL,		NULL,		NULL,		MAKE_OPT_MODE(OPTEM_SET_CONTEXT, OPT_FIELD_NAME, CONTEXT_VALUE),		OPTEF_NONE,		NULL},
+	{OVC_OPTS,		"-lavcopts",	NULL,		NULL,		NULL,		
+	MAKE_OPT_MODE(OPTEM_SET_PARENT, OPT_FIELD_NAME, OPT_FIELD_NAME),	OPTEF_NONE,			NULL}
 };
 
-static const NamedOptionGroup groups[] = 
+static const NamedOptionParamList ovc_opts_groups[] = 
 {
 	{"xvid",	xvidParam1, ARRAY_LEN(xvidParam1)},
 	{"x264",	x264Param1, ARRAY_LEN(x264Param1)},
 	{"mpeg4",	mpeg4Param1, ARRAY_LEN(mpeg4Param1)}
 };
 
-static const ChoiceOptionParam choiceOption =
+static const ChoiceOptionParamList ovc_opts_choices =
 {
 	SOT_CHOICE,
 	OVC,
-	groups,
-	ARRAY_LEN(groups)
+	ovc_opts_groups,
+	ARRAY_LEN(ovc_opts_groups)
 };
 
-//static const ChoiceOptionParam 
-static const OptionParam mencoderParam1[] = 
+//-oac faac -faacopts br=128:mpeg=4:object=2
+static const OptionParam oac_aac_opt_param[] = 
+{
+	{AUDIO_BITRATE, "br",	"128", 	PROP_SEP, NULL, OPTEM_DEFAULT, OPT_CONFIGURABLE, NULL},
+	{NULL, "mpeg",	"4", 	PROP_SEP, NULL, OPTEM_DEFAULT, OPTEF_SELF, NULL},
+	{NULL, "object","2", 	PROP_SEP, NULL, OPTEM_DEFAULT, OPTEF_SELF, NULL},
+	{OAC,  "faac",	NULL, 	NULL, NULL, MAKE_OPT_MODE(OPTEM_SET_CONTEXT, OPT_FIELD_NAME, CONTEXT_VALUE), OPTEF_NONE, NULL},
+	{OAC_OPTS,	"-faacopts",NULL, NULL,	NULL, MAKE_OPT_MODE(OPTEM_SET_PARENT, OPT_FIELD_NAME, OPT_FIELD_NAME), OPTEF_NONE, NULL}
+};
+
+//-oac mp3lame -lameopts abr:br=128
+static const OptionParam mp3OptsBase[] = 
+{
+	{AUDIO_BITRATE, "br",	"128", 	PROP_SEP, NULL, OPTEM_DEFAULT, OPT_CONFIGURABLE, NULL},
+	{NULL, "abr",	"", 	NULL, NULL, OPTEM_NAME_ONLY, OPTEF_SELF, NULL},
+	{OAC,  "mp3lame",	NULL, 	NULL, NULL, MAKE_OPT_MODE(OPTEM_SET_CONTEXT, OPT_FIELD_NAME, CONTEXT_VALUE), OPTEF_NONE, NULL},
+	{OAC_OPTS,	"-lameopts",NULL, NULL,	NULL, MAKE_OPT_MODE(OPTEM_SET_PARENT, OPT_FIELD_NAME, OPT_FIELD_NAME), OPTEF_NONE, NULL}
+};
+
+//-oac lavc -lavcopts acodec=ac3:abitrate=128
+static const OptionParam ac3OptsBase[] = 
+{
+	{NULL, "acodec",	"ac3", 	PROP_SEP, NULL, OPTEM_DEFAULT, OPTEF_SELF, NULL},
+	{AUDIO_BITRATE, "abitrate",	"128", 	PROP_SEP, NULL, OPTEM_DEFAULT, OPT_CONFIGURABLE, NULL},
+	{OAC,  "lavc",	NULL, 	NULL, NULL, MAKE_OPT_MODE(OPTEM_SET_CONTEXT, OPT_FIELD_NAME, CONTEXT_VALUE), OPTEF_NONE, NULL},
+	{OAC_OPTS,	"-lavcopts",NULL, NULL,	NULL, MAKE_OPT_MODE(OPTEM_SET_PARENT, OPT_FIELD_NAME, OPT_FIELD_NAME), OPTEF_NONE, NULL}
+};
+
+//-oac lavc -lavcopts acodec=mp2:abitrate=128 
+static const OptionParam mp2OptsBase[] = 
+{
+	{NULL, "acodec",	"mp2", 	PROP_SEP, NULL, OPTEM_DEFAULT, OPTEF_SELF, NULL},
+	{AUDIO_BITRATE, "abitrate",	"128", 	PROP_SEP, NULL, OPTEM_DEFAULT, OPT_CONFIGURABLE, NULL},
+	{OAC,  "lavc",	NULL, 	NULL, NULL, MAKE_OPT_MODE(OPTEM_SET_CONTEXT, OPT_FIELD_NAME, CONTEXT_VALUE), OPTEF_NONE, NULL},
+	{OAC_OPTS,	"-lavcopts",NULL, NULL,	NULL, MAKE_OPT_MODE(OPTEM_SET_PARENT, OPT_FIELD_NAME, OPT_FIELD_NAME), OPTEF_NONE, NULL}
+};
+
+//-oac lavc -lavcopts acodec=wmav1:abitrate=128 
+static const OptionParam wmav1OptsBase[] = 
+{
+	{NULL, "acodec",	"wmav1", 	PROP_SEP, NULL, OPTEM_DEFAULT, OPTEF_SELF, NULL},
+	{AUDIO_BITRATE, "abitrate",	"128", 	PROP_SEP, NULL, OPTEM_DEFAULT, OPT_CONFIGURABLE, NULL},
+	{OAC,  "lavc",	NULL, 	NULL, NULL, MAKE_OPT_MODE(OPTEM_SET_CONTEXT, OPT_FIELD_NAME, CONTEXT_VALUE), OPTEF_NONE, NULL},
+	{OAC_OPTS,	"-lavcopts",NULL, NULL,	NULL, MAKE_OPT_MODE(OPTEM_SET_PARENT, OPT_FIELD_NAME, OPT_FIELD_NAME), OPTEF_NONE, NULL}
+};
+
+//-oac lavc -lavcopts acodec=wmav1:abitrate=128 
+static const OptionParam wmav2OptsBase[] = 
+{
+	{NULL, "acodec",	"wmav2", 	PROP_SEP, NULL, OPTEM_DEFAULT, OPTEF_SELF, NULL},
+	{AUDIO_BITRATE, "abitrate",	"128", 	PROP_SEP, NULL, OPTEM_DEFAULT, OPT_CONFIGURABLE, NULL},
+	{OAC,  "lavc",	NULL, 	NULL, NULL, MAKE_OPT_MODE(OPTEM_SET_CONTEXT, OPT_FIELD_NAME, CONTEXT_VALUE), OPTEF_NONE, NULL},
+	{OAC_OPTS,	"-lavcopts",NULL, NULL,	NULL, MAKE_OPT_MODE(OPTEM_SET_PARENT, OPT_FIELD_NAME, OPT_FIELD_NAME), OPTEF_NONE, NULL}
+};
+
+static const NamedOptionParamList oac_opts_groups[] = 
+{
+	{"aac",	oac_aac_opt_param, ARRAY_LEN(oac_aac_opt_param)},
+	{"faac",	oac_aac_opt_param, ARRAY_LEN(oac_aac_opt_param)},
+	{"mp3",	mp3OptsBase, ARRAY_LEN(mp3OptsBase)},
+	{"ac3",	ac3OptsBase, ARRAY_LEN(ac3OptsBase)},
+	{"mp2",	mp2OptsBase, ARRAY_LEN(mp2OptsBase)},
+	{"wmav1",	wmav1OptsBase, ARRAY_LEN(wmav1OptsBase)},
+	{"wmav2",	wmav2OptsBase, ARRAY_LEN(wmav2OptsBase)},
+	{"pcm",	NULL, 0}
+};
+
+static const ChoiceOptionParamList oac_opts_choices =
+{
+	SOT_CHOICE,
+	OAC,
+	oac_opts_groups,
+	ARRAY_LEN(oac_opts_groups)
+};
+
+//-of mpeg -mpegopts format=dvd:tsaf:telecine -ofps 24000/1001
+static const OptionParam of_mpeg_dvd_film2NTSC_opts[] = 
+{
+	{NULL, "format","dvd", 	PROP_SEP, NULL, OPTEM_DEFAULT, OPTEF_SELF, NULL},
+	{NULL, "tsaf",	"", 	PROP_SEP, NULL, OPTEM_NAME_ONLY, OPTEF_SELF, NULL},
+	{NULL, "telecine","", 	PROP_SEP, NULL, OPTEM_NAME_ONLY, OPTEF_SELF, NULL}, /*24000/1001  fps required*/
+	{OFPS, "24000/1001",	NULL, 	NULL, NULL, MAKE_OPT_MODE(OPTEM_SET_CONTEXT, OPT_FIELD_NAME, CONTEXT_VALUE), OPTEF_NONE, NULL},
+	{OF,  "mpeg",	NULL, 	NULL, NULL, MAKE_OPT_MODE(OPTEM_SET_CONTEXT, OPT_FIELD_NAME, CONTEXT_VALUE), OPTEF_NONE, NULL},
+	{OF_OPTS,	"-mpegopts",NULL, NULL,	NULL, MAKE_OPT_MODE(OPTEM_SET_PARENT, OPT_FIELD_NAME, OPT_FIELD_NAME), OPTEF_NONE, NULL}
+};
+
+//-mpegopts format=dvd:tsaf:film2pal -ofps 24000/1001
+static const OptionParam of_mpeg_dvd_film2PAL_opts[] = 
+{
+	{NULL, "format","dvd", 	PROP_SEP, NULL, OPTEM_DEFAULT, OPTEF_SELF, NULL},
+	{NULL, "tsaf",	"", 	PROP_SEP, NULL, OPTEM_NAME_ONLY, OPTEF_SELF, NULL},
+	{NULL, "film2pal","", 	PROP_SEP, NULL, OPTEM_NAME_ONLY, OPTEF_SELF, NULL}, /*24000/1001  fps required*/
+	{OFPS, "24000/1001",	NULL, 	NULL, NULL, MAKE_OPT_MODE(OPTEM_SET_CONTEXT, OPT_FIELD_NAME, CONTEXT_VALUE), OPTEF_NONE, NULL},
+	{OF,  "mpeg",	NULL, 	NULL, NULL, MAKE_OPT_MODE(OPTEM_SET_CONTEXT, OPT_FIELD_NAME, CONTEXT_VALUE), OPTEF_NONE, NULL},
+	{OF_OPTS,	"-mpegopts",NULL, NULL,	NULL, MAKE_OPT_MODE(OPTEM_SET_PARENT, OPT_FIELD_NAME, OPT_FIELD_NAME), OPTEF_NONE, NULL}
+};
+
+//-of lavf -lavfopts format=avi
+static const OptionParam of_avi_opts[] = 
+{
+	{NULL, "format","avi", 	PROP_SEP, NULL, OPTEM_DEFAULT, OPTEF_SELF, NULL},
+	{OF,  "lavf",	NULL, 	NULL, NULL, MAKE_OPT_MODE(OPTEM_SET_CONTEXT, OPT_FIELD_NAME, CONTEXT_VALUE), OPTEF_NONE, NULL},
+	{OAC_OPTS,	"-lavfopts",NULL, NULL,	NULL, MAKE_OPT_MODE(OPTEM_SET_PARENT, OPT_FIELD_NAME, OPT_FIELD_NAME), OPTEF_NONE, NULL}
+};
+
+//-of lavf -lavfopts format=asf
+static const OptionParam of_asf_opts[] = 
+{
+	{NULL, "format","asf", 	PROP_SEP, NULL, OPTEM_DEFAULT, OPTEF_SELF, NULL},
+	{OF,  "lavf",	NULL, 	NULL, NULL, MAKE_OPT_MODE(OPTEM_SET_CONTEXT, OPT_FIELD_NAME, CONTEXT_VALUE), OPTEF_NONE, NULL},
+	{OAC_OPTS,	"-lavfopts",NULL, NULL,	NULL, MAKE_OPT_MODE(OPTEM_SET_PARENT, OPT_FIELD_NAME, OPT_FIELD_NAME), OPTEF_NONE, NULL}
+};
+
+//-of lavf -lavfopts format=matroska
+static const OptionParam of_matroska_opts[] = 
+{
+	{NULL, "format","matroska", 	PROP_SEP, NULL, OPTEM_DEFAULT, OPTEF_SELF, NULL},
+	{OF,  "lavf",	NULL, 	NULL, NULL, MAKE_OPT_MODE(OPTEM_SET_CONTEXT, OPT_FIELD_NAME, CONTEXT_VALUE), OPTEF_NONE, NULL},
+	{OAC_OPTS,	"-lavfopts",NULL, NULL,	NULL, MAKE_OPT_MODE(OPTEM_SET_PARENT, OPT_FIELD_NAME, OPT_FIELD_NAME), OPTEF_NONE, NULL}
+};
+
+//-of lavf -lavfopts format=flv
+static const OptionParam of_flv_opts[] = 
+{
+	{NULL, "format","flv", 	PROP_SEP, NULL, OPTEM_DEFAULT, OPTEF_SELF, NULL},
+	{OF,  "lavf",	NULL, 	NULL, NULL, MAKE_OPT_MODE(OPTEM_SET_CONTEXT, OPT_FIELD_NAME, CONTEXT_VALUE), OPTEF_NONE, NULL},
+	{OAC_OPTS,	"-lavfopts",NULL, NULL,	NULL, MAKE_OPT_MODE(OPTEM_SET_PARENT, OPT_FIELD_NAME, OPT_FIELD_NAME), OPTEF_NONE, NULL}
+};
+
+//-of lavf -lavfopts format=swf
+static const OptionParam of_swf_opts[] = 
+{
+	{NULL, "format","swf", 	PROP_SEP, NULL, OPTEM_DEFAULT, OPTEF_SELF, NULL},
+	{OF,  "lavf",	NULL, 	NULL, NULL, MAKE_OPT_MODE(OPTEM_SET_CONTEXT, OPT_FIELD_NAME, CONTEXT_VALUE), OPTEF_NONE, NULL},
+	{OAC_OPTS,	"-lavfopts",NULL, NULL,	NULL, MAKE_OPT_MODE(OPTEM_SET_PARENT, OPT_FIELD_NAME, OPT_FIELD_NAME), OPTEF_NONE, NULL}
+};
+
+static const NamedOptionParamList of_opts_groups[] = 
+{
+	{"dvd_film2NTSC",	of_mpeg_dvd_film2NTSC_opts, ARRAY_LEN(of_mpeg_dvd_film2NTSC_opts)},
+	{"dvd_film2PAL",	of_mpeg_dvd_film2PAL_opts, ARRAY_LEN(of_mpeg_dvd_film2PAL_opts)},
+	{"avi",	of_avi_opts, ARRAY_LEN(of_avi_opts)},
+	{"asf",	of_asf_opts, ARRAY_LEN(of_asf_opts)},
+	{"matroska",	of_matroska_opts, ARRAY_LEN(of_matroska_opts)},
+	{"flv",	of_flv_opts, ARRAY_LEN(of_flv_opts)},
+	{"swf",	of_swf_opts, ARRAY_LEN(of_swf_opts)}
+};
+
+static const ChoiceOptionParamList of_opts_choices =
+{
+	SOT_CHOICE,
+	FORCE_OF,
+	of_opts_groups,
+	ARRAY_LEN(of_opts_groups)
+};
+
+
+//-vf scale=720:-2,expand=:480:::,crop=720:480,harddup
+static const OptionParam scaleParams[] = 
+{
+	{VIDEO_WIDTH,	"w",	NULL,		PROP_SEP,	NULL,	OPTEM_VALUE_ONLY,		OPTEF_CONTEXT | OPTEF_MUST,			NULL},
+	{NULL,			"h",	"-2",		PROP_SEP,	NULL,	OPTEM_VALUE_ONLY,		OPTEF_SELF,				NULL}
+};
+
+static const DirectOptionParamList scaleOpt = 
+{
+	SOT_LIST, scaleParams, ARRAY_LEN(scaleParams)
+};
+
+static const OptionParam expandParams[] = 
+{
+	{NULL,		"w",		"",			PROP_SEP,	NULL,		OPTEM_VALUE_ONLY,		OPTEF_SELF,			NULL},
+	{VIDEO_HEIGHT,"h",		NULL,		PROP_SEP,	NULL,		OPTEM_VALUE_ONLY,		OPT_CONFIGURABLE | OPTEF_MUST,	NULL}
+// 	{NULL,		"x",		"",		PROP_SEP,	NULL,		OPTEM_VALUE_ONLY,		OPTEF_SELF,			NULL},
+// 	{NULL,		"y",		"",		PROP_SEP,	NULL,		OPTEM_VALUE_ONLY,		OPTEF_SELF,			NULL},
+// 	{NULL,		"osd",		"",		PROP_SEP,	NULL,		OPTEM_VALUE_ONLY,		OPTEF_SELF,			NULL}
+};
+
+static const DirectOptionParamList expandOpt = 
+{
+	SOT_LIST, expandParams, ARRAY_LEN(expandParams)
+};
+
+static const OptionParam cropParams[] = 
+{
+	{VIDEO_WIDTH,		"w",		NULL,		PROP_SEP,	NULL,		OPTEM_VALUE_ONLY,		OPTEF_CONTEXT | OPTEF_MUST,			NULL},
+	{VIDEO_HEIGHT,		"h",		NULL,		PROP_SEP,	NULL,		OPTEM_VALUE_ONLY,		OPTEF_CONTEXT | OPTEF_MUST,			NULL}
+};
+
+static const DirectOptionParamList cropOpt = 
+{
+	SOT_LIST, cropParams, ARRAY_LEN(cropParams)
+};
+
+static const OptionParam filterOtps[] = 
+{
+	{NULL,		"scale",		NULL,		PROP_SEP,	OPTION_SEP,		OPTEM_DEFAULT,		/*OPTEF_MUST | */OPTEF_CHILDREN,			(void*)&scaleOpt},
+	{NULL,		"expand",		NULL,		PROP_SEP,	OPTION_SEP,		OPTEM_DEFAULT,		/*OPTEF_MUST | */OPTEF_CHILDREN | OPTEF_KEEP_EMPTY,			(void*)&expandOpt},
+	{NULL,		"crop",			NULL,		PROP_SEP,	OPTION_SEP,		OPTEM_DEFAULT,		/*OPTEF_MUST | */OPTEF_CHILDREN,			(void*)&cropOpt},
+	{NULL,		"harddup",		"",		NULL,		NULL,			OPTEM_NAME_ONLY,	OPTEF_SELF,				NULL}
+};
+
+static const DirectOptionParamList vfOpts = 
+{
+	SOT_LIST, filterOtps, ARRAY_LEN(filterOtps)
+};
+
+//static const ChoiceOptionParamList 
+static const OptionParam profile1Data[] = 
 {
 	{SEEK_TIME,		"-ss",		"0",		ARG_SEP,	NULL,		OPTEM_DEFAULT,		OPT_CONFIGURABLE,	NULL},
 	{END_TIME,		"-endpos",	"20",		ARG_SEP,	NULL,		OPTEM_DEFAULT,		OPT_CONFIGURABLE,	NULL},
 	{NO_SKIP,		"-noskip",	"",			ARG_SEP,	NULL,		OPTEM_NAME_ONLY,	OPTEF_SELF,			NULL},
 	{SWS,			"-sws",		"",			ARG_SEP,	NULL,		OPTEM_DEFAULT,		OPT_CONFIGURABLE,	NULL},
 
-	{OUT_FORMAT,	"-of",		NULL,		ARG_SEP,	NULL,		OPTEM_DEFAULT,		OPTEF_CONTEXT,		NULL},
-	{OF_OPTS,		NULL,		NULL,		ARG_SEP,	OPTION_SEP,	OPTEM_DEFAULT,		OPTEF_CHILDREN,		/*TODO*/NULL},
+	{OF,			"-of",		NULL,		ARG_SEP,	NULL,		OPTEM_DEFAULT,		OPTEF_CONTEXT,		NULL},
+	{OF_OPTS,		NULL,		NULL,		ARG_SEP,	OPTION_SEP,	OPTEM_DEFAULT,		OPTEF_CHILDREN,		(void*)&of_opts_choices},
 
 	{AUDIO_FILTER,	"-af",		"volnorm",	ARG_SEP,	FILTER_SEP,	OPTEM_DEFAULT,		OPTEF_MUST | OPT_HAS_CHILDREN,	/*TODO*/NULL},
-	{VIDEO_FILTER,	"-vf",		"harddup",	ARG_SEP,	FILTER_SEP,	OPTEM_DEFAULT,		OPTEF_MUST | OPTEF_CHILDREN | OPTEF_SELF,	/*TODO*/NULL},
+	{VIDEO_FILTER,	"-vf",		"harddup",	ARG_SEP,	FILTER_SEP,	OPTEM_DEFAULT,		OPTEF_MUST | OPTEF_CHILDREN/* | OPTEF_SELF*/,	(void*)&vfOpts},
 	
 	{OSRATE,		"-srate",	NULL,		ARG_SEP,	NULL,		OPTEM_DEFAULT,		OPTEF_MUST | OPTEF_CONTEXT,		NULL},
 	{OFPS,			"-ofps",	NULL,		ARG_SEP,	NULL,		OPTEM_DEFAULT,		OPTEF_MUST | OPTEF_CONTEXT,		NULL},
 
 
 	{OAC,			"-oac",		NULL,		ARG_SEP,	NULL,		OPTEM_DEFAULT,		OPTEF_MUST | OPTEF_CONTEXT,		NULL},
-	{OAC_OPTS,		NULL,		NULL,		ARG_SEP,	OPTION_SEP,	OPTEM_DEFAULT,		OPTEF_CHILDREN,		/*TODO*/NULL},
+	{OAC_OPTS,		NULL,		NULL,		ARG_SEP,	OPTION_SEP,	OPTEM_DEFAULT,		OPTEF_CHILDREN,		(void*)&oac_opts_choices},
 
 	{OVC,			"-ovc",		NULL,		ARG_SEP,	NULL,		OPTEM_DEFAULT,		OPTEF_CONTEXT,		NULL},
 	{FOURCC,		"-ffourcc",	"",			ARG_SEP,	NULL,		OPTEM_DEFAULT,		OPT_CONFIGURABLE,	NULL},
-	{OVC_OPTS,		NULL,		NULL,		ARG_SEP,	NULL,		OPTEM_DEFAULT,		OPTEF_CHILDREN,		(void*)&choiceOption},
+	{OVC_OPTS,		NULL,		NULL,		ARG_SEP,	OPTION_SEP,	OPTEM_DEFAULT,		OPTEF_CHILDREN,		(void*)&ovc_opts_choices},
 
 	{IFILE,			"",			NULL,		ARG_SEP,	NULL,		OPTEM_VALUE_ONLY,	OPTEF_MUST | OPTEF_CONTEXT,		NULL},
 	{OFILE,			"-o",		NULL,		ARG_SEP,	NULL,		OPTEM_DEFAULT,		OPTEF_MUST | OPTEF_CONTEXT,		NULL}
@@ -186,34 +327,6 @@ bool IsParamValid(const OptionParam* pParam)
 	return true;
 }
 
-bool SomeFunc(OptionContext* pContext, DefaultOptionExp* pExp, OptionParams* pParams)
-{
-	bool bRet;
-	std::string val;
-	bRet = pContext->Get(OVC, val);
-	if(!bRet)
-	{
-		return false;
-	}
-
-	if(val.compare(0, strlen("xvid"), "xvid") == 0)
-	{
-		pParams->pSubOptions = xvidParam1;
-		pParams->nSubOptionCount = sizeof(xvidParam1)/sizeof(xvidParam1[0]);
-
-		pExp->SetOptionName("-xvidencopts");
-	}
-	else if(val.compare(0, strlen("x264"), "x264") == 0)
-	{
-		pParams->pSubOptions = x264Param1;
-		pParams->nSubOptionCount = sizeof(x264Param1)/sizeof(x264Param1[0]);
-		
-		pExp->SetOptionName("-x264opts");
-	}
-
-	return false;
-}
-
 OptionExpBuilder::OptionExpBuilder()
 {
 
@@ -224,7 +337,18 @@ OptionExpBuilder::~OptionExpBuilder()
 
 }
 
-OptionExp* OptionExpBuilder::Build(const OptionParam* pParams, int nCount)
+bool OptionExpBuilder::BuildTree(OptionContext* pContext, OptionExpTree* pTree)
+{
+	OptionExp* pRoot = BuildRoot(profile1Data, ARRAY_LEN(profile1Data), pContext);
+	if(pRoot == NULL)
+	{
+		return false;
+	}
+	pTree->SetRoot(pRoot);
+	return true;
+}
+
+OptionExp* OptionExpBuilder::BuildRoot(const OptionParam* pParams, int nCount, OptionContext* pContext)
 {
 	if(pParams == NULL || nCount <= 0)
 	{
@@ -237,90 +361,93 @@ OptionExp* OptionExpBuilder::Build(const OptionParam* pParams, int nCount)
 	OptionExp* pExp = NULL;
 	for(int i = 0; i < nCount; i++)
 	{
-		pExp = Build(&pParams[i]);
+		pExp = Build(&pParams[i], pContext);
 		pRoot->AddChild(pExp);
 	}
 
 	return pRoot;
 }
 
-OptionExp* OptionExpBuilder::Build(const OptionParam* pParam)
+bool OptionExpBuilder::ParseOptionParamArray(void* ptr, OptionContext* pContext, OptionParamList* pArray)
 {
-	if(pParam == NULL)
+	if(ptr == NULL)
 	{
-		return NULL;
+		return false;
 	}
+	int nType = *((int*)ptr);
+
+	bool bFound = true;
+	switch (nType)
+	{
+	case SOT_CHOICE:
+		{
+			ParseChoiceOptions((ChoiceOptionParamList*)ptr, pContext, pArray);
+		}
+		break;
+	case SOT_LIST:
+		{
+			DirectOptionParamList* pList = (DirectOptionParamList*)ptr;
+			pArray->pOptions = pList->pOptions;
+			pArray->nCount = pList->nOptionCount;
+		}
+		break;
+	default:
+		{
+			bFound = false;
+		}
+		break;
+	}
+	return bFound;
+}
+
+bool OptionExpBuilder::ParseChoiceOptions(ChoiceOptionParamList* ptr, OptionContext* pContext, OptionParamList* pArray)
+{
+	std::string val;
+	bool bRet = pContext->Get(ptr->szChoiceOptionID, val);
+	if(!bRet)
+	{
+		return false;
+	}
+	for(int i = 0; i < ptr->nGroupCount; i++)
+	{
+		if(val.compare(0, val.size(), ptr->pGroups[i].szName) == 0)
+		{
+			pArray->pOptions = ptr->pGroups[i].pOptions;
+			pArray->nCount = ptr->pGroups[i].nOptionCount;
+			return true;
+		}
+	}
+	return false;
+}
+
+OptionExp* OptionExpBuilder::Build(const OptionParam* pParam, OptionContext* pContext)
+{
 	if(!IsParamValid(pParam))
 	{
 		return NULL;
-	}
-// 	DefaultOptionExp* pExp = new DefaultOptionExp();
-// 	pExp->SetOptionID(pParam->szID).SetOptionName(pParam->szName).SetOptionValue(pParam->szValue);
-// 	pExp->SetNameValueSep(pParam->szNameValueSep).SetSubOptionSep(pParam->szSubOptionSep);
-// 	pExp->SetEvaluateMode(pParam->nEvaluateMode).SetEvaluateFlag(pParam->nEvaluateFlag);
-
-	if(pParam->pChildren)
-	{
-		BaseSubOptionParam* pSubOption = (BaseSubOptionParam*)pParam->pChildren;
-		if(pSubOption->nType == SOT_CHOICE)
-		{
-			ChoiceOptionExp* pExp = new ChoiceOptionExp();
-			pExp->SetField(OPT_FIELD_ID, pParam->szID).SetField(OPT_FIELD_NAME, pParam->szName);
-			pExp->SetField(OPT_FIELD_VALUE, pParam->szValue).SetField(OPT_FIELD_NAME_VALUE_SEP, pParam->szNameValueSep);
-			pExp->SetField(OPT_FIELD_SUB_OPTION_SEP, pParam->szSubOptionSep);
-
-			ChoiceOptionParam* pChoices = (ChoiceOptionParam*)pParam->pChildren;
-			pExp->SetChoiceOptionID(pChoices->szChoiceOptionID);
-
-			OptionExp* pSubExp;
-			for(int i = 0; i < pChoices->nGroupCount; i++)
-			{
-				for(int j = 0; j < pChoices->pGroups[i].nOptionCount; j++)
-				{
-					pSubExp = Build(&pChoices->pGroups[i].pOptions[j]);
-					pExp->AddChoice(pChoices->pGroups[i].szGroupName, pSubExp);
-				}
-			}
-
-			return pExp;
-		}
-		else if(pSubOption->nType == SOT_LIST)
-		{
-			DefaultOptionExp* pExp = new DefaultOptionExp();
-			pExp->SetOptionID(pParam->szID).SetOptionName(pParam->szName).SetOptionValue(pParam->szValue);
-			pExp->SetNameValueSep(pParam->szNameValueSep).SetSubOptionSep(pParam->szSubOptionSep);
-			pExp->SetEvaluateMode(pParam->nEvaluateMode).SetEvaluateFlag(pParam->nEvaluateFlag);
-
-			OptionParamList* pOptionList = (OptionParamList*)pParam->pChildren;
-			OptionExp* pSubExp;
-			for(int i = 0; i < pOptionList->nOptionCount; i++)
-			{
-				pSubExp = Build(&pOptionList->pOptions[i]);
-				if(pSubExp)
-				{
-					pExp->AddChild(pSubExp);
-				}
-			}
-
-			return pExp;
-		}
 	}
 
 	DefaultOptionExp* pExp = new DefaultOptionExp();
 	pExp->SetOptionID(pParam->szID).SetOptionName(pParam->szName).SetOptionValue(pParam->szValue);
 	pExp->SetNameValueSep(pParam->szNameValueSep).SetSubOptionSep(pParam->szSubOptionSep);
 	pExp->SetEvaluateMode(pParam->nEvaluateMode).SetEvaluateFlag(pParam->nEvaluateFlag);
-	
-	return pExp;
-	/*
-	for(int i = 0; i < pParam->nSubOptionCount; i++)
+
+	if(pParam->pChildren)
 	{
-		OptionExp* pGroupOpt = Build(&pParam->pSubOptions[i]);
-		if(pGroupOpt)
+		OptionParamList subOptions;
+		bool bRet = ParseOptionParamArray(pParam->pChildren,pContext, &subOptions);
+		if(bRet && subOptions.nCount > 0)
 		{
-			pExp->AddChild(pGroupOpt);
+			OptionExp* pChildExp;
+			for(int i = 0; i < subOptions.nCount; i++)
+			{
+				pChildExp = Build(&subOptions.pOptions[i], pContext);
+				if(pChildExp)
+				{
+					pExp->AddChild(pChildExp);
+				}
+			}
 		}
 	}
-	*/
-	//return pExp;
+	return pExp;
 }

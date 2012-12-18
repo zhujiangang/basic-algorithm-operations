@@ -122,6 +122,10 @@ SOURCE=.\OptionExpBuilder.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\OptionExpTree.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\StdAfx.cpp
 # ADD CPP /Yc"stdafx.h"
 # End Source File
@@ -156,6 +160,10 @@ SOURCE=.\OptionExp.h
 # Begin Source File
 
 SOURCE=.\OptionExpBuilder.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\OptionExpTree.h
 # End Source File
 # Begin Source File
 

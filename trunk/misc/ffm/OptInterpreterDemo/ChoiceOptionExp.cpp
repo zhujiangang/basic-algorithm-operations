@@ -32,11 +32,33 @@ ChoiceOptionExp::~ChoiceOptionExp()
 		delete m_pChoiceOptID;
 		m_pChoiceOptID = NULL;
 	}
-// 	if(m_pChoiceOptValue != NULL)
-// 	{
-// 		delete m_pChoiceOptValue;
-// 		m_pChoiceOptValue = NULL;
-// 	}
+}
+
+void ChoiceOptionExp::RemoveChildren(bool bFree)
+{
+	if(m_pChildren == NULL || m_pChildren->empty())
+	{
+		return;
+	}
+	OptionExp* pExp;
+	if(bFree)
+	{
+		for(int i = 0; i < m_pChildren->size(); i++)
+		{
+			pExp = m_pChildren->at(i);
+			delete pExp;
+		}
+		m_pChildren->clear();
+	}
+	else
+	{
+		for(int i = 0; i < m_pChildren->size(); i++)
+		{
+			pExp = m_pChildren->at(i);
+			pExp->SetParent(NULL);
+		}
+		m_pChildren->clear();
+	}
 }
 
 bool ChoiceOptionExp::SelectOptionExp(OptionContext* pContext)
