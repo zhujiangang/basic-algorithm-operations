@@ -30,26 +30,11 @@ public:
 	DefaultOptionExp& SetEvaluateMode(int nMode);
 	DefaultOptionExp& SetEvaluateFlag(int nFlag);
 
-	const char* GetOptionID();
-	const char* GetOptionName();
-	const char* GetOptionValue();
-	const char* GetNameValueSep();
-	const char* GetSubOptionSep();
-	int  GetEvaluateMode();
-	int  GeEvalueateFlag();
-
 private:
-	inline void SetStringPtr(std::string* & pStr, const char* str);
 	bool EvaluateChildren(OptionContext* pContext, std::string& szResult);
 	bool EvaluateContext(OptionContext* pContext, std::string& szResult);
 	bool EvaluateSelf(std::string& szResult);
 protected:
-	typedef	std::vector< OptionExp* >	OptionExpVec;
-// 	std::string*	m_pOptID;
-// 	std::string*	m_pOptName;
-// 	std::string*	m_pOptValue;
-// 	std::string*	m_pNameValueSep;
-// 	std::string*	m_pSubOptionSep;
 	int				m_nEvaluateMode;
 	int				m_nEvaluateFlag;
 };

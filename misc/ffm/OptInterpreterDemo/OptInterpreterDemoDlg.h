@@ -12,8 +12,9 @@
 // COptInterpreterDemoDlg dialog
 
 //#include "CompositeOptionExp.h"
-#include "DefaultOptionExp.h"
-#include "OptionContext.h"
+//#include "DefaultOptionExp.h"
+// #include "OptionContext.h"
+// #include "OptionExp.h"
 
 class COptInterpreterDemoDlg : public CDialog
 {
@@ -36,8 +37,9 @@ public:
 // Implementation
 protected:
 	HICON m_hIcon;
-	DefaultOptionExp	m_optExp;
-	OptionContext m_context;
+	//OptionExp*	m_pOptExp;
+	//DefaultOptionExp	m_optExp;
+	//OptionContext m_context;
 	// Generated message map functions
 	//{{AFX_MSG(COptInterpreterDemoDlg)
 	virtual BOOL OnInitDialog();

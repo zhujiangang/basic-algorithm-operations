@@ -22,6 +22,7 @@ public:
 	virtual bool Evaluate(OptionContext* pContext, std::string& szResult);
 
 public:
+	virtual void RemoveChildren(bool bFree = false);
 	virtual bool SelectOptionExp(OptionContext* pContext);
 
 	ChoiceOptionExp& SetChoiceOptionID(const char* str);

@@ -10,10 +10,7 @@
 #endif // _MSC_VER > 1000
 
 #include "OptionExp.h"
-#include "DefaultOptionExp.h"
-
-#define SOT_CHOICE	1
-#define SOT_LIST	2
+#include "OptionExpTree.h"
 
 class OptionParam
 {
@@ -27,17 +24,22 @@ public:
 	int				nEvaluateFlag;
 	
 	void*			pChildren;
-// 	OptionParam*	pSubOptions;
-// 	int				nSubOptionCount;
 };
 
-class BaseSubOptionParam
+enum SubOptionType
 {
-public:
-	int				nType;
+	SOT_CHOICE = 1,
+	SOT_LIST
 };
 
 class OptionParamList
+{
+public:
+	const OptionParam*	pOptions;
+	int					nCount;
+};
+
+class DirectOptionParamList
 {
 public:
 	int					nType;
@@ -45,33 +47,24 @@ public:
 	int					nOptionCount;
 };
 
-class NamedOptionGroup
+class NamedOptionParamList
 {
 public:
-	const char*		szGroupName;
+	const char*			szName;
 	const OptionParam*	pOptions;
 	int					nOptionCount;
 };
 
-class ChoiceOptionParam
+class ChoiceOptionParamList
 {
 public:
 	int				nType;
 	const char*		szChoiceOptionID;
-	const NamedOptionGroup*	pGroups;
+	const NamedOptionParamList*	pGroups;
 	int				nGroupCount;
 };
 
 bool IsParamValid(const OptionParam* pParam);
-
-class OptionParams
-{
-public:
-	const OptionParam*	pSubOptions;
-	int					nSubOptionCount;
-};
-
-bool SomeFunc(OptionContext* pContext, DefaultOptionExp* pExp, OptionParams* pParams);
 
 class OptionExpBuilder  
 {
@@ -79,8 +72,20 @@ public:
 	OptionExpBuilder();
 	virtual ~OptionExpBuilder();
 
-	virtual OptionExp* Build(const OptionParam* pParams, int nCount);
-	virtual	OptionExp* Build(const OptionParam* pParam);
+	virtual bool BuildTree(OptionContext* pContext, OptionExpTree* pTree);
+
+	//Build the option root tree
+	virtual OptionExp* BuildRoot(const OptionParam* pParams, int nCount, OptionContext* pContext);
+
+	//Build one option node
+	virtual	OptionExp* Build(const OptionParam* pParam, OptionContext* pContext);
+
+private:
+	//Parse the option parameters
+	bool ParseOptionParamArray(void* ptr, OptionContext* pContext, OptionParamList* pArray);
+
+	//Parse choice options
+	bool ParseChoiceOptions(ChoiceOptionParamList* ptr, OptionContext* pContext, OptionParamList* pArray);
 };
 
 #endif // !defined(AFX_OPTIONEXPBUILDER_H__B57E4388_32BD_4468_98CB_E247D60E4C77__INCLUDED_)

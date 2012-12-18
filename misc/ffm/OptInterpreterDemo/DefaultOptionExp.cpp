@@ -17,61 +17,10 @@ static char THIS_FILE[]=__FILE__;
 
 DefaultOptionExp::DefaultOptionExp() : m_nEvaluateMode(OPTEM_DEFAULT), m_nEvaluateFlag(OPT_HAS_CHILDREN)
 {
-// 	m_pOptID = (NULL);
-// 	m_pOptName = (NULL);
-// 	m_pOptValue = (NULL);
-// 	m_pNameValueSep = (NULL);
-// 	m_pSubOptionSep = (NULL);	
 }
 
 DefaultOptionExp::~DefaultOptionExp()
 {
-	if(m_pChildren != NULL)
-	{
-		m_pChildren->clear();
-		delete m_pChildren;
-		m_pChildren = NULL;
-	}
-	/*
-	if(m_pOptID != NULL)
-	{
-		delete m_pOptID;
-		m_pOptID = NULL;
-	}
-	if(m_pOptName != NULL)
-	{
-		delete m_pOptName;
-		m_pOptName = NULL;
-	}
-	if(m_pOptValue != NULL)
-	{
-		delete m_pOptValue;
-		m_pOptValue = NULL;
-	}
-	if(m_pNameValueSep != NULL)
-	{
-		delete m_pNameValueSep;
-		m_pNameValueSep = NULL;
-	}
-	if(m_pSubOptionSep != NULL)
-	{
-		delete m_pSubOptionSep;
-		m_pSubOptionSep = NULL;
-	}
-	*/
-	if(m_pLocalContext != NULL)
-	{
-		std::string* ptr;
-		FieldMap::iterator iter = m_pLocalContext->begin();
-		for( ; iter != m_pLocalContext->end(); iter++)
-		{
-			ptr = iter->second;
-			if(ptr != NULL)
-			{
-				delete ptr;
-			}
-		}
-	}
 }
 
 bool DefaultOptionExp::Evaluate(OptionContext* pContext, std::string& szResult)
@@ -79,6 +28,7 @@ bool DefaultOptionExp::Evaluate(OptionContext* pContext, std::string& szResult)
 	std::string val;
 	bool bRet = ((m_nEvaluateFlag & OPTEF_NONE) != 0);
 	
+	const char* szName = GetFieldStr(OPT_FIELD_NAME);
 	//1. child first
 	if(!bRet && (m_nEvaluateFlag & OPTEF_CHILDREN))
 	{
@@ -98,6 +48,7 @@ bool DefaultOptionExp::Evaluate(OptionContext* pContext, std::string& szResult)
 	szResult.erase();
 	if(!bRet)
 	{
+		//failed if the option is must
 		return ((m_nEvaluateFlag & OPTEF_MUST) == 0);
 	}
 
@@ -109,7 +60,10 @@ bool DefaultOptionExp::Evaluate(OptionContext* pContext, std::string& szResult)
 	if(nModeAction == OPTEM_NAME_ONLY)
 	{
 		std::string* ptr = GetField(OPT_FIELD_NAME);
-		ASSERT(ptr != NULL);
+		if(ptr == NULL)
+		{
+			return false;
+		}
 		szResult.assign(*ptr);
 	}
 	//value only. filter anonymous parameters, input file
@@ -123,11 +77,11 @@ bool DefaultOptionExp::Evaluate(OptionContext* pContext, std::string& szResult)
 		std::string *pOptID = GetField(OPT_FIELD_ID);
 		std::string *pFromVal = GetField(nModeFrom);
 
-		ASSERT(pFromVal);
-		if(pFromVal == NULL)
+		if(pOptID == NULL || pFromVal == NULL)
 		{
 			return false;
 		}
+
 		pContext->Put(pOptID->c_str(), pFromVal->c_str());
 	}
 	//set the context value
@@ -136,7 +90,6 @@ bool DefaultOptionExp::Evaluate(OptionContext* pContext, std::string& szResult)
 		std::string *pOptFrom = GetField(nModeFrom);
 		OptionExp* pParent = GetParent();
 
-		ASSERT(pOptFrom != NULL && pParent != NULL);
 		if(pOptFrom == NULL || pParent == NULL)
 		{
 			return false;
@@ -150,7 +103,11 @@ bool DefaultOptionExp::Evaluate(OptionContext* pContext, std::string& szResult)
 		std::string *pOptName = GetField(OPT_FIELD_NAME);
 		std::string *pNameValueSep = GetField(OPT_FIELD_NAME_VALUE_SEP);
 
-		ASSERT(pOptName != NULL && pNameValueSep != NULL);
+		if(pOptName == NULL || pNameValueSep == NULL)
+		{
+			return false;
+		}
+
 		if(!val.empty())
 		{
 			szResult.assign(*pOptName).append(*pNameValueSep).append(val);
@@ -180,12 +137,15 @@ bool DefaultOptionExp::EvaluateChildren(OptionContext* pContext, std::string& sz
 			return false;
 		}
 		
-		if(val.empty())
+		//ignore empty string if it is not allowed
+		if(val.empty() && (m_nEvaluateFlag & OPTEF_KEEP_EMPTY) == 0)
 		{
 			continue;
 		}
 
-		if(!subOption.empty())
+		//(1). option string is not empty
+		//(2). force add separator for non-first option, when empty string is allowed
+		if(!subOption.empty() || ((i > 0) && (m_nEvaluateFlag & OPTEF_KEEP_EMPTY)))
 		{
 			subOption.append(*pSubOptionSep);
 		}
@@ -211,47 +171,29 @@ bool DefaultOptionExp::EvaluateSelf(std::string& szResult)
 	return true;
 }
 
-void DefaultOptionExp::SetStringPtr(std::string* & pStr, const char* str)
-{
-	if(str == NULL)
-	{
-		return;
-	}
-	if(pStr == NULL)
-	{
-		pStr = new std::string;
-	}
-	pStr->assign(str);
-}
-
 DefaultOptionExp& DefaultOptionExp::SetOptionID(const char* str)
 {
 	OptionExp::SetField(OPT_FIELD_ID, str);
-	//SetStringPtr(m_pOptID, str);
 	return *this;
 }
 DefaultOptionExp& DefaultOptionExp::SetOptionName(const char* str)
 {
 	OptionExp::SetField(OPT_FIELD_NAME, str);
-	//SetStringPtr(m_pOptName, str);
 	return *this;
 }
 DefaultOptionExp& DefaultOptionExp::SetOptionValue(const char* str)
 {
 	OptionExp::SetField(OPT_FIELD_VALUE, str);
-	//SetStringPtr(m_pOptValue, str);
 	return *this;
 }
 DefaultOptionExp& DefaultOptionExp::SetNameValueSep(const char* sep)
 {
 	OptionExp::SetField(OPT_FIELD_NAME_VALUE_SEP, sep);
-	//SetStringPtr(m_pNameValueSep, sep);
 	return *this;
 }
 DefaultOptionExp& DefaultOptionExp::SetSubOptionSep(const char* sep)
 {
 	OptionExp::SetField(OPT_FIELD_SUB_OPTION_SEP, sep);
-	//SetStringPtr(m_pSubOptionSep, sep);
 	return *this;
 }
 
@@ -264,38 +206,4 @@ DefaultOptionExp& DefaultOptionExp::SetEvaluateFlag(int nFlag)
 {
 	m_nEvaluateFlag = nFlag;
 	return *this;
-}
-
-const char* DefaultOptionExp::GetOptionID()
-{
-	//return (m_pOptID ? m_pOptID->c_str() : NULL);
-	return GetFieldStr(OPT_FIELD_ID);
-}
-const char* DefaultOptionExp::GetOptionName()
-{
-	//return (m_pOptName ? m_pOptName->c_str() : NULL);
-	return GetFieldStr(OPT_FIELD_NAME);
-}
-const char* DefaultOptionExp::GetOptionValue()
-{
-	//return (m_pOptValue ? m_pOptValue->c_str() : NULL);
-	return GetFieldStr(OPT_FIELD_VALUE);
-}
-const char* DefaultOptionExp::GetNameValueSep()
-{
-	//return (m_pNameValueSep ? m_pNameValueSep->c_str() : NULL);
-	return GetFieldStr(OPT_FIELD_NAME_VALUE_SEP);
-}
-const char* DefaultOptionExp::GetSubOptionSep()
-{
-	//return (m_pSubOptionSep ? m_pSubOptionSep->c_str() : NULL);
-	return GetFieldStr(OPT_FIELD_SUB_OPTION_SEP);
-}
-int  DefaultOptionExp::GetEvaluateMode()
-{
-	return m_nEvaluateMode;
-}
-int  DefaultOptionExp::GeEvalueateFlag()
-{
-	return m_nEvaluateFlag;
 }

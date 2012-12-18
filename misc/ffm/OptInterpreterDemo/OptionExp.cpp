@@ -24,11 +24,33 @@ OptionExp::~OptionExp()
 {
 	if(m_pChildren != NULL)
 	{
+		OptionExp* pChild;
+		for(int i = m_pChildren->size() - 1; i >= 0; i--)
+		{
+			pChild = m_pChildren->at(i);
+			if(pChild != NULL)
+			{
+				delete pChild;
+			}
+		}
+
 		delete m_pChildren;
 		m_pChildren = NULL;
 	}
+
 	if(m_pLocalContext != NULL)
 	{
+		std::string* ptr;
+		FieldMap::iterator iter = m_pLocalContext->begin();
+		for( ; iter != m_pLocalContext->end(); iter++)
+		{
+			ptr = iter->second;
+			if(ptr != NULL)
+			{
+				delete ptr;
+			}
+		}
+
 		delete m_pLocalContext;
 		m_pLocalContext = NULL;
 	}
@@ -53,7 +75,7 @@ int OptionExp::GetChildCount()
 
 OptionExp& OptionExp::SetParent(OptionExp* pParent)
 {
-	ASSERT(m_pParent != NULL);
+	ASSERT(m_pParent == NULL);
 	m_pParent = pParent;
 	return *this;
 }
@@ -66,98 +88,6 @@ OptionExp& OptionExp::AddChild(OptionExp* pChild)
 	m_pChildren->push_back(pChild);
 	pChild->SetParent(this);
 	return *this;
-}
-
-void OptionExp::RemoveChildren(bool bFree)
-{
-	if(m_pChildren == NULL || m_pChildren->empty())
-	{
-		return;
-	}
-	OptionExp* pExp;
-	if(bFree)
-	{
-		for(int i = 0; i < m_pChildren->size(); i++)
-		{
-			pExp = m_pChildren->at(i);
-			delete pExp;
-		}
-		m_pChildren->clear();
-	}
-	else
-	{
-		for(int i = 0; i < m_pChildren->size(); i++)
-		{
-			pExp = m_pChildren->at(i);
-			pExp->SetParent(NULL);
-		}
-		m_pChildren->clear();
-	}
-}
-
-/*
-bool OptionExp::ContainsKey(const char* key)
-{
-	if(m_pLocalContext == NULL)
-	{
-		return false;
-	}
-	FieldMap::iterator iter = m_pLocalContext->find(key);
-	return iter != m_pLocalContext->end();
-}
-
-OptionExp& OptionExp::SetField(const char* key, const char* val)
-{
-	if(val == NULL)
-	{
-		return *this;
-	}
-	if(m_pLocalContext == NULL)
-	{
-		m_pLocalContext = new FieldMap;
-	}
-
-	FieldMap::iterator iter = m_pLocalContext->find(key);
-	if(iter != m_pLocalContext->end())
-	{
-		iter->second->assign(val);
-	}
-	else
-	{
-		m_pLocalContext->insert(std::make_pair<std::string, std::string*>(key, new std::string(val)));
-	}
-	return *this;
-}
-
-std::string* OptionExp::GetField(const char* key)
-{
-	if(m_pLocalContext == NULL)
-	{
-		return false;
-	}
-	FieldMap::iterator iter = m_pLocalContext->find(key);
-	if(iter == m_pLocalContext->end())
-	{
-		return false;
-	}
-	return (iter->second);
-}
-
-const char* OptionExp::GetFieldStr(const char* key)
-{
-	std::string* ptr = GetField(key);
-	return (ptr ? ptr->c_str() : NULL);
-}
-*/
-
-bool OptionExp::ContainsKey(int key)
-{
-	if(m_pLocalContext == NULL)
-	{
-		return false;
-	}
-	FieldMap::iterator iter = m_pLocalContext->find(key);
-	return iter != m_pLocalContext->end();
 }
 
 OptionExp& OptionExp::SetField(int key, const char* val)

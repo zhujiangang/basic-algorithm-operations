@@ -4,6 +4,8 @@
 #include "stdafx.h"
 #include "OptInterpreterDemo.h"
 #include "OptInterpreterDemoDlg.h"
+#include "OptionExpBuilder.h"
+#include "OptionExpTree.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -67,6 +69,7 @@ COptInterpreterDemoDlg::COptInterpreterDemoDlg(CWnd* pParent /*=NULL*/)
 	//}}AFX_DATA_INIT
 	// Note that LoadIcon does not require a subsequent DestroyIcon in Win32
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
+	//m_pOptExp = NULL;
 }
 
 void COptInterpreterDemoDlg::DoDataExchange(CDataExchange* pDX)
@@ -172,19 +175,62 @@ HCURSOR COptInterpreterDemoDlg::OnQueryDragIcon()
 
 void COptInterpreterDemoDlg::InitOptionExp()
 {
-	
 }
 
 void COptInterpreterDemoDlg::OnBtnUpdate() 
 {
-	InitOptionExp();
-	std::string szResult;
-	if(!m_optExp.Evaluate(&m_context, szResult))
+	OptionContext optContext;
+	OptionContext* pContext = &optContext;
+	
+	pContext->Put(OVC, "x264");
+	pContext->Put(VIDEO_BITRATE, "1200");
+	pContext->Put(OFPS, "25");
+	pContext->Put(OAC, "pcm");
+	pContext->Put(FORCE_OF, "flv");
+	pContext->Put(AUDIO_BITRATE, "192");
+	pContext->Put(OSRATE, "44100");
+	pContext->Put(VIDEO_WIDTH, "789");
+	pContext->Put(VIDEO_HEIGHT, "123");
+	pContext->Put(IFILE, "Input.file");
+	pContext->Put(OFILE, "Output.file");
+	
+	OptionExpBuilder builder;
+	OptionExpTree optTree;
+
+	bool bRet = builder.BuildTree(pContext, &optTree);
+	if(!bRet)
 	{
-		SetDlgItemText(IDC_EDIT_RESULT, _T("Build Failed"));
+		SetDlgItemText(IDC_EDIT_RESULT, _T("Build Option Tree Failed"));
+		return;
+	}
+
+	std::string szResult;
+	bRet = optTree.Evaluate(pContext, szResult);
+
+	if(!bRet)
+	{
+		std::string szErrorMsg;
+		bRet = pContext->Get(ERROR_STR, szErrorMsg);
+		if(!bRet)
+		{
+			szResult.append("Evaluate Failed. Error Str=NULL");
+		}
+		else
+		{
+			szResult.assign("Evaluate Failed. Error Str=").append(szErrorMsg);
+		}
+		SetDlgItemText(IDC_EDIT_RESULT, szResult.c_str());
 	}
 	else
 	{
+		std::string szErrorMsg;
+		bRet = pContext->Get(ERROR_STR, szErrorMsg);
+		if(bRet)
+		{
+			AfxTrace(_T("%s\n"), szErrorMsg.c_str());
+			szResult.append("ErrorMsg=NULL");
+		}
+
 		SetDlgItemText(IDC_EDIT_RESULT, szResult.c_str());
 	}
 }
