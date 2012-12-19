@@ -27,17 +27,6 @@ OptionExpTree::~OptionExpTree()
 	Destroy();
 }
 
-/*
-void OptionExpTree::SetRoot(OptionExp* pRoot)
-{
-	m_pRoot = pRoot;
-}
-OptionExp* OptionExpTree::GetRoot()
-{
-	return m_pRoot;
-}
-*/
-
 bool OptionExpTree::Build(OptionContext* pContext, OptionExpBuilder* pBuilder)
 {
 	if(pContext == NULL || pBuilder == NULL)

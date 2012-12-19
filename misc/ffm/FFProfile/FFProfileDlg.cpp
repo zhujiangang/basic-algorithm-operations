@@ -4,7 +4,9 @@
 #include "FFProfile.h"
 #include "FFProfileDlg.h"
 #include "PropListMgr.h"
-#include "MEncoderCmdBuilder.h"
+#include "DefaultOptionExpBuilder.h"
+#include "OptionExpTree.h"
+#include "CmdBuilder.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -201,7 +203,7 @@ void CFFProfileDlg::InitPropList()
 	pPropListMgr.Init(_T("profile.xml"));
 }
 
-void CFFProfileDlg::GetPropValue(CBCGPProp* pProp, PropMap* pPropMap)
+void CFFProfileDlg::GetPropValue(CBCGPProp* pProp, OptionContext* pPropMap)
 {
 	ASSERT(pProp);
 
@@ -211,7 +213,7 @@ void CFFProfileDlg::GetPropValue(CBCGPProp* pProp, PropMap* pPropMap)
 	szKey = pProp->GetName();
 	szVal = (const char*)((_bstr_t)val);
 	
-	pPropMap->PutProp(szKey.c_str(), szVal.c_str());
+	pPropMap->Put(szKey.c_str(), szVal.c_str());
 	AfxTrace(_T("%s=%s\n"), szKey.c_str(), szVal.c_str());
 
 	for(int i = 0; i < pProp->GetSubItemsCount(); i++)
@@ -220,7 +222,7 @@ void CFFProfileDlg::GetPropValue(CBCGPProp* pProp, PropMap* pPropMap)
 	}
 }
 
-BOOL CFFProfileDlg::GetPropMap(PropMap* pPropMap)
+BOOL CFFProfileDlg::GetPropMap(OptionContext* pPropMap)
 {
 	int n = m_wndPropList.GetPropertyCount();
 	
@@ -236,14 +238,15 @@ BOOL CFFProfileDlg::GetPropMap(PropMap* pPropMap)
 
 void CFFProfileDlg::OnBtnUpdate() 
 {
-	PropMap propMap;
-	GetPropMap(&propMap);
+	OptionContext context;
+	GetPropMap(&context);
 
-	propMap.PutProp(OFILE, "C:\\Temp\\output.avi");
+	context.Put(IFILE, "C:\\Temp\\Input.avi");
+	context.Put(OFILE, "C:\\Temp\\output.avi");
 	
 	int w, h;
 	std::string val;
-	bool bRet = propMap.GetProp(VIDEO_SIZE, val);
+	bool bRet = context.Get(VIDEO_SIZE, val);
 	if(bRet)
 	{
 		bRet = ParseSize(val, w, h);
@@ -252,18 +255,21 @@ void CFFProfileDlg::OnBtnUpdate()
 		{
 			char buf[16];
 			sprintf(buf, "%d", w);
-			propMap.PutProp(VIDEO_WIDTH, buf);
+			context.Put(VIDEO_WIDTH, buf);
 
 			sprintf(buf, "%d", h);
-			propMap.PutProp(VIDEO_HEIGHT, buf);
+			context.Put(VIDEO_HEIGHT, buf);
 		}
 	}
 
+	DefaultOptionExpBuilder builder;
 
-	MEncoderCmdBuilder mcb(&propMap);
+	MeCmdBuilder mcb;
+	mcb.SetBinFile(_T("mencoder.exe")).SetInput(_T("C:\\Temp\\Input.avi")).SetOutput(_T("C:\\Temp\\output.avi"));
+	mcb.SetOptionContext(&context).SetOptionExpBuilder(&builder);
 
 	CString szText = _T("Build Failed");
-	std::string szCmdLine;
+	cfl::tstring szCmdLine;
 	if(mcb.Build(szCmdLine))
 	{
 		szText.Format(_T("%s"), szCmdLine.c_str());

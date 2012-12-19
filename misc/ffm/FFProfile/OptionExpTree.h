@@ -18,12 +18,8 @@ public:
 	virtual ~OptionExpTree();
 
 	virtual bool Build(OptionContext* pContext, OptionExpBuilder* pBuilder);
-	virtual void Destroy();
-	
+	virtual void Destroy();	
 	virtual bool Evaluate(OptionContext* pContext, std::string& szResult);
-
-	//virtual void SetRoot(OptionExp* pRoot);
-	//virtual OptionExp* GetRoot();
 
 private:
 	bool PostEvaluateGroup(OptionContext* pContext);

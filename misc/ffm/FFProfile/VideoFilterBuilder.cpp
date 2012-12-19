@@ -16,73 +16,6 @@ static char THIS_FILE[]=__FILE__;
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-/*
-//-vf scale=720:-2,expand=:480:::,crop=720:480,harddup
-static const FilterParam scaleParams[] = 
-{
-	{COF_DEFAULT,		VIDEO_WIDTH,	NULL},
-	{COF_INTERNAL_SET,	NULL,			"-2"}
-};
-
-static const FilterParam expandParams[] = 
-{
-	{COF_INTERNAL_SET,	NULL,	""},
-	{COF_DEFAULT,		VIDEO_HEIGHT,	NULL},
-	{COF_INTERNAL_SET,	NULL,	""},
-	{COF_INTERNAL_SET,	NULL,	""},
-	{COF_INTERNAL_SET,	NULL,	""}
-};
-
-static const FilterParam cropParams[] = 
-{
-	{COF_DEFAULT,	VIDEO_WIDTH,	NULL},
-	{COF_DEFAULT,	VIDEO_HEIGHT,	NULL}
-};
-
-static const FilterParam scaleHardParams[] = 
-{
-	{COF_DEFAULT,	VIDEO_WIDTH,	NULL},
-	{COF_DEFAULT,	VIDEO_HEIGHT,	NULL}
-};
-*/
-
-//-vf scale=720:-2,expand=:480:::,crop=720:480,harddup
-static const CmdParam scaleParams[] = 
-{
-	{"w", COF_DEFAULT,		VIDEO_WIDTH,	NULL},
-	{"h", COF_INTERNAL_SET,	NULL,			"-2"}
-};
-
-static const CmdParam expandParams[] = 
-{
-	{"w", COF_INTERNAL_SET,	NULL,	""},
-	{"h", COF_DEFAULT,		VIDEO_HEIGHT,	NULL},
-	{"x", COF_INTERNAL_SET,	NULL,	""},
-	{"y", COF_INTERNAL_SET,	NULL,	""},
-	{"osd", COF_INTERNAL_SET,	NULL,	""}
-};
-
-static const CmdParam cropParams[] = 
-{
-	{"w", COF_DEFAULT,	VIDEO_WIDTH,	NULL},
-	{"h", COF_DEFAULT,	VIDEO_HEIGHT,	NULL}
-};
-
-static const CmdParam scaleHardParams[] = 
-{
-	{"w", COF_DEFAULT,	VIDEO_WIDTH,	NULL},
-	{"h", COF_DEFAULT,	VIDEO_HEIGHT,	NULL}
-};
-
-static const FilterOptsCmdParam filterOtps[] = 
-{
-	{"scale",	scaleParams, ARRAY_LEN(scaleParams) },
-	{"expand",	expandParams, ARRAY_LEN(expandParams) },
-	{"crop",	cropParams, ARRAY_LEN(cropParams) },
-//	{"scale",	scaleHardParams, ARRAY_LEN(scaleHardParams) },
-	{"harddup",	NULL, 0 },
-};
-
 VideoFilterBuilder::VideoFilterBuilder()
 {
 
@@ -95,7 +28,7 @@ VideoFilterBuilder::~VideoFilterBuilder()
 
 bool VideoFilterBuilder::Build(std::string& szCmdLine, PropMap* pPropMap)
 {
-	return Build(szCmdLine, filterOtps, ARRAY_LEN(filterOtps), pPropMap);
+	return false;
 }
 
 bool VideoFilterBuilder::Build(std::string& szCodecOpts, const FilterOptsCmdParam* pParams, int n, PropMap* pPropMap)
