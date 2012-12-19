@@ -1,16 +1,9 @@
-// OptionExpBuilder.h: interface for the OptionExpBuilder class.
-//
-//////////////////////////////////////////////////////////////////////
+#ifndef __DEFAULT_OPTION_EXP_BUILDER_H__
+#define __DEFAULT_OPTION_EXP_BUILDER_H__
 
-#if !defined(AFX_OPTIONEXPBUILDER_H__B57E4388_32BD_4468_98CB_E247D60E4C77__INCLUDED_)
-#define AFX_OPTIONEXPBUILDER_H__B57E4388_32BD_4468_98CB_E247D60E4C77__INCLUDED_
-
-#if _MSC_VER > 1000
 #pragma once
-#endif // _MSC_VER > 1000
 
 #include "OptionExp.h"
-#include "OptionExpTree.h"
 
 class OptionParam
 {
@@ -66,26 +59,27 @@ public:
 
 bool IsParamValid(const OptionParam* pParam);
 
-class OptionExpBuilder  
+class DefaultOptionExpBuilder : public OptionExpBuilder
 {
 public:
-	OptionExpBuilder();
-	virtual ~OptionExpBuilder();
-
-	virtual bool BuildTree(OptionContext* pContext, OptionExpTree* pTree);
-
+	DefaultOptionExpBuilder();
+	virtual ~DefaultOptionExpBuilder();
+	
+	virtual OptionExp* Build(OptionContext* pContext);
+	//virtual bool BuildTree(OptionContext* pContext, OptionExpTree* pTree);
+	
 	//Build the option root tree
 	virtual OptionExp* BuildRoot(const OptionParam* pParams, int nCount, OptionContext* pContext);
-
+	
 	//Build one option node
 	virtual	OptionExp* Build(const OptionParam* pParam, OptionContext* pContext);
-
+	
 private:
 	//Parse the option parameters
 	bool ParseOptionParamArray(void* ptr, OptionContext* pContext, OptionParamList* pArray);
-
+	
 	//Parse choice options
 	bool ParseChoiceOptions(ChoiceOptionParamList* ptr, OptionContext* pContext, OptionParamList* pArray);
 };
 
-#endif // !defined(AFX_OPTIONEXPBUILDER_H__B57E4388_32BD_4468_98CB_E247D60E4C77__INCLUDED_)
+#endif

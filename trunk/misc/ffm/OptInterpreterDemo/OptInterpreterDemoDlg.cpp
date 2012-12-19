@@ -4,7 +4,7 @@
 #include "stdafx.h"
 #include "OptInterpreterDemo.h"
 #include "OptInterpreterDemoDlg.h"
-#include "OptionExpBuilder.h"
+#include "DefaultOptionExpBuilder.h"
 #include "OptionExpTree.h"
 
 #ifdef _DEBUG
@@ -194,10 +194,9 @@ void COptInterpreterDemoDlg::OnBtnUpdate()
 	pContext->Put(IFILE, "Input.file");
 	pContext->Put(OFILE, "Output.file");
 	
-	OptionExpBuilder builder;
+	DefaultOptionExpBuilder builder;
 	OptionExpTree optTree;
-
-	bool bRet = builder.BuildTree(pContext, &optTree);
+	bool bRet = optTree.Build(pContext, &builder);
 	if(!bRet)
 	{
 		SetDlgItemText(IDC_EDIT_RESULT, _T("Build Option Tree Failed"));

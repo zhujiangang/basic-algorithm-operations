@@ -1,11 +1,6 @@
-// OptionExpBuilder.cpp: implementation of the OptionExpBuilder class.
-//
-//////////////////////////////////////////////////////////////////////
-
-#include "stdafx.h"
-#include "OptionExpBuilder.h"
+#include "StdAfx.h"
+#include "DefaultOptionExpBuilder.h"
 #include "DefaultOptionExp.h"
-#include "ChoiceOptionExp.h"
 
 #ifdef _DEBUG
 #undef THIS_FILE
@@ -293,7 +288,7 @@ static const OptionParam profile1Data[] =
 	{OF,			"-of",		NULL,		ARG_SEP,	NULL,		OPTEM_DEFAULT,		OPTEF_CONTEXT,		NULL},
 	{OF_OPTS,		NULL,		NULL,		ARG_SEP,	OPTION_SEP,	OPTEM_DEFAULT,		OPTEF_CHILDREN,		(void*)&of_opts_choices},
 
-	{AUDIO_FILTER,	"-af",		"volnorm",	ARG_SEP,	FILTER_SEP,	OPTEM_DEFAULT,		OPTEF_MUST | OPT_HAS_CHILDREN,	/*TODO*/NULL},
+	{AUDIO_FILTER,	"-af",		"volnorm",	ARG_SEP,	FILTER_SEP,	OPTEM_DEFAULT,		OPTEF_MUST | OPTEF_CHILDREN | OPTEF_SELF,	/*TODO*/NULL},
 	{VIDEO_FILTER,	"-vf",		"harddup",	ARG_SEP,	FILTER_SEP,	OPTEM_DEFAULT,		OPTEF_MUST | OPTEF_CHILDREN/* | OPTEF_SELF*/,	(void*)&vfOpts},
 	
 	{OSRATE,		"-srate",	NULL,		ARG_SEP,	NULL,		OPTEM_DEFAULT,		OPTEF_MUST | OPTEF_CONTEXT,		NULL},
@@ -327,17 +322,24 @@ bool IsParamValid(const OptionParam* pParam)
 	return true;
 }
 
-OptionExpBuilder::OptionExpBuilder()
+DefaultOptionExpBuilder::DefaultOptionExpBuilder()
 {
 
 }
 
-OptionExpBuilder::~OptionExpBuilder()
+DefaultOptionExpBuilder::~DefaultOptionExpBuilder()
 {
 
 }
 
-bool OptionExpBuilder::BuildTree(OptionContext* pContext, OptionExpTree* pTree)
+OptionExp* DefaultOptionExpBuilder::Build(OptionContext* pContext)
+{
+	OptionExp* pRoot = BuildRoot(profile1Data, ARRAY_LEN(profile1Data), pContext);
+	return pRoot;
+}
+
+/*
+bool DefaultOptionExpBuilder::BuildTree(OptionContext* pContext, OptionExpTree* pTree)
 {
 	OptionExp* pRoot = BuildRoot(profile1Data, ARRAY_LEN(profile1Data), pContext);
 	if(pRoot == NULL)
@@ -347,8 +349,8 @@ bool OptionExpBuilder::BuildTree(OptionContext* pContext, OptionExpTree* pTree)
 	pTree->SetRoot(pRoot);
 	return true;
 }
-
-OptionExp* OptionExpBuilder::BuildRoot(const OptionParam* pParams, int nCount, OptionContext* pContext)
+*/
+OptionExp* DefaultOptionExpBuilder::BuildRoot(const OptionParam* pParams, int nCount, OptionContext* pContext)
 {
 	if(pParams == NULL || nCount <= 0)
 	{
@@ -368,7 +370,7 @@ OptionExp* OptionExpBuilder::BuildRoot(const OptionParam* pParams, int nCount, O
 	return pRoot;
 }
 
-bool OptionExpBuilder::ParseOptionParamArray(void* ptr, OptionContext* pContext, OptionParamList* pArray)
+bool DefaultOptionExpBuilder::ParseOptionParamArray(void* ptr, OptionContext* pContext, OptionParamList* pArray)
 {
 	if(ptr == NULL)
 	{
@@ -400,7 +402,7 @@ bool OptionExpBuilder::ParseOptionParamArray(void* ptr, OptionContext* pContext,
 	return bFound;
 }
 
-bool OptionExpBuilder::ParseChoiceOptions(ChoiceOptionParamList* ptr, OptionContext* pContext, OptionParamList* pArray)
+bool DefaultOptionExpBuilder::ParseChoiceOptions(ChoiceOptionParamList* ptr, OptionContext* pContext, OptionParamList* pArray)
 {
 	std::string val;
 	bool bRet = pContext->Get(ptr->szChoiceOptionID, val);
@@ -420,7 +422,7 @@ bool OptionExpBuilder::ParseChoiceOptions(ChoiceOptionParamList* ptr, OptionCont
 	return false;
 }
 
-OptionExp* OptionExpBuilder::Build(const OptionParam* pParam, OptionContext* pContext)
+OptionExp* DefaultOptionExpBuilder::Build(const OptionParam* pParam, OptionContext* pContext)
 {
 	if(!IsParamValid(pParam))
 	{

@@ -28,6 +28,9 @@
 #ifndef ARRAY_LEN
 #define ARRAY_LEN(x)	(sizeof(x)/sizeof(x[0]))
 #endif
+
+#include "OptionExpDef.h"
+
 //{{AFX_INSERT_LOCATION}}
 // Microsoft Visual C++ will insert additional declarations immediately before the previous line.
 

@@ -11,14 +11,14 @@
 /////////////////////////////////////////////////////////////////////////////
 // CFFProfileDlg dialog
 
-#include "CmdBuilder.h"
+#include "OptionContext.h"
 
 class CFFProfileDlg : public CDialog
 {
 // Construction
 public:
 	CFFProfileDlg(CWnd* pParent = NULL);	// standard constructor
-	BOOL GetPropMap(PropMap* pPropMap);
+	BOOL GetPropMap(OptionContext* pPropMap);
 
 // Dialog Data
 	//{{AFX_DATA(CFFProfileDlg)
@@ -37,7 +37,7 @@ public:
 protected:
 	HICON m_hIcon;
 	void InitPropList();
-	void GetPropValue(CBCGPProp* pProp, PropMap* pPropMap);
+	void GetPropValue(CBCGPProp* pProp, OptionContext* pPropMap);
 	// Generated message map functions
 	//{{AFX_MSG(CFFProfileDlg)
 	virtual BOOL OnInitDialog();

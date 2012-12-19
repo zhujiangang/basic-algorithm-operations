@@ -4,7 +4,7 @@
 
 # TARGTYPE "Win32 (x86) Application" 0x0101
 
-CFG=FFProfile - Win32 Debug
+CFG=FFProfile - Win32 UniDebug
 !MESSAGE This is not a valid makefile. To build this project using NMAKE,
 !MESSAGE use the Export Makefile command and run
 !MESSAGE 
@@ -13,12 +13,13 @@ CFG=FFProfile - Win32 Debug
 !MESSAGE You can specify a configuration when running NMAKE
 !MESSAGE by defining the macro CFG on the command line. For example:
 !MESSAGE 
-!MESSAGE NMAKE /f "FFProfile.mak" CFG="FFProfile - Win32 Debug"
+!MESSAGE NMAKE /f "FFProfile.mak" CFG="FFProfile - Win32 UniDebug"
 !MESSAGE 
 !MESSAGE Possible choices for configuration are:
 !MESSAGE 
 !MESSAGE "FFProfile - Win32 Release" (based on "Win32 (x86) Application")
 !MESSAGE "FFProfile - Win32 Debug" (based on "Win32 (x86) Application")
+!MESSAGE "FFProfile - Win32 UniDebug" (based on "Win32 (x86) Application")
 !MESSAGE 
 
 # Begin Project
@@ -68,7 +69,7 @@ LINK32=link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_AFXDLL" /Yu"stdafx.h" /FD /GZ /c
-# ADD CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /I "..\..\..\..\cosps\tinyxml_2_5_3" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_AFXDLL" /D "_MBCS" /Yu"stdafx.h" /FD /GZ /c
+# ADD CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /I "..\..\..\..\cosps\tinyxml_2_5_3" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_AFXDLL" /D "_MBCS" /D "CFLBASE_STATIC" /Yu"stdafx.h" /FD /GZ /c
 # ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x409 /d "_DEBUG" /d "_AFXDLL"
@@ -78,7 +79,34 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 /nologo /subsystem:windows /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 Shlwapi.lib tinyxmld.lib /nologo /subsystem:windows /debug /machine:I386 /pdbtype:sept /libpath:"..\..\..\..\cosps\tinyxml_2_5_3\Debug"
+# ADD LINK32 Shlwapi.lib tinyxmld.lib cflbaseSD.lib /nologo /subsystem:windows /debug /machine:I386 /pdbtype:sept /libpath:"..\..\..\..\cosps\tinyxml_2_5_3\Debug"
+
+!ELSEIF  "$(CFG)" == "FFProfile - Win32 UniDebug"
+
+# PROP BASE Use_MFC 6
+# PROP BASE Use_Debug_Libraries 1
+# PROP BASE Output_Dir "FFProfile___Win32_UniDebug"
+# PROP BASE Intermediate_Dir "FFProfile___Win32_UniDebug"
+# PROP BASE Ignore_Export_Lib 0
+# PROP BASE Target_Dir ""
+# PROP Use_MFC 6
+# PROP Use_Debug_Libraries 1
+# PROP Output_Dir "UniDebug"
+# PROP Intermediate_Dir "UniDebug"
+# PROP Ignore_Export_Lib 0
+# PROP Target_Dir ""
+# ADD BASE CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /I "..\..\..\..\cosps\tinyxml_2_5_3" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_AFXDLL" /D "_MBCS" /D "CFLBASE_STATIC" /Yu"stdafx.h" /FD /GZ /c
+# ADD CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /I "..\..\..\..\cosps\tinyxml_2_5_3" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_AFXDLL" /D "_UNICODE" /D "UNICODE" /D "CFLBASE_STATIC" /Yu"stdafx.h" /FD /GZ /c
+# ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /win32
+# ADD MTL /nologo /D "_DEBUG" /mktyplib203 /win32
+# ADD BASE RSC /l 0x409 /d "_DEBUG" /d "_AFXDLL"
+# ADD RSC /l 0x409 /d "_DEBUG" /d "_AFXDLL"
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
+LINK32=link.exe
+# ADD BASE LINK32 Shlwapi.lib tinyxmld.lib cflbaseSD.lib /nologo /subsystem:windows /debug /machine:I386 /pdbtype:sept /libpath:"..\..\..\..\cosps\tinyxml_2_5_3\Debug"
+# ADD LINK32 Shlwapi.lib tinyxmld.lib cflbaseSUD.lib /nologo /subsystem:windows /debug /machine:I386 /pdbtype:sept /libpath:"..\..\..\..\cosps\tinyxml_2_5_3\Debug"
 
 !ENDIF 
 
@@ -86,24 +114,21 @@ LINK32=link.exe
 
 # Name "FFProfile - Win32 Release"
 # Name "FFProfile - Win32 Debug"
+# Name "FFProfile - Win32 UniDebug"
 # Begin Group "Source Files"
 
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
-# Begin Source File
-
-SOURCE=.\AudioCodecOptBuilder.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\AudioFilterBuilder.cpp
-# End Source File
 # Begin Source File
 
 SOURCE=.\CmdBuilder.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\FFCmdBuilder.cpp
+SOURCE=.\DefaultOptionExp.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\DefaultOptionExpBuilder.cpp
 # End Source File
 # Begin Source File
 
@@ -119,11 +144,19 @@ SOURCE=.\FFProfileDlg.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\IpodMpeg4MovieBuilder.cpp
+SOURCE=.\OptionContext.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\MEncoderCmdBuilder.cpp
+SOURCE=.\OptionExp.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\OptionExpDef.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\OptionExpTree.cpp
 # End Source File
 # Begin Source File
 
@@ -138,33 +171,21 @@ SOURCE=.\StdAfx.cpp
 
 SOURCE=.\SysConf.cpp
 # End Source File
-# Begin Source File
-
-SOURCE=.\VideoCodecOptBuilder.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\VideoFilterBuilder.cpp
-# End Source File
 # End Group
 # Begin Group "Header Files"
 
 # PROP Default_Filter "h;hpp;hxx;hm;inl"
 # Begin Source File
 
-SOURCE=.\AudioCodecOptBuilder.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\AudioFilterBuilder.h
-# End Source File
-# Begin Source File
-
 SOURCE=.\CmdBuilder.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\FFCmdBuilder.h
+SOURCE=.\DefaultOptionExp.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\DefaultOptionExpBuilder.h
 # End Source File
 # Begin Source File
 
@@ -176,11 +197,19 @@ SOURCE=.\FFProfileDlg.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\IpodMpeg4MovieBuilder.h
+SOURCE=.\OptionContext.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\MEncoderCmdBuilder.h
+SOURCE=.\OptionExp.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\OptionExpDef.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\OptionExpTree.h
 # End Source File
 # Begin Source File
 
@@ -197,14 +226,6 @@ SOURCE=.\StdAfx.h
 # Begin Source File
 
 SOURCE=.\SysConf.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\VideoCodecOptBuilder.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\VideoFilterBuilder.h
 # End Source File
 # End Group
 # Begin Group "Resource Files"

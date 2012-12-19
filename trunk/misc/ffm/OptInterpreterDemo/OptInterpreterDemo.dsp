@@ -98,6 +98,10 @@ SOURCE=.\DefaultOptionExp.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\DefaultOptionExpBuilder.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\OptInterpreterDemo.cpp
 # End Source File
 # Begin Source File
@@ -115,10 +119,6 @@ SOURCE=.\OptionContext.cpp
 # Begin Source File
 
 SOURCE=.\OptionExp.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\OptionExpBuilder.cpp
 # End Source File
 # Begin Source File
 
@@ -143,6 +143,10 @@ SOURCE=.\DefaultOptionExp.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\DefaultOptionExpBuilder.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\OptInterpreterDemo.h
 # End Source File
 # Begin Source File
@@ -156,10 +160,6 @@ SOURCE=.\OptionContext.h
 # Begin Source File
 
 SOURCE=.\OptionExp.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\OptionExpBuilder.h
 # End Source File
 # Begin Source File
 
