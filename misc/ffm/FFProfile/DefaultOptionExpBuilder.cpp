@@ -12,11 +12,122 @@ static char THIS_FILE[]=__FILE__;
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
+static bool AddNextSibling(OptionExp* pOptExp, OptionExp* pSibing)
+{
+	//add sibling at next
+	OptionExp* pParent = pOptExp->GetParent();
+	if(pParent == NULL)
+	{
+		return false;
+	}
+	int nIndex = pParent->GetIndex(pOptExp);
+	ASSERT(nIndex >= 0);
+	if(nIndex < 0)
+	{
+		return false;
+	}
+	pParent->AddChild(pSibing, nIndex + 1);
+	return true;
+}
+
+static OptionExp* GetRoot(OptionExp* pOptExp)
+{
+	OptionExp *pNode = pOptExp;
+	while(pNode != NULL)
+	{
+		if(pNode->GetParent() == NULL)
+		{
+			return pNode;
+		}
+		pNode = pNode->GetParent();
+	}
+	return NULL;
+}
+
+static OptionExp* GetNonRootAncestor(OptionExp* pOptExp)
+{
+	OptionExp *pNode = pOptExp, *pParent = pOptExp->GetParent();
+	while(pParent != NULL)
+	{
+		if(pParent->GetParent() == NULL)
+		{
+			return pNode;
+		}
+		pNode = pParent;
+		pParent = pParent->GetParent();
+	}
+	return NULL;
+}
+
+static OptionExp* FindChild(OptionExp* pOptExp, const char* name)
+{
+	const char* pChildName;
+	OptionExp* pChild;
+	for(int i = pOptExp->GetChildCount() - 1; i >= 0; i--)
+	{
+		pChild = pOptExp->GetChild(i);
+		pChildName = pChild->GetFieldStr(OPT_FIELD_NAME);
+		if(pChildName != NULL && strcmp(pChildName, name) == 0)
+		{
+			return pChild;
+		}
+	}
+	return NULL;
+}
+
+static OptionExp* FindSibling(OptionExp* pOptExp, const char* name)
+{
+	OptionExp* pParent = pOptExp->GetParent();
+	if(pParent == NULL)
+	{
+		return NULL;
+	}
+	return FindChild(pParent, name);
+}
+
+static bool PassFuncSet(OptionExp* pOptExp, OptionContext* pContext, const std::string* pVal)
+{
+	opt_msg(OPT_LL_DEBUG, "PassFuncSet called: pval = %s, name=%s\n", SafePStr(pVal), pOptExp->GetFieldStr(OPT_FIELD_NAME));
+	//only work for pass 1
+	if(pVal == NULL || pVal->compare(0, 1, "1") != 0)
+	{
+		return false;
+	}
+
+	if(FindSibling(pOptExp, "turbo") == NULL)
+	{
+		//add sibling "turbo" at next
+		DefaultOptionExp* pSibling = new DefaultOptionExp();
+		pSibling->SetOptionName("turbo").SetOptionValue("");
+		pSibling->SetEvaluateMode(OPTEM_NAME_ONLY).SetEvaluateFlag(OPTEF_SELF);
+		if(!AddNextSibling(pOptExp, pSibling))
+		{
+			delete pSibling;
+			return false;
+		}
+	}
+	
+	OptionExp* pAncestor = GetNonRootAncestor(pOptExp);
+	if(pAncestor != NULL && (FindSibling(pAncestor, "-nosound") == NULL))
+	{
+		//add sibling "-nosound" at global options
+		DefaultOptionExp* pSibling = new DefaultOptionExp();
+		pSibling->SetOptionName("-nosound").SetOptionValue("");
+		pSibling->SetEvaluateMode(OPTEM_NAME_ONLY).SetEvaluateFlag(OPTEF_SELF);
+		if(!AddNextSibling(pAncestor, pSibling))
+		{
+			delete pSibling;
+			return false;
+		}
+	}
+	return true;
+}
+
 static const OptionParam xvidParam1[] = 
 {
 	{VIDEO_BITRATE,	"bitrate",		"687",		PROP_SEP,	NULL,		OPTEM_DEFAULT,		OPT_CONFIGURABLE | OPTEF_MUST,	NULL},
 	{MAX_B_FRAMES,	"max_bframes",	"0",		PROP_SEP,	NULL,		OPTEM_DEFAULT,		OPT_CONFIGURABLE,	NULL},
-
+	{PASS,			"pass",			NULL,		PROP_SEP,	NULL,		OPTEM_DEFAULT,		OPTEF_CONTEXT | OPTEF_HAS_FUNC | OPTEF_FUNC_ONCE,PassFuncSet},
 	{OVC,			"xvid",			NULL,		NULL,		NULL,		
 	MAKE_OPT_MODE(OPTEM_SET_CONTEXT, OPT_FIELD_NAME, CONTEXT_VALUE),	OPTEF_NONE,			NULL},
 
@@ -36,6 +147,7 @@ static const OptionParam x264Param1[] =
 	{NULL,			"me",		"umh",		PROP_SEP,	NULL,		OPTEM_DEFAULT,		OPTEF_SELF,			NULL},
 	{NULL,			"trellis",	"0",		PROP_SEP,	NULL,		OPTEM_DEFAULT,		OPTEF_SELF,			NULL},
 	{NULL,			"weightp",	"0",		PROP_SEP,	NULL,		OPTEM_DEFAULT,		OPTEF_SELF,			NULL},
+	{PASS,			"pass",		NULL,		PROP_SEP,	NULL,		OPTEM_DEFAULT,		OPTEF_CONTEXT | OPTEF_HAS_FUNC | OPTEF_FUNC_ONCE,	PassFuncSet},
 	{FOURCC,		"-ffourcc",	"H264",		NULL,		NULL,		MAKE_OPT_MODE(OPTEM_SET_CONTEXT, OPT_FIELD_VALUE, CONTEXT_VALUE),	OPTEF_NONE,			NULL},
 	{OVC,			"x264",		NULL,		NULL,		NULL,		MAKE_OPT_MODE(OPTEM_SET_CONTEXT, OPT_FIELD_NAME, CONTEXT_VALUE),		OPTEF_NONE,			NULL},
 	{OVC_OPTS,		"-x264encopts",	NULL,		NULL,		NULL,		
@@ -49,6 +161,7 @@ static const OptionParam mpeg4Param1[] =
 	{NULL,			"mbd",		"2",		PROP_SEP,	NULL,		OPTEM_DEFAULT,		OPTEF_SELF,			NULL},
 	{NULL,			"trell",	"",			NULL,		NULL,		OPTEM_NAME_ONLY,	OPTEF_SELF,			NULL},
 	{NULL,			"autoaspect","",		NULL,		NULL,		OPTEM_NAME_ONLY,	OPTEF_SELF,			NULL},
+	{PASS,			"vpass",		NULL,		PROP_SEP,	NULL,		OPTEM_DEFAULT,		OPTEF_CONTEXT | OPTEF_HAS_FUNC | OPTEF_FUNC_ONCE,	PassFuncSet},
 	{FOURCC,		NULL,		"DIVX",		NULL,		NULL,		MAKE_OPT_MODE(OPTEM_SET_CONTEXT, OPT_FIELD_VALUE, CONTEXT_VALUE),	OPTEF_NONE,			NULL},
 	{OVC,			"lavc",		NULL,		NULL,		NULL,		MAKE_OPT_MODE(OPTEM_SET_CONTEXT, OPT_FIELD_NAME, CONTEXT_VALUE),		OPTEF_NONE,		NULL},
 	{OVC_OPTS,		"-lavcopts",	NULL,		NULL,		NULL,		
@@ -66,6 +179,7 @@ static const OptionParam ovc_mpeg2video_opts[] =
 	{NULL,			"vrc_buf_size",	"1835",	PROP_SEP,	NULL,		OPTEM_DEFAULT,		OPTEF_SELF,			NULL},
 	{NULL,			"vrc_maxrate",	"9800",	PROP_SEP,	NULL,		OPTEM_DEFAULT,		OPTEF_SELF,			NULL},
 	{NULL,			"vstrict",	"0",		PROP_SEP,	NULL,		OPTEM_DEFAULT,		OPTEF_SELF,			NULL},
+	{PASS,			"vpass",	NULL,		PROP_SEP,	NULL,		OPTEM_DEFAULT,		OPTEF_CONTEXT | OPTEF_HAS_FUNC | OPTEF_FUNC_ONCE,PassFuncSet},
 	{OVC,			"lavc",		NULL,		NULL,		NULL,		
 	MAKE_OPT_MODE(OPTEM_SET_CONTEXT, OPT_FIELD_NAME, CONTEXT_VALUE),		OPTEF_NONE,		NULL},
 	{OVC_OPTS,		"-lavcopts",	NULL,		NULL,		NULL,		
@@ -83,6 +197,7 @@ static const OptionParam ovc_mpeg1video_opts[] =
 	{NULL,			"vrc_buf_size",	"327",	PROP_SEP,	NULL,		OPTEM_DEFAULT,		OPTEF_SELF,			NULL},
 	{NULL,			"vrc_maxrate",	"1152",	PROP_SEP,	NULL,		OPTEM_DEFAULT,		OPTEF_SELF,			NULL},
 	{NULL,			"vstrict",	"-1",		PROP_SEP,	NULL,		OPTEM_DEFAULT,		OPTEF_SELF,			NULL},
+	{PASS,			"vpass",	NULL,		PROP_SEP,	NULL,		OPTEM_DEFAULT,		OPTEF_CONTEXT | OPTEF_HAS_FUNC | OPTEF_FUNC_ONCE,PassFuncSet},
 	{OVC,			"lavc",		NULL,		NULL,		NULL,		
 	MAKE_OPT_MODE(OPTEM_SET_CONTEXT, OPT_FIELD_NAME, CONTEXT_VALUE),		OPTEF_NONE,		NULL},
 	{OVC_OPTS,		"-lavcopts",	NULL,		NULL,		NULL,		
@@ -97,6 +212,7 @@ static const OptionParam ovc_ffvhuff_opts[] =
 	{NULL,			"context",	"1",		PROP_SEP,	NULL,		OPTEM_DEFAULT,		OPTEF_SELF,			NULL},
 	{NULL,			"vstrict",	"-1",		PROP_SEP,	NULL,		OPTEM_DEFAULT,		OPTEF_SELF,			NULL},
 	{NULL,			"autoaspect","",		NULL,		NULL,		OPTEM_NAME_ONLY,	OPTEF_SELF,			NULL},
+	{PASS,			"vpass",	NULL,		PROP_SEP,	NULL,		OPTEM_DEFAULT,		OPTEF_CONTEXT | OPTEF_HAS_FUNC | OPTEF_FUNC_ONCE,PassFuncSet},
 	{OVC,			"lavc",		NULL,		NULL,		NULL,		
 	MAKE_OPT_MODE(OPTEM_SET_CONTEXT, OPT_FIELD_NAME, CONTEXT_VALUE),		OPTEF_NONE,		NULL},
 	{OVC_OPTS,		"-lavcopts",	NULL,		NULL,		NULL,		
@@ -110,6 +226,7 @@ static const OptionParam ovc_ffv1_opts[] =
 	{NULL,			"coder",	"0",		PROP_SEP,	NULL,		OPTEM_DEFAULT,		OPTEF_SELF,			NULL},
 	{NULL,			"context",	"1",		PROP_SEP,	NULL,		OPTEM_DEFAULT,		OPTEF_SELF,			NULL},
 	{NULL,			"autoaspect","",		NULL,		NULL,		OPTEM_NAME_ONLY,	OPTEF_SELF,			NULL},
+	{PASS,			"vpass",	NULL,		PROP_SEP,	NULL,		OPTEM_DEFAULT,		OPTEF_CONTEXT | OPTEF_HAS_FUNC | OPTEF_FUNC_ONCE,PassFuncSet},
 	{OVC,			"lavc",		NULL,		NULL,		NULL,		
 	MAKE_OPT_MODE(OPTEM_SET_CONTEXT, OPT_FIELD_NAME, CONTEXT_VALUE),		OPTEF_NONE,		NULL},
 	{OVC_OPTS,		"-lavcopts",	NULL,		NULL,		NULL,		
@@ -121,6 +238,7 @@ static const OptionParam ovc_h263p_opts[] =
 	{NULL,			"vcodec",	"h263p",	PROP_SEP,	NULL,		OPTEM_DEFAULT,		OPTEF_SELF,			NULL},
 	{VIDEO_BITRATE,	"vbitrate",	"800",		PROP_SEP,	NULL,		OPTEM_DEFAULT,		OPT_CONFIGURABLE,	NULL},
 	{NULL,			"autoaspect","",		NULL,		NULL,		OPTEM_NAME_ONLY,	OPTEF_SELF,			NULL},
+	{PASS,			"vpass",	NULL,		PROP_SEP,	NULL,		OPTEM_DEFAULT,		OPTEF_CONTEXT | OPTEF_HAS_FUNC | OPTEF_FUNC_ONCE,PassFuncSet},
 	{OVC,			"lavc",		NULL,		NULL,		NULL,		
 	MAKE_OPT_MODE(OPTEM_SET_CONTEXT, OPT_FIELD_NAME, CONTEXT_VALUE),		OPTEF_NONE,		NULL},
 	{OVC_OPTS,		"-lavcopts",	NULL,		NULL,		NULL,		
@@ -132,6 +250,7 @@ static const OptionParam ovc_msmpeg4_opts[] =
 	{NULL,			"vcodec",	"msmpeg4",	PROP_SEP,	NULL,		OPTEM_DEFAULT,		OPTEF_SELF,			NULL},
 	{VIDEO_BITRATE,	"vbitrate",	"800",		PROP_SEP,	NULL,		OPTEM_DEFAULT,		OPT_CONFIGURABLE,	NULL},
 	{NULL,			"autoaspect","",		NULL,		NULL,		OPTEM_NAME_ONLY,	OPTEF_SELF,			NULL},
+	{PASS,			"vpass",	NULL,		PROP_SEP,	NULL,		OPTEM_DEFAULT,		OPTEF_CONTEXT | OPTEF_HAS_FUNC | OPTEF_FUNC_ONCE,PassFuncSet},
 	{OVC,			"lavc",		NULL,		NULL,		NULL,		
 	MAKE_OPT_MODE(OPTEM_SET_CONTEXT, OPT_FIELD_NAME, CONTEXT_VALUE),		OPTEF_NONE,		NULL},
 	{OVC_OPTS,		"-lavcopts",	NULL,		NULL,		NULL,		
@@ -143,6 +262,7 @@ static const OptionParam ovc_msmpeg4v2_opts[] =
 	{NULL,			"vcodec",	"msmpeg4v2",	PROP_SEP,	NULL,		OPTEM_DEFAULT,		OPTEF_SELF,			NULL},
 	{VIDEO_BITRATE,	"vbitrate",	"800",		PROP_SEP,	NULL,		OPTEM_DEFAULT,		OPT_CONFIGURABLE,	NULL},
 	{NULL,			"autoaspect","",		NULL,		NULL,		OPTEM_NAME_ONLY,	OPTEF_SELF,			NULL},
+	{PASS,			"vpass",	NULL,		PROP_SEP,	NULL,		OPTEM_DEFAULT,		OPTEF_CONTEXT | OPTEF_HAS_FUNC | OPTEF_FUNC_ONCE,PassFuncSet},
 	{OVC,			"lavc",		NULL,		NULL,		NULL,		
 	MAKE_OPT_MODE(OPTEM_SET_CONTEXT, OPT_FIELD_NAME, CONTEXT_VALUE),		OPTEF_NONE,		NULL},
 	{OVC_OPTS,		"-lavcopts",	NULL,		NULL,		NULL,		
@@ -154,6 +274,7 @@ static const OptionParam ovc_mjpeg_opts[] =
 	{NULL,			"vcodec",	"mjpeg",	PROP_SEP,	NULL,		OPTEM_DEFAULT,		OPTEF_SELF,			NULL},
 	{VIDEO_BITRATE,	"vbitrate",	"800",		PROP_SEP,	NULL,		OPTEM_DEFAULT,		OPT_CONFIGURABLE,	NULL},
 	{NULL,			"autoaspect","",		NULL,		NULL,		OPTEM_NAME_ONLY,	OPTEF_SELF,			NULL},
+	{PASS,			"vpass",	NULL,		PROP_SEP,	NULL,		OPTEM_DEFAULT,		OPTEF_CONTEXT | OPTEF_HAS_FUNC | OPTEF_FUNC_ONCE,PassFuncSet},
 	{OVC,			"lavc",		NULL,		NULL,		NULL,		
 	MAKE_OPT_MODE(OPTEM_SET_CONTEXT, OPT_FIELD_NAME, CONTEXT_VALUE),		OPTEF_NONE,		NULL},
 	{OVC_OPTS,		"-lavcopts",	NULL,		NULL,		NULL,		
@@ -165,6 +286,7 @@ static const OptionParam ovc_wmv1_opts[] =
 	{NULL,			"vcodec",	"wmv1",	PROP_SEP,	NULL,		OPTEM_DEFAULT,		OPTEF_SELF,			NULL},
 	{VIDEO_BITRATE,	"vbitrate",	"800",		PROP_SEP,	NULL,		OPTEM_DEFAULT,		OPT_CONFIGURABLE,	NULL},
 	{NULL,			"autoaspect","",		NULL,		NULL,		OPTEM_NAME_ONLY,	OPTEF_SELF,			NULL},
+	{PASS,			"vpass",	NULL,		PROP_SEP,	NULL,		OPTEM_DEFAULT,		OPTEF_CONTEXT | OPTEF_HAS_FUNC | OPTEF_FUNC_ONCE,PassFuncSet},
 	{OVC,			"lavc",		NULL,		NULL,		NULL,		
 	MAKE_OPT_MODE(OPTEM_SET_CONTEXT, OPT_FIELD_NAME, CONTEXT_VALUE),		OPTEF_NONE,		NULL},
 	{OVC_OPTS,		"-lavcopts",	NULL,		NULL,		NULL,		
@@ -176,6 +298,7 @@ static const OptionParam ovc_wmv2_opts[] =
 	{NULL,			"vcodec",	"wmv2",	PROP_SEP,	NULL,		OPTEM_DEFAULT,		OPTEF_SELF,			NULL},
 	{VIDEO_BITRATE,	"vbitrate",	"800",		PROP_SEP,	NULL,		OPTEM_DEFAULT,		OPT_CONFIGURABLE,	NULL},
 	{NULL,			"autoaspect","",		NULL,		NULL,		OPTEM_NAME_ONLY,	OPTEF_SELF,			NULL},
+	{PASS,			"vpass",	NULL,		PROP_SEP,	NULL,		OPTEM_DEFAULT,		OPTEF_CONTEXT | OPTEF_HAS_FUNC | OPTEF_FUNC_ONCE,PassFuncSet},
 	{OVC,			"lavc",		NULL,		NULL,		NULL,		
 	MAKE_OPT_MODE(OPTEM_SET_CONTEXT, OPT_FIELD_NAME, CONTEXT_VALUE),		OPTEF_NONE,		NULL},
 	{OVC_OPTS,		"-lavcopts",	NULL,		NULL,		NULL,		
@@ -187,6 +310,7 @@ static const OptionParam ovc_libvpx_opts[] =
 	{NULL,			"vcodec",	"libvpx",	PROP_SEP,	NULL,		OPTEM_DEFAULT,		OPTEF_SELF,			NULL},
 	{VIDEO_BITRATE,	"vbitrate",	"800",		PROP_SEP,	NULL,		OPTEM_DEFAULT,		OPT_CONFIGURABLE,	NULL},
 	{NULL,			"autoaspect","",		NULL,		NULL,		OPTEM_NAME_ONLY,	OPTEF_SELF,			NULL},
+	{PASS,			"vpass",	NULL,		PROP_SEP,	NULL,		OPTEM_DEFAULT,		OPTEF_CONTEXT | OPTEF_HAS_FUNC | OPTEF_FUNC_ONCE,PassFuncSet},
 	{FOURCC,		NULL,		"VP80",		NULL,		NULL,		
 	MAKE_OPT_MODE(OPTEM_SET_CONTEXT, OPT_FIELD_VALUE, CONTEXT_VALUE),	OPTEF_NONE,			NULL},
 	{OVC,			"lavc",		NULL,		NULL,		NULL,		
@@ -202,6 +326,7 @@ static const OptionParam ovc_flv_opts[] =
 	{NULL,			"mbd",		"2",		PROP_SEP,	NULL,		OPTEM_DEFAULT,		OPTEF_SELF,			NULL},
 	{NULL,			"trell",	"",			NULL,		NULL,		OPTEM_NAME_ONLY,	OPTEF_SELF,			NULL},
 	{NULL,			"autoaspect","",		NULL,		NULL,		OPTEM_NAME_ONLY,	OPTEF_SELF,			NULL},
+	{PASS,			"vpass",	NULL,		PROP_SEP,	NULL,		OPTEM_DEFAULT,		OPTEF_CONTEXT | OPTEF_HAS_FUNC | OPTEF_FUNC_ONCE,PassFuncSet},
 	{OVC,			"lavc",		NULL,		NULL,		NULL,		
 	MAKE_OPT_MODE(OPTEM_SET_CONTEXT, OPT_FIELD_NAME, CONTEXT_VALUE),		OPTEF_NONE,		NULL},
 	{OVC_OPTS,		"-lavcopts",	NULL,		NULL,		NULL,		
@@ -467,8 +592,9 @@ static const OptionParam profile1Data[] =
 	{FOURCC,		"-ffourcc",	"",			ARG_SEP,	NULL,		OPTEM_DEFAULT,		OPT_CONFIGURABLE,	NULL},
 	{OVC_OPTS,		NULL,		NULL,		ARG_SEP,	OPTION_SEP,	OPTEM_DEFAULT,		OPTEF_CHILDREN,		(void*)&ovc_opts_choices},
 
-//	{IFILE,			"",			NULL,		ARG_SEP,	NULL,		OPTEM_VALUE_ONLY,	OPTEF_MUST | OPTEF_CONTEXT,		NULL},
-//	{OFILE,			"-o",		NULL,		ARG_SEP,	NULL,		OPTEM_DEFAULT,		OPTEF_MUST | OPTEF_CONTEXT,		NULL}
+	{PASS_LOG_FILE,	"-passlogfile",	NULL,	ARG_SEP,	NULL,		OPTEM_DEFAULT,		OPTEF_CONTEXT,		NULL},
+	{IFILE,			"",			NULL,		ARG_SEP,	NULL,		OPTEM_VALUE_ONLY,	OPTEF_MUST | OPTEF_CONTEXT,		NULL},
+	{OFILE,			"-o",		NULL,		ARG_SEP,	NULL,		OPTEM_DEFAULT,		OPTEF_MUST | OPTEF_CONTEXT,		NULL}
 };
 
 
@@ -480,7 +606,7 @@ bool IsParamValid(const OptionParam* pParam)
 	}
 	if(pParam->szID == NULL && pParam->szName == NULL && pParam->szValue == NULL && pParam->szNameValueSep == NULL
 		&& pParam->szSubOptionSep == NULL && pParam->nEvaluateMode == 0 && pParam->nEvaluateFlag == 0
-		&& pParam->pChildren == NULL)
+		&& pParam->ptr == NULL)
 	{
 		return false;
 	}
@@ -599,21 +725,29 @@ OptionExp* DefaultOptionExpBuilder::Build(const OptionParam* pParam, OptionConte
 	pExp->SetNameValueSep(pParam->szNameValueSep).SetSubOptionSep(pParam->szSubOptionSep);
 	pExp->SetEvaluateMode(pParam->nEvaluateMode).SetEvaluateFlag(pParam->nEvaluateFlag);
 
-	if(pParam->pChildren)
+	if(pParam->ptr)
 	{
-		OptionParamList subOptions;
-		bool bRet = ParseOptionParamArray(pParam->pChildren,pContext, &subOptions);
-		if(bRet && subOptions.nCount > 0)
+		if(pParam->nEvaluateFlag & OPTEF_CHILDREN)
 		{
-			OptionExp* pChildExp;
-			for(int i = 0; i < subOptions.nCount; i++)
+			OptionParamList subOptions;
+			bool bRet = ParseOptionParamArray(pParam->ptr,pContext, &subOptions);
+			if(bRet && subOptions.nCount > 0)
 			{
-				pChildExp = Build(&subOptions.pOptions[i], pContext);
-				if(pChildExp)
+				OptionExp* pChildExp;
+				for(int i = 0; i < subOptions.nCount; i++)
 				{
-					pExp->AddChild(pChildExp);
+					pChildExp = Build(&subOptions.pOptions[i], pContext);
+					if(pChildExp)
+					{
+						pExp->AddChild(pChildExp);
+					}
 				}
 			}
+		}
+		else if(pParam->nEvaluateFlag & OPTEF_HAS_FUNC)
+		{
+			//pExp->SetFuncSet((FuncSet*)(&(pParam->ptr)));
+			pExp->SetFuncSet((FuncSet)(pParam->ptr));
 		}
 	}
 	return pExp;

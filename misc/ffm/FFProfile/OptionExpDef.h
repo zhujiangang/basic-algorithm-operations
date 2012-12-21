@@ -50,15 +50,42 @@
 #define OF					"OutputFormat"
 #define OF_OPTS				"__OFOpts__"
 
+#define PASS_LOG_FILE		"PassLogFile"
 #define IFILE				"InputFile"
 #define OFILE				"OutputFile"
 
 #define VIDEO_BITRATE		"VideoBitrate"
 #define AUDIO_BITRATE		"AudioBitrate"
 #define MAX_B_FRAMES		"MaxBFrames"
+#define PASS				"Pass"
 
 #define ERROR_STR			"__ErrorStr__"
 
+//ALL, FATAL, ERROR, WARN, INFO, DEBUG, TRACE, OFF
+enum OptLogLevel
+{
+	OPT_LL_FATAL	= 100,
+	OPT_LL_ERROR	= 200,
+	OPT_LL_WARN		= 300,
+	OPT_LL_INFO		= 400,
+	OPT_LL_DEBUG	= 500,
+	OPT_LL_TRACE	= 600,
+
+	OPT_LL_ALL		= 0x7FFFFFFF,
+	OPT_LL_OFF		= 0x80000000
+};
+
+extern int gOptLogLevel;
+
+bool IsOptLogEnabled(int level);
+void opt_msg(const char* format, ...);
+void opt_msg(int level, const char* format, ...);
+
+void wopt_msg(const wchar_t* format, ...);
+void wopt_msg(int level, const wchar_t* format, ...);
+
 bool ParseSize(const std::string& str, int& w, int& h);
+const char* SafeStr(const char* str);
+const char* SafePStr(const std::string* pstr);
 
 #endif

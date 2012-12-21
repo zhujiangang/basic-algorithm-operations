@@ -4,6 +4,7 @@
 
 #include "stdafx.h"
 #include "OptionExp.h"
+#include <algorithm>
 
 #ifdef _DEBUG
 #undef THIS_FILE
@@ -15,7 +16,7 @@ static char THIS_FILE[]=__FILE__;
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-OptionExp::OptionExp() : m_pParent(NULL), m_pChildren(NULL), m_pLocalContext(NULL)
+OptionExp::OptionExp() : m_pParent(NULL), m_pChildren(NULL), m_pPtrStrMap(NULL), m_pPtrVoidMap(NULL)
 {
 
 }
@@ -38,11 +39,11 @@ OptionExp::~OptionExp()
 		m_pChildren = NULL;
 	}
 
-	if(m_pLocalContext != NULL)
+	if(m_pPtrStrMap != NULL)
 	{
 		std::string* ptr;
-		FieldMap::iterator iter = m_pLocalContext->begin();
-		for( ; iter != m_pLocalContext->end(); iter++)
+		ips_map::iterator iter = m_pPtrStrMap->begin();
+		for( ; iter != m_pPtrStrMap->end(); iter++)
 		{
 			ptr = iter->second;
 			if(ptr != NULL)
@@ -51,8 +52,15 @@ OptionExp::~OptionExp()
 			}
 		}
 
-		delete m_pLocalContext;
-		m_pLocalContext = NULL;
+		delete m_pPtrStrMap;
+		m_pPtrStrMap = NULL;
+	}
+
+	if(m_pPtrVoidMap != NULL)
+	{
+		m_pPtrVoidMap->clear();
+		delete m_pPtrVoidMap;
+		m_pPtrVoidMap = NULL;
 	}
 }
 
@@ -73,6 +81,32 @@ int OptionExp::GetChildCount()
 	return (m_pChildren ? m_pChildren->size() : 0);
 }
 
+int OptionExp::GetIndex(OptionExp* pChild)
+{
+	if(m_pChildren == NULL || pChild == NULL)
+	{
+		return -1;
+	}
+	for(int i = 0; i < m_pChildren->size(); i++)
+	{
+		if(pChild == m_pChildren->at(i))
+		{
+			return i;
+		}
+	}
+	return -1;
+}
+
+OptionExp* OptionExp::GetRoot()
+{
+	OptionExp *pNode = this;
+	while( pNode->GetParent() != NULL)
+	{
+		pNode = pNode->GetParent();
+	}
+	return pNode;
+}
+
 OptionExp& OptionExp::SetParent(OptionExp* pParent)
 {
 	ASSERT(m_pParent == NULL);
@@ -90,46 +124,122 @@ OptionExp& OptionExp::AddChild(OptionExp* pChild)
 	return *this;
 }
 
+OptionExp& OptionExp::AddChild(OptionExp* pChild, int nIndex)
+{
+	if(m_pChildren == NULL)
+	{
+		m_pChildren = new OptionExpVec;
+	}
+	if(nIndex < 0 || nIndex >= m_pChildren->size())
+	{
+		m_pChildren->push_back(pChild);
+	}
+	else
+	{
+
+		OptionExpVec::iterator iter = m_pChildren->begin();
+		std::advance(iter, nIndex);
+		iter = m_pChildren->insert(iter, pChild);
+		ASSERT(pChild == (*iter));
+	}
+	pChild->SetParent(this);
+	return *this;
+}
+
 OptionExp& OptionExp::SetField(int key, const char* val)
+{
+	return SetFieldPtrStr(key, val);
+}
+
+std::string* OptionExp::GetField(int key)
+{
+	return GetFieldPtrStr(key);
+}
+
+const char* OptionExp::GetFieldStr(int key)
+{
+	std::string* ptr = GetFieldPtrStr(key);
+	return (ptr ? ptr->c_str() : NULL);
+}
+
+OptionExp& OptionExp::SetFieldPtrStr(int key, const char* val)
 {
 	if(val == NULL)
 	{
 		return *this;
 	}
-	if(m_pLocalContext == NULL)
+	if(m_pPtrStrMap == NULL)
 	{
-		m_pLocalContext = new FieldMap;
+		m_pPtrStrMap = new ips_map;
 	}
 	
-	FieldMap::iterator iter = m_pLocalContext->find(key);
-	if(iter != m_pLocalContext->end())
+	ips_map::iterator iter = m_pPtrStrMap->find(key);
+	if(iter != m_pPtrStrMap->end())
 	{
 		iter->second->assign(val);
 	}
 	else
 	{
-		m_pLocalContext->insert(std::make_pair<int, std::string*>(key, new std::string(val)));
+		m_pPtrStrMap->insert(std::make_pair<int, std::string*>(key, new std::string(val)));
 	}
 	return *this;
 }
-
-std::string* OptionExp::GetField(int key)
+std::string* OptionExp::GetFieldPtrStr(int key)
 {
-	if(m_pLocalContext == NULL)
+	if(m_pPtrStrMap == NULL)
 	{
-		return false;
+		return NULL;
 	}
-	FieldMap::iterator iter = m_pLocalContext->find(key);
-	if(iter == m_pLocalContext->end())
+	ips_map::iterator iter = m_pPtrStrMap->find(key);
+	if(iter == m_pPtrStrMap->end())
 	{
-		return false;
+		return NULL;
 	}
 	return (iter->second);
 }
 
-const char* OptionExp::GetFieldStr(int key)
+OptionExp& OptionExp::SetFieldPtrVoid(int key, void* val)
 {
-	std::string* ptr = GetField(key);
-	return (ptr ? ptr->c_str() : NULL);
+	if(val == NULL)
+	{
+		return *this;
+	}
+	if(m_pPtrVoidMap == NULL)
+	{
+		m_pPtrVoidMap = new ipv_map;
+	}
+	
+	ipv_map::iterator iter = m_pPtrVoidMap->find(key);
+	if(iter != m_pPtrVoidMap->end())
+	{
+		iter->second = val;
+	}
+	else
+	{
+		m_pPtrVoidMap->insert(std::make_pair<int, void*>(key, val));
+	}
+	return *this;
+}
+void* OptionExp::GetFieldPtrVoid(int key)
+{
+	if(m_pPtrVoidMap == NULL)
+	{
+		return NULL;
+	}
+	ipv_map::iterator iter = m_pPtrVoidMap->find(key);
+	if(iter == m_pPtrVoidMap->end())
+	{
+		return NULL;
+	}
+	return (iter->second);
+}
+
+OptionExp& OptionExp::SetFieldInt(int key, int val)
+{
+	return SetFieldPtrVoid(key, (void*)val);
+}
+int OptionExp::GetFieldInt(int key)
+{
+	return (int)GetFieldPtrVoid(key);
 }
 

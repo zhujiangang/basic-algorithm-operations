@@ -16,7 +16,7 @@ public:
 	int				nEvaluateMode;
 	int				nEvaluateFlag;
 	
-	void*			pChildren;
+	void*			ptr;
 };
 
 enum SubOptionType
@@ -58,6 +58,7 @@ public:
 };
 
 bool IsParamValid(const OptionParam* pParam);
+//bool PassFuncSet(OptionExp* pOptExp, OptionContext* pContext, const std::string* pVal);
 
 class DefaultOptionExpBuilder : public OptionExpBuilder
 {

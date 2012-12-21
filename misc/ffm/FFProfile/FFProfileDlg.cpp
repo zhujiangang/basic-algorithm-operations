@@ -214,7 +214,7 @@ void CFFProfileDlg::GetPropValue(CBCGPProp* pProp, OptionContext* pPropMap)
 	szVal = (const char*)((_bstr_t)val);
 	
 	pPropMap->Put(szKey.c_str(), szVal.c_str());
-	AfxTrace(_T("%s=%s\n"), szKey.c_str(), szVal.c_str());
+	opt_msg(OPT_LL_TRACE, "%s=%s\n", szKey.c_str(), szVal.c_str());
 
 	for(int i = 0; i < pProp->GetSubItemsCount(); i++)
 	{
@@ -242,7 +242,7 @@ void CFFProfileDlg::OnBtnUpdate()
 	GetPropMap(&context);
 
 	context.Put(IFILE, "C:\\Temp\\Input.avi");
-	context.Put(OFILE, "C:\\Temp\\output.avi");
+	//context.Put(OFILE, "C:\\Temp\\output.avi");
 	
 	int w, h;
 	std::string val;
@@ -264,15 +264,24 @@ void CFFProfileDlg::OnBtnUpdate()
 
 	DefaultOptionExpBuilder builder;
 
+	OptionContext mutableCxt;
 	MeCmdBuilder mcb;
-	mcb.SetBinFile(_T("mencoder.exe")).SetInput(_T("C:\\Temp\\Input.avi")).SetOutput(_T("C:\\Temp\\output.avi"));
-	mcb.SetOptionContext(&context).SetOptionExpBuilder(&builder);
-
+	mcb.SetBinFile(_T("mencoder.exe"));
+	mcb.SetOptionExpBuilder(&builder).SetOutputFolder("C:\\Temp");
+	
 	CString szText = _T("Build Failed");
 	cfl::tstring szCmdLine;
-	if(mcb.Build(szCmdLine))
+
+	for(int pass = 1; pass <= 2; pass++)
 	{
-		szText.Format(_T("%s"), szCmdLine.c_str());
+		mutableCxt = context;
+		mcb.SetPass(pass).SetOptionContext(&mutableCxt);
+
+		if(mcb.Build(szCmdLine))
+		{
+			szText.Format(_T("%s"), szCmdLine.c_str());
+			opt_msg("%s\n", szCmdLine.c_str());
+		}
+		SetDlgItemText(IDC_EDIT_RESULT, szText);
 	}
-	SetDlgItemText(IDC_EDIT_RESULT, szText);
 }

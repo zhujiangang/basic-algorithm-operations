@@ -144,6 +144,10 @@ SOURCE=.\FFProfileDlg.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\MiscUtils.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\OptionContext.cpp
 # End Source File
 # Begin Source File
@@ -194,6 +198,10 @@ SOURCE=.\FFProfile.h
 # Begin Source File
 
 SOURCE=.\FFProfileDlg.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\MiscUtils.h
 # End Source File
 # Begin Source File
 
