@@ -16,7 +16,7 @@ static char THIS_FILE[]=__FILE__;
 //////////////////////////////////////////////////////////////////////
 
 DefaultOptionExp::DefaultOptionExp() : m_nEvaluateMode(OPTEM_DEFAULT), 
-m_nEvaluateFlag(OPTEF_CHILDREN | OPTEF_CONTEXT | OPTEF_SELF)
+m_nEvaluateFlag(OPTEF_CHILDREN | OPTEF_CONTEXT | OPTEF_SELF), m_pFuncSet(NULL)
 {
 }
 
@@ -44,6 +44,16 @@ bool DefaultOptionExp::Evaluate(OptionContext* pContext, std::string& szResult)
 	if(!bRet && (m_nEvaluateFlag & OPTEF_SELF))
 	{
 		bRet = EvaluateSelf(val);
+	}
+
+	if(m_pFuncSet)
+	{
+		//only need to be called once, not called yet
+		if( (m_nEvaluateFlag & OPTEF_FUNC_ONCE) && ((GetFieldInt(OPT_FIELD_RESULT_FLAG) & OPTRF_FUNC_CALLED) == 0) )
+		{
+			(m_pFuncSet)(this, pContext, (bRet ? &val : NULL));
+			SetFieldInt(OPT_FIELD_RESULT_FLAG, GetFieldInt(OPT_FIELD_RESULT_FLAG) | OPTRF_FUNC_CALLED);
+		}		
 	}
 
 	szResult.erase();
@@ -114,6 +124,7 @@ bool DefaultOptionExp::Evaluate(OptionContext* pContext, std::string& szResult)
 			szResult.assign(*pOptName).append(*pNameValueSep).append(val);
 		}
 	}
+
 	return true;
 }
 
@@ -206,5 +217,10 @@ DefaultOptionExp& DefaultOptionExp::SetEvaluateMode(int nMode)
 DefaultOptionExp& DefaultOptionExp::SetEvaluateFlag(int nFlag)
 {
 	m_nEvaluateFlag = nFlag;
+	return *this;
+}
+DefaultOptionExp& DefaultOptionExp::SetFuncSet(FuncSet pf)
+{
+	m_pFuncSet = pf;
 	return *this;
 }

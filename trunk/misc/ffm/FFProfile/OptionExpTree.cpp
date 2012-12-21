@@ -4,6 +4,7 @@
 
 #include "stdafx.h"
 #include "OptionExpTree.h"
+#include "DefaultOptionExp.h"
 #include <stack>
 #include <list>
 
@@ -86,8 +87,11 @@ bool OptionExpTree::PostEvaluateGroup(OptionContext* pContext)
 				pChild = pExp->GetChild(i);
 				if(pChild->GetChildCount() > 0)
 				{
+					opt_msg("[stack push]: id=%s,name=%s,value=%s\n", pChild->GetFieldStr(OPT_FIELD_ID),
+						pChild->GetFieldStr(OPT_FIELD_NAME), pChild->GetFieldStr(OPT_FIELD_VALUE));
+
 					//visit
-					optExpStack.push(pExp);
+					optExpStack.push(pChild);
 
 					//update data list
 					optExpList.push_back(pChild);
@@ -102,6 +106,8 @@ bool OptionExpTree::PostEvaluateGroup(OptionContext* pContext)
 		pExp = optExpStack.top();
 		optExpStack.pop();
 
+		opt_msg("[stack  pop]: id=%s,name=%s,value=%s\n", pExp->GetFieldStr(OPT_FIELD_ID),
+						pExp->GetFieldStr(OPT_FIELD_NAME), pExp->GetFieldStr(OPT_FIELD_VALUE));
 		if(!pExp->Evaluate(pContext, val))
 		{
 			return false;
