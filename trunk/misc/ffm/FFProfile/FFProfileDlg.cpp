@@ -7,6 +7,7 @@
 #include "DefaultOptionExpBuilder.h"
 #include "OptionExpTree.h"
 #include "CmdBuilder.h"
+#include "MiscUtils.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -207,11 +208,9 @@ void CFFProfileDlg::GetPropValue(CBCGPProp* pProp, OptionContext* pPropMap)
 {
 	ASSERT(pProp);
 
-	const _variant_t& val = pProp->GetValue();
-
 	std::string szKey, szVal;
-	szKey = pProp->GetName();
-	szVal = (const char*)((_bstr_t)val);
+	szKey.assign(CFL_T2A(pProp->GetName()));
+	MiscUtils::Val2Str(pProp->GetValue(), szVal);
 	
 	pPropMap->Put(szKey.c_str(), szVal.c_str());
 	opt_msg(OPT_LL_TRACE, "%s=%s\n", szKey.c_str(), szVal.c_str());
@@ -241,7 +240,7 @@ void CFFProfileDlg::OnBtnUpdate()
 	OptionContext context;
 	GetPropMap(&context);
 
-	context.Put(IFILE, "C:\\Temp\\Input.avi");
+	context.Put(IFILE, "C:\\Temp\\生化危机5Input.avi");
 	//context.Put(OFILE, "C:\\Temp\\output.avi");
 	
 	int w, h;
@@ -267,7 +266,7 @@ void CFFProfileDlg::OnBtnUpdate()
 	OptionContext mutableCxt;
 	MeCmdBuilder mcb;
 	mcb.SetBinFile(_T("mencoder.exe"));
-	mcb.SetOptionExpBuilder(&builder).SetOutputFolder("C:\\Temp");
+	mcb.SetOptionExpBuilder(&builder).SetOutputFolder("C:\\电影");
 	
 	CString szText = _T("Build Failed");
 	cfl::tstring szCmdLine;
@@ -280,7 +279,7 @@ void CFFProfileDlg::OnBtnUpdate()
 		if(mcb.Build(szCmdLine))
 		{
 			szText.Format(_T("%s"), szCmdLine.c_str());
-			opt_msg("%s\n", szCmdLine.c_str());
+			topt_msg(OPT_LL_INFO, _T("%s\n"), szCmdLine.c_str());
 		}
 		SetDlgItemText(IDC_EDIT_RESULT, szText);
 	}

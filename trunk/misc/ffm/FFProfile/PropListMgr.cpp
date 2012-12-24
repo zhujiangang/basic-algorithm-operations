@@ -6,6 +6,7 @@
 #include "FFProfile.h"
 #include "PropListMgr.h"
 #include "tinyxml.h"
+#include "cflbase/tstring.h"
 
 #ifdef _DEBUG
 #undef THIS_FILE
@@ -71,7 +72,7 @@ BOOL CPropListMgr::Init(LPCTSTR lpXMLFile)
 
 	CString szXmlFile = lpXMLFile;
 	
-	TiXmlDocument doc( szXmlFile );
+	TiXmlDocument doc( CFL_T2A((LPCTSTR)szXmlFile) );
 	bool loadOkay = doc.LoadFile();	
 	if ( !loadOkay )
 	{
@@ -148,7 +149,7 @@ BOOL CPropListMgr::InitProp(CBCGPProp* pParentProp, TiXmlElement *pParentXml)
 			szValue = pChildElement->Attribute("value");
 			if(szValue)
 			{
-				pProp->AddOption(szValue);
+				pProp->AddOption(CFL_A2T(szValue));
 			}
 			szDefault = pChildElement->Attribute("default");
 			if(szDefault != NULL && stricmp(szDefault, "true") == 0)

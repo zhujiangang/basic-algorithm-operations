@@ -2,7 +2,7 @@
 #include "OptionExpDef.h"
 #include "cflbase/tstring.h"
 
-int gOptLogLevel = OPT_LL_DEBUG;
+int gOptLogLevel = OPT_LL_INFO;
 
 bool ParseSize(const std::string& str, int& w, int& h)
 {
@@ -58,7 +58,7 @@ void opt_msg(const char* format, ...)
 	
 	AfxTrace(_T("%s"), CFL_STRING_TO_T_STR(str));
 }
-void opt_msg(int level, const wchar_t* format, ...)
+void wopt_msg(int level, const wchar_t* format, ...)
 {
 	if(level > gOptLogLevel)
 	{
@@ -74,7 +74,7 @@ void opt_msg(int level, const wchar_t* format, ...)
 	
 	AfxTrace(_T("%s"), CFL_WSTRING_TO_T_STR(str));
 }
-void opt_msg(const wchar_t* format, ...)
+void wopt_msg(const wchar_t* format, ...)
 {
 	if(OPT_LL_DEBUG > gOptLogLevel)
 	{

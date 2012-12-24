@@ -106,9 +106,6 @@ bool MeCmdBuilder::Build(cfl::tstring& szCmdLine)
 		return false;
 	}
 
-// 	cfl::tformat(szCmdLine, _T("%s %s %s -o %s"), m_szBinFile.c_str(), CFL_STRING_TO_T_STR(szOption), 
-// 		m_szInput.c_str(), m_szOutput.c_str());
-
 	cfl::tformat(szCmdLine, _T("%s %s"), m_szBinFile.c_str(), CFL_STRING_TO_T_STR(szOption));
 
 	return true;
