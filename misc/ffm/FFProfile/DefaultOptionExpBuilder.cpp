@@ -1,6 +1,7 @@
 #include "StdAfx.h"
 #include "DefaultOptionExpBuilder.h"
 #include "DefaultOptionExp.h"
+#include "cflbase/tstring.h"
 
 #ifdef _DEBUG
 #undef THIS_FILE
@@ -674,7 +675,7 @@ bool DefaultOptionExpBuilder::ParseOptionParamArray(void* ptr, OptionContext* pC
 	{
 	case SOT_CHOICE:
 		{
-			ParseChoiceOptions((ChoiceOptionParamList*)ptr, pContext, pArray);
+			bFound = ParseChoiceOptions((ChoiceOptionParamList*)ptr, pContext, pArray);
 		}
 		break;
 	case SOT_LIST:
@@ -699,6 +700,7 @@ bool DefaultOptionExpBuilder::ParseChoiceOptions(ChoiceOptionParamList* ptr, Opt
 	bool bRet = pContext->Get(ptr->szChoiceOptionID, val);
 	if(!bRet)
 	{
+		topt_msg(OPT_LL_INFO, _T("Failed to get choice option id : %s\n"), CFL_A2T(ptr->szChoiceOptionID));
 		return false;
 	}
 	for(int i = 0; i < ptr->nGroupCount; i++)

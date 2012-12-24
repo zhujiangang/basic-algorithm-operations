@@ -19,6 +19,9 @@ public:
 		const char* szSrcFile, bool bHasQuote = true);
 	static bool BuildFullFilePath(std::string& str, const char* szOutputFolder, const char* szOutputFileName, 
 		bool bHasQuote = true);
+
+	static bool Val2Str(const _variant_t& var, std::string& str);
+	static bool Val2WStr(const _variant_t& var, std::wstring& str);
 };
 
 #endif // !defined(AFX_MISCUTILS_H__07923961_4C7C_4A13_B383_1B360615BEF9__INCLUDED_)

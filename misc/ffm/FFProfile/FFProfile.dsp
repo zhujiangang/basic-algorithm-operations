@@ -20,6 +20,7 @@ CFG=FFProfile - Win32 UniDebug
 !MESSAGE "FFProfile - Win32 Release" (based on "Win32 (x86) Application")
 !MESSAGE "FFProfile - Win32 Debug" (based on "Win32 (x86) Application")
 !MESSAGE "FFProfile - Win32 UniDebug" (based on "Win32 (x86) Application")
+!MESSAGE "FFProfile - Win32 UniRelease" (based on "Win32 (x86) Application")
 !MESSAGE 
 
 # Begin Project
@@ -43,7 +44,7 @@ RSC=rc.exe
 # PROP Intermediate_Dir "Release"
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MD /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_AFXDLL" /Yu"stdafx.h" /FD /c
-# ADD CPP /nologo /MD /W3 /GX /O2 /I "..\..\..\..\cosps\tinyxml_2_5_3" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_AFXDLL" /D "_MBCS" /Yu"stdafx.h" /FD /c
+# ADD CPP /nologo /MD /W3 /GX /O2 /I "..\..\..\..\cosps\tinyxml_2_5_3" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_AFXDLL" /D "_MBCS" /D "CFLBASE_STATIC" /Yu"stdafx.h" /FD /c
 # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x409 /d "NDEBUG" /d "_AFXDLL"
@@ -53,7 +54,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 /nologo /subsystem:windows /machine:I386
-# ADD LINK32 Shlwapi.lib tinyxml.lib /nologo /subsystem:windows /machine:I386 /libpath:"..\..\..\..\cosps\tinyxml_2_5_3\Release"
+# ADD LINK32 Shlwapi.lib tinyxml.lib cflbaseS.lib /nologo /subsystem:windows /machine:I386 /libpath:"..\..\..\..\cosps\tinyxml_2_5_3\Release"
 
 !ELSEIF  "$(CFG)" == "FFProfile - Win32 Debug"
 
@@ -106,7 +107,32 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 Shlwapi.lib tinyxmld.lib cflbaseSD.lib /nologo /subsystem:windows /debug /machine:I386 /pdbtype:sept /libpath:"..\..\..\..\cosps\tinyxml_2_5_3\Debug"
-# ADD LINK32 Shlwapi.lib tinyxmld.lib cflbaseSUD.lib /nologo /subsystem:windows /debug /machine:I386 /pdbtype:sept /libpath:"..\..\..\..\cosps\tinyxml_2_5_3\Debug"
+# ADD LINK32 Shlwapi.lib tinyxmld.lib cflbaseSUD.lib /nologo /entry:"wWinMainCRTStartup" /subsystem:windows /debug /machine:I386 /pdbtype:sept /libpath:"..\..\..\..\cosps\tinyxml_2_5_3\Debug"
+
+!ELSEIF  "$(CFG)" == "FFProfile - Win32 UniRelease"
+
+# PROP BASE Use_MFC 6
+# PROP BASE Use_Debug_Libraries 0
+# PROP BASE Output_Dir "FFProfile___Win32_UniRelease"
+# PROP BASE Intermediate_Dir "FFProfile___Win32_UniRelease"
+# PROP BASE Target_Dir ""
+# PROP Use_MFC 6
+# PROP Use_Debug_Libraries 0
+# PROP Output_Dir "UniRelease"
+# PROP Intermediate_Dir "UniRelease"
+# PROP Target_Dir ""
+# ADD BASE CPP /nologo /MD /W3 /GX /O2 /I "..\..\..\..\cosps\tinyxml_2_5_3" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_AFXDLL" /D "_MBCS" /Yu"stdafx.h" /FD /c
+# ADD CPP /nologo /MD /W3 /GX /O2 /I "..\..\..\..\cosps\tinyxml_2_5_3" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_AFXDLL" /D "_UNICODE" /D "UNICODE" /D "CFLBASE_STATIC" /Yu"stdafx.h" /FD /c
+# ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /win32
+# ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
+# ADD BASE RSC /l 0x409 /d "NDEBUG" /d "_AFXDLL"
+# ADD RSC /l 0x409 /d "NDEBUG" /d "_AFXDLL"
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
+LINK32=link.exe
+# ADD BASE LINK32 Shlwapi.lib tinyxml.lib /nologo /subsystem:windows /machine:I386 /libpath:"..\..\..\..\cosps\tinyxml_2_5_3\Release"
+# ADD LINK32 Shlwapi.lib tinyxml.lib cflbaseSU.lib /nologo /entry:"wWinMainCRTStartup" /subsystem:windows /machine:I386 /libpath:"..\..\..\..\cosps\tinyxml_2_5_3\Release"
 
 !ENDIF 
 
@@ -115,6 +141,7 @@ LINK32=link.exe
 # Name "FFProfile - Win32 Release"
 # Name "FFProfile - Win32 Debug"
 # Name "FFProfile - Win32 UniDebug"
+# Name "FFProfile - Win32 UniRelease"
 # Begin Group "Source Files"
 
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"

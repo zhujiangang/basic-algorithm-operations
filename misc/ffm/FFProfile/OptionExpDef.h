@@ -84,6 +84,12 @@ void opt_msg(int level, const char* format, ...);
 void wopt_msg(const wchar_t* format, ...);
 void wopt_msg(int level, const wchar_t* format, ...);
 
+#if defined(_UNICODE) || defined(UNICODE)
+#define topt_msg wopt_msg
+#else
+#define topt_msg opt_msg
+#endif
+
 bool ParseSize(const std::string& str, int& w, int& h);
 const char* SafeStr(const char* str);
 const char* SafePStr(const std::string* pstr);
