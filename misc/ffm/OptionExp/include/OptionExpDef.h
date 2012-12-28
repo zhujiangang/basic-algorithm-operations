@@ -35,7 +35,7 @@
 #define SWS					"SWS"
 #define AUDIO_FILTER		"AudioFilter"
 #define VIDEO_FILTER		"VideoFilter"
-#define VIDEO_SIZE			"Video Size"
+#define VIDEO_SIZE			"VideoSize"
 #define VIDEO_WIDTH			"VideoWidth"
 #define VIDEO_HEIGHT		"VideoHeight"
 #define OSRATE				"OutputSampleRate"
@@ -58,8 +58,7 @@
 #define AUDIO_BITRATE		"AudioBitrate"
 #define MAX_B_FRAMES		"MaxBFrames"
 #define PASS				"Pass"
-
-#define ERROR_STR			"__ErrorStr__"
+#define PASS_COUNT			"PassCount"
 
 //ALL, FATAL, ERROR, WARN, INFO, DEBUG, TRACE, OFF
 enum OptLogLevel

@@ -573,6 +573,7 @@ static const OptionParam profile1Data[] =
 {
 	{SEEK_TIME,		"-ss",		"0",		ARG_SEP,	NULL,		OPTEM_DEFAULT,		OPT_CONFIGURABLE,	NULL},
 	{END_TIME,		"-endpos",	"20",		ARG_SEP,	NULL,		OPTEM_DEFAULT,		OPT_CONFIGURABLE,	NULL},
+	{MAX_AV_SYNC,	"-mc",		"0",		ARG_SEP,	NULL,		OPTEM_DEFAULT,		OPTEF_SELF,			NULL},
 	{NO_SKIP,		"-noskip",	"",			ARG_SEP,	NULL,		OPTEM_NAME_ONLY,	OPTEF_SELF,			NULL},
 	{SWS,			"-sws",		"",			ARG_SEP,	NULL,		OPTEM_DEFAULT,		OPT_CONFIGURABLE,	NULL},
 

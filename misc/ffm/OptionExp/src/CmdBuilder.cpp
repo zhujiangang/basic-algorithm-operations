@@ -1,8 +1,8 @@
 #include "stdafx.h"
 #include "CmdBuilder.h"
 #include "OptionExpTree.h"
-#include "MiscUtils.h"
 #include "cflbase/tstring.h"
+#include "SysUtils.h"
 
 MeCmdBuilder::MeCmdBuilder()
 {
@@ -68,13 +68,16 @@ bool MeCmdBuilder::Build(cfl::tstring& szCmdLine)
 	{
 		return false;
 	}
+	//add quota to input file
+	cfl::format(szInFile, "\"%s\"", szInFile.c_str());
+	m_pContext->Put(IFILE, szInFile.c_str());
 
 	std::string str;
 	if(m_nPass == 1)
 	{
 		m_pContext->Put(PASS, "1");
 
-		MiscUtils::BuildFullFilePath(str, m_szOutputFolder.c_str(), "divx2pass.log", true);
+		SysUtils::BuildFullFilePath(str, m_szOutputFolder.c_str(), "divx2pass.log", true);
 		m_pContext->Put(PASS_LOG_FILE, str.c_str());
 
 		m_pContext->Put(OFILE, "NUL:");
@@ -83,15 +86,15 @@ bool MeCmdBuilder::Build(cfl::tstring& szCmdLine)
 	{
 		m_pContext->Put(PASS, "2");
 		
-		MiscUtils::BuildFullFilePath(str, m_szOutputFolder.c_str(), "divx2pass.log", true);
+		SysUtils::BuildFullFilePath(str, m_szOutputFolder.c_str(), "divx2pass.log", true);
 		m_pContext->Put(PASS_LOG_FILE, str.c_str());
 
-		MiscUtils::BuildFullFilePath(str, m_szOutputFolder.c_str(), ".avi", szInFile.c_str(), true);
+		SysUtils::BuildFullFilePath(str, m_szOutputFolder.c_str(), ".avi", szInFile.c_str(), true);
 		m_pContext->Put(OFILE, str.c_str());
 	}
 	else
 	{
-		MiscUtils::BuildFullFilePath(str, m_szOutputFolder.c_str(), ".avi", szInFile.c_str(), true);
+		SysUtils::BuildFullFilePath(str, m_szOutputFolder.c_str(), ".avi", szInFile.c_str(), true);
 		m_pContext->Put(OFILE, str.c_str());
 	}
 
@@ -106,7 +109,7 @@ bool MeCmdBuilder::Build(cfl::tstring& szCmdLine)
 		return false;
 	}
 
-	cfl::tformat(szCmdLine, _T("%s %s"), m_szBinFile.c_str(), CFL_STRING_TO_T_STR(szOption));
+	cfl::tformat(szCmdLine, _T("\"%s\" %s"), m_szBinFile.c_str(), CFL_STRING_TO_T_STR(szOption));
 
 	return true;
 }
