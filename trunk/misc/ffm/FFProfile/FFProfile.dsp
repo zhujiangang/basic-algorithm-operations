@@ -44,7 +44,7 @@ RSC=rc.exe
 # PROP Intermediate_Dir "Release"
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MD /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_AFXDLL" /Yu"stdafx.h" /FD /c
-# ADD CPP /nologo /MD /W3 /GX /O2 /I "..\..\..\..\cosps\tinyxml_2_5_3" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_AFXDLL" /D "_MBCS" /D "CFLBASE_STATIC" /Yu"stdafx.h" /FD /c
+# ADD CPP /nologo /MD /W3 /GX /O2 /I "..\..\..\..\cosps\tinyxml_2_5_3" /I "..\OptionExp\include" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_AFXDLL" /D "_MBCS" /Yu"stdafx.h" /FD /c
 # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x409 /d "NDEBUG" /d "_AFXDLL"
@@ -54,7 +54,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 /nologo /subsystem:windows /machine:I386
-# ADD LINK32 Shlwapi.lib tinyxml.lib cflbaseS.lib /nologo /subsystem:windows /machine:I386 /libpath:"..\..\..\..\cosps\tinyxml_2_5_3\Release"
+# ADD LINK32 Shlwapi.lib tinyxml.lib cflbase.lib OptionExpS.lib /nologo /subsystem:windows /machine:I386 /libpath:"..\..\..\..\cosps\tinyxml_2_5_3\Release" /libpath:"..\OptionExp\projects\vc6\OptionExpStatic\bin"
 
 !ELSEIF  "$(CFG)" == "FFProfile - Win32 Debug"
 
@@ -70,7 +70,7 @@ LINK32=link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_AFXDLL" /Yu"stdafx.h" /FD /GZ /c
-# ADD CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /I "..\..\..\..\cosps\tinyxml_2_5_3" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_AFXDLL" /D "_MBCS" /D "CFLBASE_STATIC" /Yu"stdafx.h" /FD /GZ /c
+# ADD CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /I "..\OptionExp\include" /I "..\..\..\..\cosps\tinyxml_2_5_3" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_AFXDLL" /D "_MBCS" /Yu"stdafx.h" /FD /GZ /c
 # ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x409 /d "_DEBUG" /d "_AFXDLL"
@@ -80,7 +80,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 /nologo /subsystem:windows /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 Shlwapi.lib tinyxmld.lib cflbaseSD.lib /nologo /subsystem:windows /debug /machine:I386 /pdbtype:sept /libpath:"..\..\..\..\cosps\tinyxml_2_5_3\Debug"
+# ADD LINK32 Shlwapi.lib tinyxmld.lib cflbaseD.lib OptionExpSD.lib /nologo /subsystem:windows /debug /machine:I386 /pdbtype:sept /libpath:"..\..\..\..\cosps\tinyxml_2_5_3\Debug" /libpath:"..\OptionExp\projects\vc6\OptionExpStatic\bin"
 
 !ELSEIF  "$(CFG)" == "FFProfile - Win32 UniDebug"
 
@@ -97,7 +97,7 @@ LINK32=link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /I "..\..\..\..\cosps\tinyxml_2_5_3" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_AFXDLL" /D "_MBCS" /D "CFLBASE_STATIC" /Yu"stdafx.h" /FD /GZ /c
-# ADD CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /I "..\..\..\..\cosps\tinyxml_2_5_3" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_AFXDLL" /D "_UNICODE" /D "UNICODE" /D "CFLBASE_STATIC" /Yu"stdafx.h" /FD /GZ /c
+# ADD CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /I "..\..\..\..\cosps\tinyxml_2_5_3" /I "..\OptionExp\include" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_AFXDLL" /D "_UNICODE" /D "UNICODE" /Yu"stdafx.h" /FD /GZ /c
 # ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x409 /d "_DEBUG" /d "_AFXDLL"
@@ -107,7 +107,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 Shlwapi.lib tinyxmld.lib cflbaseSD.lib /nologo /subsystem:windows /debug /machine:I386 /pdbtype:sept /libpath:"..\..\..\..\cosps\tinyxml_2_5_3\Debug"
-# ADD LINK32 Shlwapi.lib tinyxmld.lib cflbaseSUD.lib /nologo /entry:"wWinMainCRTStartup" /subsystem:windows /debug /machine:I386 /pdbtype:sept /libpath:"..\..\..\..\cosps\tinyxml_2_5_3\Debug"
+# ADD LINK32 Shlwapi.lib tinyxmld.lib cflbaseUD.lib OptionExpSUD.lib /nologo /entry:"wWinMainCRTStartup" /subsystem:windows /debug /machine:I386 /pdbtype:sept /libpath:"..\..\..\..\cosps\tinyxml_2_5_3\Debug" /libpath:"..\OptionExp\projects\vc6\OptionExpStatic\bin"
 
 !ELSEIF  "$(CFG)" == "FFProfile - Win32 UniRelease"
 
@@ -122,7 +122,7 @@ LINK32=link.exe
 # PROP Intermediate_Dir "UniRelease"
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MD /W3 /GX /O2 /I "..\..\..\..\cosps\tinyxml_2_5_3" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_AFXDLL" /D "_MBCS" /Yu"stdafx.h" /FD /c
-# ADD CPP /nologo /MD /W3 /GX /O2 /I "..\..\..\..\cosps\tinyxml_2_5_3" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_AFXDLL" /D "_UNICODE" /D "UNICODE" /D "CFLBASE_STATIC" /Yu"stdafx.h" /FD /c
+# ADD CPP /nologo /MD /W3 /GX /O2 /I "..\..\..\..\cosps\tinyxml_2_5_3" /I "..\OptionExp\include" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_AFXDLL" /D "_UNICODE" /D "UNICODE" /Yu"stdafx.h" /FD /c
 # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x409 /d "NDEBUG" /d "_AFXDLL"
@@ -132,7 +132,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 Shlwapi.lib tinyxml.lib /nologo /subsystem:windows /machine:I386 /libpath:"..\..\..\..\cosps\tinyxml_2_5_3\Release"
-# ADD LINK32 Shlwapi.lib tinyxml.lib cflbaseSU.lib /nologo /entry:"wWinMainCRTStartup" /subsystem:windows /machine:I386 /libpath:"..\..\..\..\cosps\tinyxml_2_5_3\Release"
+# ADD LINK32 Shlwapi.lib tinyxml.lib cflbaseU.lib OptionExpSU.lib /nologo /entry:"wWinMainCRTStartup" /subsystem:windows /machine:I386 /libpath:"..\..\..\..\cosps\tinyxml_2_5_3\Release" /libpath:"..\OptionExp\projects\vc6\OptionExpStatic\bin"
 
 !ENDIF 
 
@@ -145,18 +145,6 @@ LINK32=link.exe
 # Begin Group "Source Files"
 
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
-# Begin Source File
-
-SOURCE=.\CmdBuilder.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\DefaultOptionExp.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\DefaultOptionExpBuilder.cpp
-# End Source File
 # Begin Source File
 
 SOURCE=.\FFProfile.cpp
@@ -172,22 +160,6 @@ SOURCE=.\FFProfileDlg.cpp
 # Begin Source File
 
 SOURCE=.\MiscUtils.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\OptionContext.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\OptionExp.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\OptionExpDef.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\OptionExpTree.cpp
 # End Source File
 # Begin Source File
 
@@ -208,18 +180,6 @@ SOURCE=.\SysConf.cpp
 # PROP Default_Filter "h;hpp;hxx;hm;inl"
 # Begin Source File
 
-SOURCE=.\CmdBuilder.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\DefaultOptionExp.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\DefaultOptionExpBuilder.h
-# End Source File
-# Begin Source File
-
 SOURCE=.\FFProfile.h
 # End Source File
 # Begin Source File
@@ -229,22 +189,6 @@ SOURCE=.\FFProfileDlg.h
 # Begin Source File
 
 SOURCE=.\MiscUtils.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\OptionContext.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\OptionExp.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\OptionExpDef.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\OptionExpTree.h
 # End Source File
 # Begin Source File
 
