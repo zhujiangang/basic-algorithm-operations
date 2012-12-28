@@ -74,3 +74,22 @@ bool SysUtils::BuildFullFilePath(std::string& str, const char* szOutputFolder, c
 	return true;
 }
 
+const char* SafeStrA(const char* str)
+{
+	return (str == NULL) ? "" : str;
+}
+const wchar_t* SafeStrW(const wchar_t* str)
+{
+	return (str == NULL) ? L"" : str;
+}
+
+const char* SafePStrA(const std::string* pstr)
+{
+	return (pstr == NULL) ? "" : pstr->c_str();
+}
+const wchar_t* SafePStrW(const std::wstring* pstr)
+{
+	return (pstr == NULL) ? L"" : pstr->c_str();
+}
+
+

@@ -7,6 +7,10 @@
 #include "DefaultOptionExp.h"
 #include <stack>
 #include <list>
+#include "cflbase/tstring.h"
+#include "SysUtils.h"
+#include "OptionExpDef.h"
+#include "log4cplus_config.h"
 
 #ifdef _DEBUG
 #undef THIS_FILE
@@ -87,8 +91,15 @@ bool OptionExpTree::PostEvaluateGroup(OptionContext* pContext)
 				pChild = pExp->GetChild(i);
 				if(pChild->GetChildCount() > 0)
 				{
-					opt_msg("[stack push]: id=%s,name=%s,value=%s\n", pChild->GetFieldStr(OPT_FIELD_ID),
-						pChild->GetFieldStr(OPT_FIELD_NAME), pChild->GetFieldStr(OPT_FIELD_VALUE));
+					if(IS_LOG_ENABLED(THE_LIB_LOGGER, log4cplus::TRACE_LOG_LEVEL))
+					{
+						cfl::tstring szLog;
+						cfl::tformat(szLog, _T("[stack push]: id=%s,name=%s,value=%s"), 
+							CFL_A2T(SafeStrA(pChild->GetFieldStr(OPT_FIELD_ID))),
+							CFL_A2T(SafeStrA(pChild->GetFieldStr(OPT_FIELD_NAME))), 
+							CFL_A2T(SafeStrA(pChild->GetFieldStr(OPT_FIELD_VALUE))));
+						LOG4CPLUS_TRACE_STR(THE_LIB_LOGGER, szLog)
+					}
 
 					//visit
 					optExpStack.push(pChild);
@@ -105,9 +116,15 @@ bool OptionExpTree::PostEvaluateGroup(OptionContext* pContext)
 	{
 		pExp = optExpStack.top();
 		optExpStack.pop();
-
-		opt_msg("[stack  pop]: id=%s,name=%s,value=%s\n", pExp->GetFieldStr(OPT_FIELD_ID),
-						pExp->GetFieldStr(OPT_FIELD_NAME), pExp->GetFieldStr(OPT_FIELD_VALUE));
+		if(IS_LOG_ENABLED(THE_LIB_LOGGER, log4cplus::TRACE_LOG_LEVEL))
+		{
+			cfl::tstring szLog;
+			cfl::tformat(szLog, _T("[stack  pop]: id=%s,name=%s,value=%s"), 
+				CFL_A2T(SafeStrA(pExp->GetFieldStr(OPT_FIELD_ID))),
+				CFL_A2T(SafeStrA(pExp->GetFieldStr(OPT_FIELD_NAME))), 
+				CFL_A2T(SafeStrA(pExp->GetFieldStr(OPT_FIELD_VALUE))));
+			LOG4CPLUS_TRACE_STR(THE_LIB_LOGGER, szLog)
+		}
 		if(!pExp->Evaluate(pContext, val))
 		{
 			return false;

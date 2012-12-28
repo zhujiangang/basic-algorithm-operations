@@ -11,8 +11,8 @@
 
 #pragma warning( disable : 4786 )
 
-#include "OptionExp.h"
 #include <vector>
+#include "OptionExp.h"
 
 enum OptEvaluateMode
 {

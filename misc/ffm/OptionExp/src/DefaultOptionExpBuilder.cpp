@@ -2,6 +2,9 @@
 #include "DefaultOptionExpBuilder.h"
 #include "DefaultOptionExp.h"
 #include "cflbase/tstring.h"
+#include "SysUtils.h"
+#include "OptionExpDef.h"
+#include "log4cplus_config.h"
 
 #ifdef _DEBUG
 #undef THIS_FILE
@@ -88,7 +91,13 @@ static OptionExp* FindSibling(OptionExp* pOptExp, const char* name)
 
 static bool PassFuncSet(OptionExp* pOptExp, OptionContext* pContext, const std::string* pVal)
 {
-	opt_msg(OPT_LL_DEBUG, "PassFuncSet called: pval = %s, name=%s\n", SafePStr(pVal), pOptExp->GetFieldStr(OPT_FIELD_NAME));
+	if(IS_LOG_ENABLED(THE_LIB_LOGGER, log4cplus::TRACE_LOG_LEVEL))
+	{
+		cfl::tstring szLog;
+		cfl::tformat(szLog, _T("PassFuncSet called: pval = %s, name=%s"),
+			CFL_A2T(SafePStrA(pVal)), CFL_A2T(SafePStrA(pOptExp->GetField(OPT_FIELD_NAME))));
+		LOG4CPLUS_TRACE_STR(THE_LIB_LOGGER, szLog)
+	}
 	//only work for pass 1
 	if(pVal == NULL || pVal->compare(0, 1, "1") != 0)
 	{
@@ -701,7 +710,9 @@ bool DefaultOptionExpBuilder::ParseChoiceOptions(ChoiceOptionParamList* ptr, Opt
 	bool bRet = pContext->Get(ptr->szChoiceOptionID, val);
 	if(!bRet)
 	{
-		topt_msg(OPT_LL_INFO, _T("Failed to get choice option id : %s\n"), CFL_A2T(ptr->szChoiceOptionID));
+		cfl::tstring szLog;
+		cfl::tformat(szLog, _T("Failed to get choice option id : %s"), CFL_A2T(ptr->szChoiceOptionID));
+		LOG4CPLUS_INFO_STR(THE_LIB_LOGGER, szLog)
 		return false;
 	}
 	for(int i = 0; i < ptr->nGroupCount; i++)

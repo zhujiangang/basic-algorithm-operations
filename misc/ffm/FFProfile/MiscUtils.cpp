@@ -89,7 +89,7 @@ bool MiscUtils::Val2Str(const _variant_t& var, std::string& str)
 		catch (...)
 		{
 			bDone = false;
-			opt_msg(OPT_LL_WARN, "Val2Str failed\n");
+			AfxTrace(_T("Val2Str failed\n"));
 		}
 		break;
 	case VT_EMPTY:
@@ -116,7 +116,7 @@ bool MiscUtils::Val2WStr(const _variant_t& var, std::wstring& str)
 		catch (...)
 		{
 			bDone = false;
-			opt_msg(OPT_LL_WARN, "Val2WStr failed\n");
+			AfxTrace(_T("Val2WStr failed\n"));
 		}
 		break;
 	case VT_EMPTY:

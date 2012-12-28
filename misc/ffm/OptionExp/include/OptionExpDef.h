@@ -1,10 +1,6 @@
 #ifndef __OPTION_EXP_DEF_H__
 #define __OPTION_EXP_DEF_H__
 
-#pragma warning( disable : 4786 )
-
-#include <string>
-
 #ifndef PATH_SEP
 #define PATH_SEP	"\\"
 #endif
@@ -60,23 +56,25 @@
 #define PASS				"Pass"
 #define PASS_COUNT			"PassCount"
 
+/*
 //ALL, FATAL, ERROR, WARN, INFO, DEBUG, TRACE, OFF
 enum OptLogLevel
 {
-	OPT_LL_FATAL	= 100,
-	OPT_LL_ERROR	= 200,
-	OPT_LL_WARN		= 300,
-	OPT_LL_INFO		= 400,
-	OPT_LL_DEBUG	= 500,
-	OPT_LL_TRACE	= 600,
+	OPT_LL_FATAL	= 0,
+	OPT_LL_ERROR	= 1,
+	OPT_LL_WARN		= 2,
+	OPT_LL_INFO		= 3,
+	OPT_LL_DEBUG	= 4,
+	OPT_LL_TRACE	= 5,
 
-	OPT_LL_ALL		= 0x7FFFFFFF,
-	OPT_LL_OFF		= 0x80000000
+	OPT_LL_ALL		= 6,
+	OPT_LL_OFF		= 7,
+
+	OPT_ALL_COUNT
 };
 
-extern int gOptLogLevel;
+bool opt_msg_enabled(int level);
 
-bool IsOptLogEnabled(int level);
 void opt_msg(const char* format, ...);
 void opt_msg(int level, const char* format, ...);
 
@@ -88,9 +86,6 @@ void wopt_msg(int level, const wchar_t* format, ...);
 #else
 #define topt_msg opt_msg
 #endif
-
-bool ParseSize(const std::string& str, int& w, int& h);
-const char* SafeStr(const char* str);
-const char* SafePStr(const std::string* pstr);
+*/
 
 #endif

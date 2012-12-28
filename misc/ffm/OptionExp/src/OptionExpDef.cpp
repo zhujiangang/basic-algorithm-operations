@@ -1,33 +1,35 @@
 #include "StdAfx.h"
 #include "OptionExpDef.h"
 #include "cflbase/tstring.h"
+#include "log4cplus_config.h"
+#include <assert.h>
 
-int gOptLogLevel = OPT_LL_INFO;
+/*
+DECLARE_THE_LOGGER_NAME(_T("lib.OptionExp"))
 
-bool ParseSize(const std::string& str, int& w, int& h)
+static int gOptLogLevel = OPT_LL_INFO;
+
+static const log4cplus::LogLevel l4cplus_levels[] = 
 {
-	size_t index = str.find('x');
-	if(index == std::string::npos || index == 0 || (index == str.size() - 1))
-	{
-		return false;
-	}
-	std::string szWidth = str.substr(0, index);
-	w = atoi(szWidth.c_str());
-	
-	std::string szHeight = str.substr(index + 1);
-	h = atoi(szHeight.c_str());
-	
-	return w > 0 && h > 0;
-}
+	log4cplus::FATAL_LOG_LEVEL,
+	log4cplus::ERROR_LOG_LEVEL,
+	log4cplus::WARN_LOG_LEVEL,
+	log4cplus::INFO_LOG_LEVEL,
+	log4cplus::DEBUG_LOG_LEVEL,
+	log4cplus::TRACE_LOG_LEVEL,
+	log4cplus::ALL_LOG_LEVEL,
+	log4cplus::OFF_LOG_LEVEL
+};
 
-bool IsOptLogEnabled(int level)
+bool opt_msg_enabled(int level)
 {
-	return level <= gOptLogLevel;
+	assert(level >= 0 || level < OPT_ALL_COUNT);
+	return IS_LOG_ENABLED(THE_LOGGER, l4cplus_levels[level]);
 }
 
 void opt_msg(int level, const char* format, ...)
 {
-	if(level > gOptLogLevel)
+	if(!opt_msg_enabled(level))
 	{
 		return;
 	}
@@ -39,12 +41,12 @@ void opt_msg(int level, const char* format, ...)
 	
 	va_end(args);
 	
-	AfxTrace(_T("%s"), CFL_STRING_TO_T_STR(str));
+	LOG4CPLUS_WARN_STR(THE_LOGGER, CFL_STRING_TO_TSTRING(str))
 }
 
 void opt_msg(const char* format, ...)
 {
-	if(OPT_LL_DEBUG > gOptLogLevel)
+	if(!opt_msg_enabled(OPT_LL_DEBUG))
 	{
 		return;
 	}
@@ -56,11 +58,11 @@ void opt_msg(const char* format, ...)
 	
 	va_end(args);
 	
-	AfxTrace(_T("%s"), CFL_STRING_TO_T_STR(str));
+	LOG4CPLUS_DEBUG_STR(THE_LOGGER, CFL_STRING_TO_TSTRING(str))
 }
 void wopt_msg(int level, const wchar_t* format, ...)
 {
-	if(level > gOptLogLevel)
+	if(!opt_msg_enabled(level))
 	{
 		return;
 	}
@@ -72,11 +74,11 @@ void wopt_msg(int level, const wchar_t* format, ...)
 	
 	va_end(args);
 	
-	AfxTrace(_T("%s"), CFL_WSTRING_TO_T_STR(str));
+	LOG4CPLUS_WARN_STR(THE_LOGGER, CFL_WSTRING_TO_TSTRING(str))
 }
 void wopt_msg(const wchar_t* format, ...)
 {
-	if(OPT_LL_DEBUG > gOptLogLevel)
+	if(!opt_msg_enabled(OPT_LL_DEBUG))
 	{
 		return;
 	}
@@ -88,14 +90,7 @@ void wopt_msg(const wchar_t* format, ...)
 	
 	va_end(args);
 	
-	AfxTrace(_T("%s"), CFL_WSTRING_TO_T_STR(str));
+	LOG4CPLUS_DEBUG_STR(THE_LOGGER, CFL_WSTRING_TO_TSTRING(str))
 }
 
-const char* SafeStr(const char* str)
-{
-	return (str == NULL) ? "NULL" : str;
-}
-const char* SafePStr(const std::string* pstr)
-{
-	return (pstr == NULL) ? "NULL" : pstr->c_str();
-}
+*/
