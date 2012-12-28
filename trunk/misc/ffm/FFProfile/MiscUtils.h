@@ -9,6 +9,9 @@
 #pragma once
 #endif // _MSC_VER > 1000
 
+#pragma warning( disable : 4786 )
+#include <string>
+
 class MiscUtils  
 {
 public:

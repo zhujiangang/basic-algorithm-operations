@@ -80,7 +80,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 /nologo /subsystem:windows /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 Shlwapi.lib tinyxmld.lib cflbaseD.lib OptionExpSD.lib /nologo /subsystem:windows /debug /machine:I386 /pdbtype:sept /libpath:"..\..\..\..\cosps\tinyxml_2_5_3\Debug" /libpath:"..\OptionExp\projects\vc6\OptionExpStatic\bin"
+# ADD LINK32 MFC42d.lib Shlwapi.lib tinyxmld.lib cflbaseD.lib OptionExpSD.lib /nologo /subsystem:windows /debug /machine:I386 /pdbtype:sept /libpath:"..\..\..\..\cosps\tinyxml_2_5_3\Debug" /libpath:"..\OptionExp\projects\vc6\OptionExpStatic\bin"
 
 !ELSEIF  "$(CFG)" == "FFProfile - Win32 UniDebug"
 

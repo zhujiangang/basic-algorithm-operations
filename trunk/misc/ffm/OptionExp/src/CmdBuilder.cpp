@@ -3,6 +3,8 @@
 #include "OptionExpTree.h"
 #include "cflbase/tstring.h"
 #include "SysUtils.h"
+#include "OptionExpDef.h"
+#include "log4cplus_config.h"
 
 MeCmdBuilder::MeCmdBuilder()
 {
@@ -59,7 +61,13 @@ bool MeCmdBuilder::Build(cfl::tstring& szCmdLine)
 {
 	if(m_pContext == NULL || m_pBuilder == NULL)
 	{
-		opt_msg(OPT_LL_INFO, "MEncoderBuild Failed. m_pContext=0x%8X, m_pBuilder=0x%8X", (int)m_pContext, (int)m_pContext);
+		if(IS_LOG_ENABLED(THE_LIB_LOGGER, log4cplus::DEBUG_LOG_LEVEL))
+		{
+			cfl::tstring szLog;
+			cfl::tformat(szLog, _T("MeCmdBuilder::Build failed. m_pContext=0x%8X, m_pBuilder=0x%8X"), 
+				(int)m_pContext, (int)m_pBuilder);
+			LOG4CPLUS_DEBUG_STR(THE_LIB_LOGGER, szLog)
+		}
 		return false;
 	}
 
