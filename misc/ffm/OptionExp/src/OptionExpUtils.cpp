@@ -1,9 +1,5 @@
-// SysUtils.cpp: implementation of the SysUtils class.
-//
-//////////////////////////////////////////////////////////////////////
-
 #include "stdafx.h"
-#include "SysUtils.h"
+#include "OptionExpUtils.h"
 #include <shlwapi.h>
 #include "cflbase/FileUtils.h"
 #include "cflbase/tstring.h"
@@ -18,18 +14,8 @@ static char THIS_FILE[]=__FILE__;
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-SysUtils::SysUtils()
-{
-
-}
-
-SysUtils::~SysUtils()
-{
-
-}
-
-bool SysUtils::BuildFullFilePath(std::string& str, const char* szOutputFolder, const char* szOutputFileExt, 
-								  const char* szSrcFile, bool bHasQuote)
+bool OptionExpUtils::BuildFullFilePath(std::string& str, const char* szOutputFolder, const char* szOutputFileExt, 
+									   const char* szSrcFile, bool bHasQuote)
 {
 	std::string szTemp;
 	cfl::FileUtilsA::GetFileNameOnly(szTemp, szSrcFile);
@@ -58,8 +44,8 @@ bool SysUtils::BuildFullFilePath(std::string& str, const char* szOutputFolder, c
 	return true;
 }
 
-bool SysUtils::BuildFullFilePath(std::string& str, const char* szOutputFolder, const char* szOutputFileName, 
-								  bool bHasQuote)
+bool OptionExpUtils::BuildFullFilePath(std::string& str, const char* szOutputFolder, const char* szOutputFileName, 
+									   bool bHasQuote)
 {
 	if(szOutputFolder != NULL && szOutputFolder[0] != '\0')
 	{

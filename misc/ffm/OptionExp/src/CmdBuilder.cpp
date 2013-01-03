@@ -2,7 +2,7 @@
 #include "CmdBuilder.h"
 #include "OptionExpTree.h"
 #include "cflbase/tstring.h"
-#include "SysUtils.h"
+#include "OptionExpUtils.h"
 #include "OptionExpDef.h"
 #include "log4cplus_config.h"
 
@@ -85,7 +85,7 @@ bool MeCmdBuilder::Build(cfl::tstring& szCmdLine)
 	{
 		m_pContext->Put(PASS, "1");
 
-		SysUtils::BuildFullFilePath(str, m_szOutputFolder.c_str(), "divx2pass.log", true);
+		OptionExpUtils::BuildFullFilePath(str, m_szOutputFolder.c_str(), "divx2pass.log", true);
 		m_pContext->Put(PASS_LOG_FILE, str.c_str());
 
 		m_pContext->Put(OFILE, "NUL:");
@@ -94,15 +94,15 @@ bool MeCmdBuilder::Build(cfl::tstring& szCmdLine)
 	{
 		m_pContext->Put(PASS, "2");
 		
-		SysUtils::BuildFullFilePath(str, m_szOutputFolder.c_str(), "divx2pass.log", true);
+		OptionExpUtils::BuildFullFilePath(str, m_szOutputFolder.c_str(), "divx2pass.log", true);
 		m_pContext->Put(PASS_LOG_FILE, str.c_str());
 
-		SysUtils::BuildFullFilePath(str, m_szOutputFolder.c_str(), ".avi", szInFile.c_str(), true);
+		OptionExpUtils::BuildFullFilePath(str, m_szOutputFolder.c_str(), ".avi", szInFile.c_str(), true);
 		m_pContext->Put(OFILE, str.c_str());
 	}
 	else
 	{
-		SysUtils::BuildFullFilePath(str, m_szOutputFolder.c_str(), ".avi", szInFile.c_str(), true);
+		OptionExpUtils::BuildFullFilePath(str, m_szOutputFolder.c_str(), ".avi", szInFile.c_str(), true);
 		m_pContext->Put(OFILE, str.c_str());
 	}
 
