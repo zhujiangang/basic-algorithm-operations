@@ -8,7 +8,7 @@
 #include <stack>
 #include <list>
 #include "cflbase/tstring.h"
-#include "SysUtils.h"
+#include "OptionExpUtils.h"
 #include "OptionExpDef.h"
 #include "log4cplus_config.h"
 

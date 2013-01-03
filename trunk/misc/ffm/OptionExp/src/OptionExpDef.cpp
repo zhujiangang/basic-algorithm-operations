@@ -1,10 +1,11 @@
 #include "StdAfx.h"
+/*
 #include "OptionExpDef.h"
 #include "cflbase/tstring.h"
 #include "log4cplus_config.h"
 #include <assert.h>
 
-/*
+
 DECLARE_THE_LOGGER_NAME(_T("lib.OptionExp"))
 
 static int gOptLogLevel = OPT_LL_INFO;
