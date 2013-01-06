@@ -139,11 +139,27 @@ SOURCE=..\..\..\src\CmdBuilder.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\src\ContainerCmdBuilder.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\src\DefaultOptionExp.cpp
 # End Source File
 # Begin Source File
 
 SOURCE=..\..\..\src\DefaultOptionExpBuilder.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\src\MeCmdBuilder.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\src\MeCopyCmdBuilder.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\src\MP4CmdBuilder.cpp
 # End Source File
 # Begin Source File
 
@@ -180,11 +196,27 @@ SOURCE=..\..\..\include\CmdBuilder.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\include\ContainerCmdBuilder.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\src\DefaultOptionExp.h
 # End Source File
 # Begin Source File
 
 SOURCE=..\..\..\include\DefaultOptionExpBuilder.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\src\MeCmdBuilder.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\src\MeCopyCmdBuilder.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\src\MP4CmdBuilder.h
 # End Source File
 # Begin Source File
 

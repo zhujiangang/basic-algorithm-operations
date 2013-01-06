@@ -3,42 +3,69 @@
 
 #pragma once
 
+#pragma warning( disable : 4786 )
+
 #include "cflbase/tstring.h"
-#include "OptionContext.h"
-#include "OptionExp.h"
+#include "cflbase/Object.h"
+#include <vector>
+#include <map>
+
+enum StreamTrackEnum
+{
+	VIDEO = 0,
+	AUDIO
+};
+
+class CmdInfo
+{
+public:
+	cfl::tstring	m_szBinFQPath;
+	cfl::tstring	m_szInputFQPath;
+	cfl::tstring	m_szOutputFQPath;
+	cfl::tstring	m_szCmdLine;
+
+public:
+	void Clear();
+};
+
+class StrObjPtrContext
+{
+public:
+	typedef std::map<std::string, cfl::Object*> StrObjPtrMap;
+
+	StrObjPtrContext();
+	virtual ~StrObjPtrContext();
+	virtual bool Get(const std::string& key, cfl::Object** pval);
+	virtual void Put(const std::string& key, cfl::Object* val);
+	virtual StrObjPtrMap* GetDataMap();
+protected:
+	StrObjPtrMap m_map;
+};
+
+template<class T>
+class OptionExpObj : public cfl::Object
+{
+public:
+	OptionExpObj() {}
+	virtual ~OptionExpObj() {}
+	virtual void* GetData() {return &m_data;}
+protected:
+	T m_data;
+};
+
+typedef std::vector<cfl::tstring> TStrVector;
+typedef OptionExpObj< TStrVector > TStrVectorObj;
+
 
 class CmdBuilder
 {
 public:
 	CmdBuilder() {}
 	virtual ~CmdBuilder() {}
-	virtual bool Build(cfl::tstring& szCmdLine) = 0;
-};
+//	virtual bool Build(cfl::tstring& szCmdLine, cfl::tstring* pszOutputFile = NULL) { return false; }
+//	virtual bool Build(std::vector<CmdInfo>& commands, std::vector<cfl::tstring>& delFiles) = 0;
 
-class MeCmdBuilder : public CmdBuilder
-{
-public:
-	MeCmdBuilder();
-	virtual bool Build(cfl::tstring& szCmdLine);
-
-	virtual MeCmdBuilder& SetPass(int nPass);
-	virtual MeCmdBuilder& SetBinFile(const TCHAR* szBinFile);
-	virtual MeCmdBuilder& SetInput(const TCHAR* szInput);
-	virtual MeCmdBuilder& SetOutput(const TCHAR* szOutput);
-	virtual MeCmdBuilder& SetOutputFolder(const char* szOutputFolder);
-	virtual MeCmdBuilder& SetOptionContext(OptionContext* pContext);
-	virtual MeCmdBuilder& SetOptionExpBuilder(OptionExpBuilder* pOptExpBuilder);
-
-protected:
-	void Reset();
-
-	int	m_nPass;
-	cfl::tstring m_szBinFile;
-	cfl::tstring m_szInput;
-	cfl::tstring m_szOutput;
-	std::string	 m_szOutputFolder;
-	OptionContext* m_pContext;
-	OptionExpBuilder* m_pBuilder;
+	virtual bool Build(CmdInfo& cmdInfo, StrObjPtrContext& context) = 0;
 };
 
 #endif

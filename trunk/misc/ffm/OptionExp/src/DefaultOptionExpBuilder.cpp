@@ -710,9 +710,12 @@ bool DefaultOptionExpBuilder::ParseChoiceOptions(ChoiceOptionParamList* ptr, Opt
 	bool bRet = pContext->Get(ptr->szChoiceOptionID, val);
 	if(!bRet)
 	{
-		cfl::tstring szLog;
-		cfl::tformat(szLog, _T("Failed to get choice option id : %s"), CFL_A2T(ptr->szChoiceOptionID));
-		LOG4CPLUS_INFO_STR(THE_LIB_LOGGER, szLog)
+		if(IS_LOG_ENABLED(THE_LIB_LOGGER, log4cplus::DEBUG_LOG_LEVEL))
+		{
+			cfl::tstring szLog;
+			cfl::tformat(szLog, _T("Failed to get choice option id : %s"), CFL_A2T(ptr->szChoiceOptionID));
+			LOG4CPLUS_DEBUG_STR(THE_LIB_LOGGER, szLog)
+		}
 		return false;
 	}
 	for(int i = 0; i < ptr->nGroupCount; i++)
