@@ -56,6 +56,9 @@
 #define PASS				"Pass"
 #define PASS_COUNT			"PassCount"
 
+//PARAM Names
+#define PARAM_DEL_LIST		"PARAM::DelList"
+
 /*
 //ALL, FATAL, ERROR, WARN, INFO, DEBUG, TRACE, OFF
 enum OptLogLevel

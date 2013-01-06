@@ -40,7 +40,10 @@ bool OptionExpUtils::BuildFullFilePath(std::string& str, const char* szOutputFol
 			cfl::format(str, "%s_%d%s", szTemp.c_str(), nCount, szOutputFileExt);
 		}
 	}
-	cfl::format(str, "\"%s\"", str.c_str());
+	if(bHasQuote)
+	{
+		cfl::format(str, "\"%s\"", str.c_str());
+	}
 	return true;
 }
 
