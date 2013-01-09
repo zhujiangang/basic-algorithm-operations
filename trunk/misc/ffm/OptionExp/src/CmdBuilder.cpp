@@ -8,6 +8,7 @@ void CmdInfo::Clear()
 	m_szInputFQPath.erase();
 	m_szOutputFQPath.erase();
 	m_szCmdLine.erase();
+	m_nWeight = -1;
 }
 
 StrObjPtrContext::StrObjPtrContext()

@@ -122,7 +122,7 @@ bool ContainerCmdBuilder::Build(std::vector<CmdInfo>& commands, StrObjPtrContext
 		nPassCount = 1;
 		passNumber[0] = -1;
 	}
-
+	
 	OptionContext mutableCxt;
 	CmdInfo cmdInfo;
 	for(i = 0; i < nPassCount; i++)
@@ -169,8 +169,9 @@ bool ContainerCmdBuilder::Build(std::vector<CmdInfo>& commands, StrObjPtrContext
 		{
 			return false;
 		}
-
+		
 		pDelList->push_back(cmdInfo.m_szOutputFQPath);
+		cmdInfo.m_nWeight = 1;
 		commands.push_back(cmdInfo);
 
 		mutableCxt = *m_pContext;
@@ -183,8 +184,44 @@ bool ContainerCmdBuilder::Build(std::vector<CmdInfo>& commands, StrObjPtrContext
 		{
 			return false;
 		}
-
+		cmdInfo.m_nWeight = 1;
 		commands.push_back(cmdInfo);
+	}
+
+	//flush weight
+	int nVariableWeight = 100, nNoWeight = 0;
+	for(i = 0; i < commands.size(); i++)
+	{
+		if(commands.at(i).m_nWeight > 0)
+		{
+			nVariableWeight -= commands.at(i).m_nWeight;
+		}
+		else
+		{
+			nNoWeight++;
+		}
+	}
+	if(nVariableWeight > 0 && nNoWeight > 0)
+	{
+		int nAvg = nVariableWeight / nNoWeight, j;
+		for(i = 0, j = 0; i < commands.size(); i++)
+		{
+			if(commands.at(i).m_nWeight >= 0)
+			{
+				continue;	
+			}
+
+			j++;
+			if(j >= nNoWeight)
+			{
+				commands.at(i).m_nWeight = nVariableWeight;
+			}
+			else
+			{
+				commands.at(i).m_nWeight = nAvg;
+				nVariableWeight -= nAvg;
+			}
+		}
 	}
 
 	return true;
