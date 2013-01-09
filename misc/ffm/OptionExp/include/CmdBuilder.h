@@ -23,7 +23,7 @@ public:
 	cfl::tstring	m_szInputFQPath;
 	cfl::tstring	m_szOutputFQPath;
 	cfl::tstring	m_szCmdLine;
-
+	int				m_nWeight;
 public:
 	void Clear();
 };

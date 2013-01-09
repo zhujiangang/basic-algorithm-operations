@@ -84,9 +84,12 @@ bool MeCmdBuilder::Build(CmdInfo& cmdInfo, StrObjPtrContext& context)
 	{
 		m_pContext->Put(PASS, "1");
 		
+		OptionExpUtils::BuildFullFilePath(str, CFL_TSTRING_TO_C_STR(m_szOutputFolder), "divx2pass.log.mbtree", false);
+		//intermediate files
+		pDelList->push_back(CFL_STRING_TO_TSTRING(str));
+
 		//passlog file
 		OptionExpUtils::BuildFullFilePath(str, CFL_TSTRING_TO_C_STR(m_szOutputFolder), "divx2pass.log", false);
-		
 		//intermediate files
 		pDelList->push_back(CFL_STRING_TO_TSTRING(str));
 		
@@ -102,11 +105,8 @@ bool MeCmdBuilder::Build(CmdInfo& cmdInfo, StrObjPtrContext& context)
 	else if(m_nPass == 2)
 	{
 		m_pContext->Put(PASS, "2");
-		
+
 		OptionExpUtils::BuildFullFilePath(str, CFL_TSTRING_TO_C_STR(m_szOutputFolder), "divx2pass.log", false);
-		
-		//intermediate files
-		pDelList->push_back(CFL_STRING_TO_TSTRING(str));
 		
 		//add quota
 		cfl::format(str, "\"%s\"", str.c_str());
