@@ -32,6 +32,8 @@ node* get(node* ph, int index);
 int size(node* ph);
 int compareList(node* p1, node* p2, node** pdiff1 = NULL, node** pdiff2 = NULL, int* pos = NULL);
 int assertEquals(node* p1, node* p2);
+node* remove(node* head, int x);
+void remove(node** head, int x);
 
 /************************************************************************/
 /* 1. Reverse a single linkedlist                                       */

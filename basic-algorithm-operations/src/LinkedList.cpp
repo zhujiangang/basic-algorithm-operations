@@ -11,6 +11,7 @@
 using std::map;
 using std::make_pair;
 
+/*
 node* createList(int data[], int len)
 {
 	if(len <= 0)
@@ -29,7 +30,19 @@ node* createList(int data[], int len)
 	
 	return header;
 }
+*/
+node* createList(int data[], int len)
+{
+	node *head = NULL, **curr = &head;
+	for(int i = 0; i < len; i++)
+	{
+		*curr = new node(data[i]);
+		curr = &(*curr)->next;
+	}
+	return head;
+}
 
+/*
 void deleteList(node* ph)
 {
 	node* p = 0;
@@ -38,6 +51,18 @@ void deleteList(node* ph)
 		p = ph;
 		ph = ph->next;
 		delete p;
+	}
+}
+*/
+
+void deleteList(node* ph)
+{
+	node *curr = ph;
+	while(curr)
+	{
+		ph = curr;
+		curr = curr->next;
+		delete ph;
 	}
 }
 
@@ -109,6 +134,7 @@ node* get(node* ph, int index)
 }
 
 
+/*
 int compareList(node* p1, node* p2, node** pdiff1, node** pdiff2, int* pos)
 {
 	if(p1 == NULL && p2 == NULL)
@@ -165,6 +191,91 @@ int compareList(node* p1, node* p2, node** pdiff1, node** pdiff2, int* pos)
 		return -1;
 	}
 	return 0;
+}
+*/
+
+int compareList(node* p1, node* p2, node** pdiff1, node** pdiff2, int* pos)
+{
+	int ret = 0, i = 0;
+	node *prev1 = NULL, *curr1 = p1;
+	node *prev2 = NULL, *curr2 = p2;
+
+	while((curr1 == curr2) && (curr1 != NULL))
+	{
+		prev1 = curr1, curr1 = curr1->next;
+		prev2 = curr2, curr2 = curr2->next;
+		i++;
+	}
+
+	//equals
+	if(curr1 == curr2)
+	{
+		return 0;
+	}
+
+	if(pdiff1 && pdiff2 && pos)
+	{
+		*pdiff1 = curr1;
+		*pdiff2 = curr2;
+		*pos = i;
+	}
+
+	if(curr1 == NULL)
+	{
+		return -1;
+	}
+	else if(curr2 == NULL)
+	{
+		return 1;
+	}
+	else
+	{
+		return curr1->data - curr2->data;
+	}
+}
+
+node* remove(node* head, int x)
+{
+	node *prev = NULL, *curr = head, *next;
+	while(curr != NULL)
+	{
+		next = curr->next;
+		if(curr->data == x)
+		{
+			if(prev)
+			{
+				prev->next = next;
+			}
+			else
+			{
+				head = next;
+			}
+			delete curr;
+		}
+		else
+		{
+			prev = curr;
+		}
+		curr = next;
+	}
+
+	return head;
+}
+void remove(node** head, int x)
+{
+	for(node** curr = head; *curr; )
+	{
+		node* entry = *curr;
+		if(entry->data == x)
+		{
+			*curr = entry->next;
+			delete entry;
+		}
+		else
+		{
+			curr = &entry->next;
+		}
+	}
 }
 
 int assertEquals(node* p1, node* p2)
@@ -381,7 +492,7 @@ node* getListLoopEntrance(node* ph)
 	return p1;
 }
 
-
+/*
 node* partition(node** left, node* right)
 {
 	int key = (*left)->data;
@@ -404,6 +515,31 @@ node* partition(node** left, node* right)
 			ptr=&(*ptr)->next;
 		}
 	}
+	return pivot;
+}
+*/
+
+//two star @ http://wordaligned.org/articles/two-star-programming
+node* partition(node** left, node* right)
+{
+	//int key = (*left)->data;
+	node* pivot = *left;
+
+	for(node **curr = &(*left)->next; *curr != right; )
+	{
+		node* entry = *curr;
+		if(entry->data < pivot->data)
+		{
+			*curr = entry->next;
+			entry->next = *left;
+			*left = entry;
+		}
+		else
+		{
+			curr = &entry->next;
+		}
+	}
+
 	return pivot;
 }
 
@@ -472,6 +608,40 @@ node* qsort1(node* ph)
 
 node* insert_sort(node* ph)
 {
+	if(ph == NULL)
+	{
+		return ph;
+	}
+	bool bInserted = false;
+	node **head = &ph, **curr_i = head, **curr_j, *entry;
+	for(curr_i = &(*head)->next; *curr_i != NULL; )
+	{
+		bInserted = false;
+		entry = *curr_i;
+		for(curr_j = head; *curr_j != entry; curr_j = &(*curr_j)->next)
+		{
+			if(entry->data < (*curr_j)->data)
+			{
+				//insert
+				*curr_i = entry->next;
+				entry->next = *curr_j;
+				*curr_j = entry;
+
+				bInserted = true;
+				break;
+			}
+		}
+		if(!bInserted)
+		{
+			curr_i = &entry->next;
+		}
+	}
+	return *head;
+}
+
+/*
+node* insert_sort(node* ph)
+{
 	//empty or one node
 	if(ph == NULL || ph->next == NULL)
 	{
@@ -514,6 +684,7 @@ node* insert_sort(node* ph)
 
 	return dummyHeader.next;
 }
+*/
 
 node* bubble_sort(node* ph)
 {
@@ -607,6 +778,7 @@ node* select_sort(node* ph)
 
 	return dummy.next;
 }
+
 
 node* rget(node* ph, int index)
 {
@@ -1143,14 +1315,20 @@ void testLinkedList()
 	node* p3 = createList(a, n);
  	printList(p3);
 
-	p1 = remove_duplicated(p1);
+// 	p1 = remove_duplicated(p1);
+// 	printList(p1);
+// 
+// 	p2 = remove_duplicated(p2);
+// 	printList(p2);
+// 
+// 	p3 = remove_duplicated(p3);
+// 	printList(p3);
+
+	remove(&p1, 9);
 	printList(p1);
 
-	p2 = remove_duplicated(p2);
+	p2 = remove(p2, 24);
 	printList(p2);
-
-	p3 = remove_duplicated(p3);
-	printList(p3);
 
 // 	node* pTemp = NULL;
 // 	pTemp = mergeIter(p1, p2);
@@ -1209,10 +1387,10 @@ void testLinkedList()
 
 	//(3). Test for qsort
 
-// 	node* ph = createList(a, n);
-// 	printList(ph);
-// 	ph = qsort1(ph);
-// 	printList(ph);
+	node* ph = createList(a, n);
+	printList(ph);
+	ph = qsort(ph);
+	printList(ph);
 // 
 // 	node* ph1 = createList(a, n);
 // 	printList(ph1);
@@ -1221,10 +1399,10 @@ void testLinkedList()
 // 
 // 	assertEquals(ph, ph1);
 // 
-// 	node* ph2 = createList(a, n);
-// 	printList(ph2);
-// 	ph2 = insert_sort(ph2);
-// 	printList(ph2);
+	node* ph2 = createList(a, 10);
+	printList(ph2);
+	ph2 = insert_sort(ph2);
+	printList(ph2);
 // 
 // 	assertEquals(ph, ph2);
 // 	
