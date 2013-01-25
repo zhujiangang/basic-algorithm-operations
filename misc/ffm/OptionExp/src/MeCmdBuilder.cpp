@@ -16,6 +16,7 @@ void MeCmdBuilder::Reset()
 	m_szBinFile.erase();
 	m_szInput.erase();
 	m_szOutputFolder.erase();
+	m_szOutputFileExt.assign(_T(".avi"));
 	m_pContext = NULL;
 }
 
@@ -37,6 +38,11 @@ MeCmdBuilder& MeCmdBuilder::SetInput(const TCHAR* szInput)
 MeCmdBuilder& MeCmdBuilder::SetOutputFolder(const TCHAR* szOutputFolder)
 {
 	m_szOutputFolder.assign(szOutputFolder);
+	return *this;
+}
+MeCmdBuilder& MeCmdBuilder::SetOutputFileExt(const TCHAR* szFileExt)
+{
+	m_szOutputFileExt.assign(szFileExt);
 	return *this;
 }
 MeCmdBuilder& MeCmdBuilder::SetOptionContext(OptionContext* pContext)
@@ -113,7 +119,8 @@ bool MeCmdBuilder::Build(CmdInfo& cmdInfo, StrObjPtrContext& context)
 		m_pContext->Put(PASS_LOG_FILE, str.c_str());
 		
 		//output file
-		OptionExpUtils::BuildFullFilePath(str, CFL_TSTRING_TO_C_STR(m_szOutputFolder), ".avi", szInFile.c_str(), false);
+		OptionExpUtils::BuildFullFilePath(str, CFL_TSTRING_TO_C_STR(m_szOutputFolder), 
+			CFL_TSTRING_TO_C_STR(m_szOutputFileExt), szInFile.c_str(), false);
 		cmdInfo.m_szOutputFQPath = CFL_STRING_TO_TSTRING(str);
 		
 		//add quota
@@ -122,7 +129,8 @@ bool MeCmdBuilder::Build(CmdInfo& cmdInfo, StrObjPtrContext& context)
 	}
 	else
 	{
-		OptionExpUtils::BuildFullFilePath(str, CFL_TSTRING_TO_C_STR(m_szOutputFolder), ".avi", szInFile.c_str(), false);
+		OptionExpUtils::BuildFullFilePath(str, CFL_TSTRING_TO_C_STR(m_szOutputFolder), 
+			CFL_TSTRING_TO_C_STR(m_szOutputFileExt), szInFile.c_str(), false);
 		cmdInfo.m_szOutputFQPath = CFL_STRING_TO_TSTRING(str);
 		
 		//add quota

@@ -56,8 +56,20 @@
 #define PASS				"Pass"
 #define PASS_COUNT			"PassCount"
 
+#define ASPECT				"Aspect"
+#define KEYINT				"KeyInt"
+
 //PARAM Names
-#define PARAM_DEL_LIST		"PARAM::DelList"
+#define PARAM_DEL_LIST		"PARAM::DelList"	/* Temporary File List */
+#define PARAM_OF			"PARAM::OF"			/* Output Format or Container Type*/
+#define PARAM_OUT_EXT		"PARAM::OutExt"		/* Output File Extension. e.g. <.mp4> */
+#define PARAM_OPT_CXT		"PARAM::OptionContext"
+
+#define PARAM_BIN_MENCODER	"PARAM::BinMEncoder"
+#define PARAM_BIN_MPLAYER	"PARAM::BinMPlayer"
+#define PARAM_BIN_MP4CREATOR	"PARAM::BinMP4Creator"
+#define PARAM_INPUT_FILE	"PARAM::InputFile"
+#define PARAM_OUTPUT_FOLDER	"PARAM::OutputFolder"
 
 /*
 //ALL, FATAL, ERROR, WARN, INFO, DEBUG, TRACE, OFF

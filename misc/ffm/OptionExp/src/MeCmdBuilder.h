@@ -10,13 +10,13 @@ class MeCmdBuilder : public CmdBuilder
 {
 public:
 	MeCmdBuilder();
-	//virtual bool Build(std::vector<CmdInfo>& commands, std::vector<cfl::tstring>& delFiles);
 	virtual bool Build(CmdInfo& cmdInfo, StrObjPtrContext& context);
 	
 	virtual MeCmdBuilder& SetPass(int nPass);
 	virtual MeCmdBuilder& SetBinFile(const TCHAR* szBinFile);
 	virtual MeCmdBuilder& SetInput(const TCHAR* szInput);
 	virtual MeCmdBuilder& SetOutputFolder(const TCHAR* szOutputFolder);
+	virtual MeCmdBuilder& SetOutputFileExt(const TCHAR* szFileExt);
 	virtual MeCmdBuilder& SetOptionContext(OptionContext* pContext);
 	
 protected:
@@ -26,6 +26,7 @@ protected:
 	cfl::tstring m_szBinFile;
 	cfl::tstring m_szInput;
 	cfl::tstring m_szOutputFolder;
+	cfl::tstring m_szOutputFileExt;
 	OptionContext* m_pContext;
 };
 

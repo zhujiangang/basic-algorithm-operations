@@ -639,6 +639,71 @@ node* insert_sort(node* ph)
 	return *head;
 }
 
+node* bubble_once(node** head, node* last)
+{
+	node** curr = head;
+	for(; (*curr)->next != last; )
+	{
+		if( (*curr)->data > (*curr)->next->data )
+		{
+			swap_next(curr);
+		}
+		else
+		{
+			curr = &(*curr)->next;
+		}
+	}
+	return *curr;
+}
+
+node* bubble_sort(node* ph)
+{
+	node **head = &ph, *last = NULL, **curr;
+	while( *head != last )
+	{
+		//last = bubble_once(head, last);
+		for(curr = head; (*curr)->next != last;)
+		{
+			if( (*curr)->data > (*curr)->next->data )
+			{
+				//swap_next(curr);
+				node* next = (*curr)->next;
+				(*curr)->next = next->next;
+				next->next = *curr;
+				*curr = next;
+			}
+			else
+			{
+				curr = &(*curr)->next;
+			}
+		}
+		last = *curr;
+	}
+	return *head;
+}
+
+node* select_sort(node* ph)
+{
+	node **head = &ph;
+	for(node **first = head; *first != NULL; first = &(*first)->next)
+	{
+		node **min = first;
+		for(node **curr = &(*first)->next; *curr; curr = &(*curr)->next)
+		{
+			if( (*curr)->data < (*min)->data )
+			{
+				min = curr;
+			}
+		}
+
+		if(min != first)
+		{
+			swap(first, min);
+		}
+	}
+	return *head;
+}
+
 /*
 node* insert_sort(node* ph)
 {
@@ -684,7 +749,7 @@ node* insert_sort(node* ph)
 
 	return dummyHeader.next;
 }
-*/
+
 
 node* bubble_sort(node* ph)
 {
@@ -778,7 +843,7 @@ node* select_sort(node* ph)
 
 	return dummy.next;
 }
-
+*/
 
 node* rget(node* ph, int index)
 {
@@ -1115,6 +1180,39 @@ void swap(node* prev1, node* p1, node* prev2, node* p2)
 	}	
 }
 
+void swap_next(node** ptr)
+{
+	node* next = (*ptr)->next;
+	if(!next)
+	{
+		return;
+	}
+	(*ptr)->next = next->next;
+	next->next = *ptr;
+	*ptr = next;
+}
+
+void swap(node** p1, node** p2)
+{
+	if( (*p1)->next == *p2 )
+	{
+		swap_next(p1);
+	}
+	else if( (*p2)->next == *p1 )
+	{
+		swap_next(p2);
+	}
+	else
+	{
+		node* tmp = (*p1)->next;
+		(*p1)->next = (*p2)->next;
+		(*p2)->next = tmp;
+		
+		tmp = *p1;
+		*p1 = *p2;
+		*p2 = tmp;
+	}
+}
 
 /************************************************************************/
 /* 9. expand a cascade_node linked list to a simple linked list
@@ -1388,30 +1486,34 @@ void testLinkedList()
 	//(3). Test for qsort
 
 	node* ph = createList(a, n);
+	printf("[quick sort]\n");
 	printList(ph);
 	ph = qsort(ph);
 	printList(ph);
-// 
-// 	node* ph1 = createList(a, n);
-// 	printList(ph1);
-// 	ph1 = bubble_sort(ph1);
-// 	printList(ph1);
-// 
-// 	assertEquals(ph, ph1);
-// 
+
+	node* ph1 = createList(a, n);
+	printf("[bubble sort]\n");
+	printList(ph1);
+	ph1 = bubble_sort(ph1);
+	printList(ph1);
+
+	assertEquals(ph, ph1);
+
 	node* ph2 = createList(a, 10);
+	printf("[insert sort]\n");
 	printList(ph2);
 	ph2 = insert_sort(ph2);
 	printList(ph2);
-// 
-// 	assertEquals(ph, ph2);
-// 	
-// 	node* ph3 = createList(a, n);
-// 	printList(ph3);
-// 	ph3 = select_sort(ph3);
-// 	printList(ph2);
-// 	
-// 	assertEquals(ph, ph3);
+
+	assertEquals(ph, ph2);
+	
+	node* ph3 = createList(a, n);
+	printf("[select sort]\n");
+	printList(ph3);
+	ph3 = select_sort(ph3);
+	printList(ph2);
+	
+	assertEquals(ph, ph3);
 
 // 	node* result = add(p1, size(p1), p2, size(p2));
 // 	printList(result);

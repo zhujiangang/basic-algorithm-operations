@@ -7,6 +7,8 @@
 
 #pragma warning( disable : 4786 )
 
+#include "CmdBuilder.h"
+#include <vector>
 #include <string>
 
 class OptionExpUtils  
@@ -16,6 +18,7 @@ public:
 		const char* szSrcFile, bool bHasQuote = true);
 	static bool BuildFullFilePath(std::string& str, const char* szOutputFolder, const char* szOutputFileName, 
 		bool bHasQuote = true);
+	static void FlushCmdWeight(std::vector<CmdInfo>& commands);
 };
 
 const char* SafeStrA(const char* str);
