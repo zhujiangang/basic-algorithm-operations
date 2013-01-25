@@ -63,6 +63,45 @@ bool OptionExpUtils::BuildFullFilePath(std::string& str, const char* szOutputFol
 	return true;
 }
 
+void OptionExpUtils::FlushCmdWeight(std::vector<CmdInfo>& commands)
+{
+	//flush weight
+	int nVariableWeight = 100, nNoWeight = 0, i;
+	for(i = 0; i < commands.size(); i++)
+	{
+		if(commands.at(i).m_nWeight > 0)
+		{
+			nVariableWeight -= commands.at(i).m_nWeight;
+		}
+		else
+		{
+			nNoWeight++;
+		}
+	}
+	if(nVariableWeight > 0 && nNoWeight > 0)
+	{
+		int nAvg = nVariableWeight / nNoWeight, j;
+		for(i = 0, j = 0; i < commands.size(); i++)
+		{
+			if(commands.at(i).m_nWeight >= 0)
+			{
+				continue;	
+			}
+			
+			j++;
+			if(j >= nNoWeight)
+			{
+				commands.at(i).m_nWeight = nVariableWeight;
+			}
+			else
+			{
+				commands.at(i).m_nWeight = nAvg;
+				nVariableWeight -= nAvg;
+			}
+		}
+	}
+}
+
 const char* SafeStrA(const char* str)
 {
 	return (str == NULL) ? "" : str;

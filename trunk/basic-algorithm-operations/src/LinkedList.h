@@ -88,6 +88,12 @@ node* swap1(node* ph, node* p1, node* p2);
 
 void swap(node* prev1, node* p1, node* prev2, node* p2);
 
+//swap the current node and the next
+void swap_next(node** ptr);
+
+//swap any 2 nodes in the list
+void swap(node** p1, node** p2);
+
 /************************************************************************/
 /* 9. expand a cascade_node linked list to a simple linked list
 /************************************************************************/

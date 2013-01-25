@@ -37,6 +37,7 @@ public:
 	virtual ~StrObjPtrContext();
 	virtual bool Get(const std::string& key, cfl::Object** pval);
 	virtual void Put(const std::string& key, cfl::Object* val);
+	virtual void Clear();
 	virtual StrObjPtrMap* GetDataMap();
 protected:
 	StrObjPtrMap m_map;
@@ -47,6 +48,7 @@ class OptionExpObj : public cfl::Object
 {
 public:
 	OptionExpObj() {}
+	OptionExpObj(const T& val) { m_data = val; }
 	virtual ~OptionExpObj() {}
 	virtual void* GetData() {return &m_data;}
 protected:
@@ -55,7 +57,28 @@ protected:
 
 typedef std::vector<cfl::tstring> TStrVector;
 typedef OptionExpObj< TStrVector > TStrVectorObj;
+typedef OptionExpObj< cfl::tstring > TStrObj;
 
+template<class T>
+T* GetObjPtrData(StrObjPtrContext& context, const std::string& key, bool bCreate = false)
+{
+	OptionExpObj<T> *pObjPtr = NULL;
+	if(!context.Get(key, (cfl::Object**)&pObjPtr))
+	{
+		if(!bCreate)
+		{
+			return NULL;
+		}
+		pObjPtr = new OptionExpObj<T>();
+		context.Put(key, pObjPtr);
+	}
+	ASSERT(pObjPtr != NULL);
+
+	T* pData = (T*)pObjPtr->GetData();
+	ASSERT(pData != NULL);
+
+	return pData;
+}
 
 class CmdBuilder
 {
@@ -66,6 +89,15 @@ public:
 //	virtual bool Build(std::vector<CmdInfo>& commands, std::vector<cfl::tstring>& delFiles) = 0;
 
 	virtual bool Build(CmdInfo& cmdInfo, StrObjPtrContext& context) = 0;
+};
+
+class CmdListBuilder
+{
+public:
+	CmdListBuilder() {}
+	virtual ~CmdListBuilder() {}
+	virtual CmdListBuilder* Clone() = 0;
+	virtual bool Build(std::vector<CmdInfo>& commands, StrObjPtrContext& context) = 0;
 };
 
 #endif

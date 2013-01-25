@@ -155,11 +155,19 @@ SOURCE=..\..\..\src\MeCmdBuilder.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\src\MeCmdListBuilder.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\src\MeCopyCmdBuilder.cpp
 # End Source File
 # Begin Source File
 
 SOURCE=..\..\..\src\MP4CmdBuilder.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\src\MP4CmdListBuilder.cpp
 # End Source File
 # Begin Source File
 
@@ -212,11 +220,19 @@ SOURCE=..\..\..\src\MeCmdBuilder.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\include\MeCmdListBuilder.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\src\MeCopyCmdBuilder.h
 # End Source File
 # Begin Source File
 
 SOURCE=..\..\..\src\MP4CmdBuilder.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\include\MP4CmdListBuilder.h
 # End Source File
 # Begin Source File
 

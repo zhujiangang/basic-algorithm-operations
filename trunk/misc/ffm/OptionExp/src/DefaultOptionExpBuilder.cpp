@@ -184,8 +184,8 @@ static const OptionParam ovc_mpeg2video_opts[] =
 	{VIDEO_BITRATE,	"vbitrate",	"800",		PROP_SEP,	NULL,		OPTEM_DEFAULT,		OPT_CONFIGURABLE | OPTEF_MUST,	NULL},
 	{NULL,			"mbd",		"2",		PROP_SEP,	NULL,		OPTEM_DEFAULT,		OPTEF_SELF,			NULL},
 	{NULL,			"trell",	"",			NULL,		NULL,		OPTEM_NAME_ONLY,	OPTEF_SELF,			NULL},
-	{NULL,			"keyint",	"15",		PROP_SEP,	NULL,		OPTEM_DEFAULT,		OPTEF_SELF,			NULL},
-	{NULL,			"aspect",	"4/3",		PROP_SEP,	NULL,		OPTEM_DEFAULT,		OPTEF_SELF,			NULL},
+	{KEYINT,		"keyint",	"15",		PROP_SEP,	NULL,		OPTEM_DEFAULT,		OPT_CONFIGURABLE,	NULL},
+	{ASPECT,		"aspect",	"4/3",		PROP_SEP,	NULL,		OPTEM_DEFAULT,		OPT_CONFIGURABLE,	NULL},
 	{NULL,			"vrc_buf_size",	"1835",	PROP_SEP,	NULL,		OPTEM_DEFAULT,		OPTEF_SELF,			NULL},
 	{NULL,			"vrc_maxrate",	"9800",	PROP_SEP,	NULL,		OPTEM_DEFAULT,		OPTEF_SELF,			NULL},
 	{NULL,			"vstrict",	"0",		PROP_SEP,	NULL,		OPTEM_DEFAULT,		OPTEF_SELF,			NULL},
@@ -446,6 +446,30 @@ static const ChoiceOptionParamList oac_opts_choices =
 };
 
 //-of mpeg -mpegopts format=dvd:tsaf:telecine -ofps 24000/1001
+static const OptionParam of_mpeg_dvd_ntsc_opts[] = 
+{
+	{NULL, "format","dvd", 	PROP_SEP, NULL, OPTEM_DEFAULT, OPTEF_SELF, NULL},
+
+	//Sets  timestamps  on  all  frames. if possible; recommended when format=dvd.
+	{NULL, "tsaf",	"", 	PROP_SEP, NULL, OPTEM_NAME_ONLY, OPTEF_SELF, NULL},
+	{OFPS, "30000/1001",	NULL, 	NULL, NULL, MAKE_OPT_MODE(OPTEM_SET_CONTEXT, OPT_FIELD_NAME, CONTEXT_VALUE), OPTEF_NONE, NULL},
+	{KEYINT, "18",	NULL, 	NULL, NULL, MAKE_OPT_MODE(OPTEM_SET_CONTEXT, OPT_FIELD_NAME, CONTEXT_VALUE), OPTEF_NONE, NULL},
+	{OF,  "mpeg",	NULL, 	NULL, NULL, MAKE_OPT_MODE(OPTEM_SET_CONTEXT, OPT_FIELD_NAME, CONTEXT_VALUE), OPTEF_NONE, NULL},
+	{OF_OPTS,	"-mpegopts",NULL, NULL,	NULL, MAKE_OPT_MODE(OPTEM_SET_PARENT, OPT_FIELD_NAME, OPT_FIELD_NAME), OPTEF_NONE, NULL}
+};
+
+//-mpegopts format=dvd:tsaf:film2pal -ofps 24000/1001
+static const OptionParam of_mpeg_dvd_pal_opts[] = 
+{
+	{NULL, "format","dvd", 	PROP_SEP, NULL, OPTEM_DEFAULT, OPTEF_SELF, NULL},
+	//Sets  timestamps  on  all  frames. if possible; recommended when format=dvd.
+	{NULL, "tsaf",	"", 	PROP_SEP, NULL, OPTEM_NAME_ONLY, OPTEF_SELF, NULL},
+	{KEYINT, "15",	NULL, 	NULL, NULL, MAKE_OPT_MODE(OPTEM_SET_CONTEXT, OPT_FIELD_NAME, CONTEXT_VALUE), OPTEF_NONE, NULL},
+	{OF,  "mpeg",	NULL, 	NULL, NULL, MAKE_OPT_MODE(OPTEM_SET_CONTEXT, OPT_FIELD_NAME, CONTEXT_VALUE), OPTEF_NONE, NULL},
+	{OF_OPTS,	"-mpegopts",NULL, NULL,	NULL, MAKE_OPT_MODE(OPTEM_SET_PARENT, OPT_FIELD_NAME, OPT_FIELD_NAME), OPTEF_NONE, NULL}
+};
+
+//-of mpeg -mpegopts format=dvd:tsaf:telecine -ofps 24000/1001
 static const OptionParam of_mpeg_dvd_film2NTSC_opts[] = 
 {
 	{NULL, "format","dvd", 	PROP_SEP, NULL, OPTEM_DEFAULT, OPTEF_SELF, NULL},
@@ -511,6 +535,8 @@ static const NamedOptionParamList of_opts_groups[] =
 {
 	{"dvd_film2NTSC",	of_mpeg_dvd_film2NTSC_opts, ARRAY_LEN(of_mpeg_dvd_film2NTSC_opts)},
 	{"dvd_film2PAL",	of_mpeg_dvd_film2PAL_opts, ARRAY_LEN(of_mpeg_dvd_film2PAL_opts)},
+	{"dvd_ntsc",	of_mpeg_dvd_ntsc_opts, ARRAY_LEN(of_mpeg_dvd_ntsc_opts)},
+	{"dvd_pal",	of_mpeg_dvd_pal_opts, ARRAY_LEN(of_mpeg_dvd_pal_opts)},
 	{"avi",	of_avi_opts, ARRAY_LEN(of_avi_opts)},
 	{"asf",	of_asf_opts, ARRAY_LEN(of_asf_opts)},
 	{"matroska",	of_matroska_opts, ARRAY_LEN(of_matroska_opts)},
