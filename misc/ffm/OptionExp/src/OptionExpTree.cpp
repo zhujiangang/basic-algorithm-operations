@@ -18,6 +18,8 @@ static char THIS_FILE[]=__FILE__;
 #define new DEBUG_NEW
 #endif
 
+DECLARE_THE_LOGGER_NAME(LIB_LOGGER_PREFIX _T(".OptionExpTree"))
+
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
@@ -91,14 +93,14 @@ bool OptionExpTree::PostEvaluateGroup(OptionContext* pContext)
 				pChild = pExp->GetChild(i);
 				if(pChild->GetChildCount() > 0)
 				{
-					if(IS_LOG_ENABLED(THE_LIB_LOGGER, log4cplus::TRACE_LOG_LEVEL))
+					if(IS_LOG_ENABLED(THE_LOGGER, log4cplus::TRACE_LOG_LEVEL))
 					{
 						cfl::tstring szLog;
 						cfl::tformat(szLog, _T("[stack push]: id=%s,name=%s,value=%s"), 
 							CFL_A2T(SafeStrA(pChild->GetFieldStr(OPT_FIELD_ID))),
 							CFL_A2T(SafeStrA(pChild->GetFieldStr(OPT_FIELD_NAME))), 
 							CFL_A2T(SafeStrA(pChild->GetFieldStr(OPT_FIELD_VALUE))));
-						LOG4CPLUS_TRACE_STR(THE_LIB_LOGGER, szLog)
+						LOG4CPLUS_TRACE_STR(THE_LOGGER, szLog)
 					}
 
 					//visit
@@ -116,14 +118,14 @@ bool OptionExpTree::PostEvaluateGroup(OptionContext* pContext)
 	{
 		pExp = optExpStack.top();
 		optExpStack.pop();
-		if(IS_LOG_ENABLED(THE_LIB_LOGGER, log4cplus::TRACE_LOG_LEVEL))
+		if(IS_LOG_ENABLED(THE_LOGGER, log4cplus::TRACE_LOG_LEVEL))
 		{
 			cfl::tstring szLog;
 			cfl::tformat(szLog, _T("[stack  pop]: id=%s,name=%s,value=%s"), 
 				CFL_A2T(SafeStrA(pExp->GetFieldStr(OPT_FIELD_ID))),
 				CFL_A2T(SafeStrA(pExp->GetFieldStr(OPT_FIELD_NAME))), 
 				CFL_A2T(SafeStrA(pExp->GetFieldStr(OPT_FIELD_VALUE))));
-			LOG4CPLUS_TRACE_STR(THE_LIB_LOGGER, szLog)
+			LOG4CPLUS_TRACE_STR(THE_LOGGER, szLog)
 		}
 		if(!pExp->Evaluate(pContext, val))
 		{

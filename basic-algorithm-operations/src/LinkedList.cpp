@@ -133,6 +133,52 @@ node* get(node* ph, int index)
 	return NULL;
 }
 
+void swapadjacent(node** head)
+{
+	node **curr = head, *next;
+	while(*curr)
+	{
+		next = (*curr)->next;
+		if(next == NULL)
+		{
+			break;
+		}
+		(*curr)->next = next->next;
+		next->next = *curr;
+		*curr = next;
+
+		curr = &(*curr)->next->next;
+	}
+}
+
+node* swapadjacent(node* head)
+{
+	node *prev = NULL, *curr = head, *next;
+	while(curr)
+	{
+		next = curr->next;
+		if(next == NULL)
+		{
+			break;
+		}
+
+		curr->next = next->next;
+		next->next = curr;
+		if(prev == NULL)
+		{
+			head = next;
+		}
+		else
+		{
+			prev->next = next;
+		}
+
+		prev = curr;
+		curr = curr->next;
+	}
+
+	return head;
+}
 
 /*
 int compareList(node* p1, node* p2, node** pdiff1, node** pdiff2, int* pos)
@@ -1484,7 +1530,6 @@ void testLinkedList()
 // 	printList(pr);
 
 	//(3). Test for qsort
-
 	node* ph = createList(a, n);
 	printf("[quick sort]\n");
 	printList(ph);
@@ -1514,6 +1559,18 @@ void testLinkedList()
 	printList(ph2);
 	
 	assertEquals(ph, ph3);
+
+	node* ph4 = createList(a, n);
+	printf("[swap adjacent]\n");
+	printList(ph4);
+	swapadjacent(&ph4);
+	printList(ph4);
+
+	node* ph5 = createList(a, n);
+	printf("[swap adjacent]\n");
+	printList(ph5);
+	ph5 = swapadjacent(ph5);
+	printList(ph5);
 
 // 	node* result = add(p1, size(p1), p2, size(p2));
 // 	printList(result);

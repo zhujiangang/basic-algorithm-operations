@@ -35,6 +35,9 @@ int assertEquals(node* p1, node* p2);
 node* remove(node* head, int x);
 void remove(node** head, int x);
 
+void swapadjacent(node** head);
+node* swapadjacent(node* head);
+
 /************************************************************************/
 /* 1. Reverse a single linkedlist                                       */
 /************************************************************************/

@@ -126,9 +126,9 @@ public:
 	void inOrderStack(Visitor* visitor = &outputVisitor);
 	void postOrderStack(Visitor* visitor = &outputVisitor);
 
-// 	void preOrderStackB(Visitor* visitor = &outputVisitor);
-// 	void inOrderStackB(Visitor* visitor = &outputVisitor);
-// 	void postOrderStackB(Visitor* visitor = &outputVisitor);
+ 	void preOrderStackB(Visitor* visitor = &outputVisitor);
+	void inOrderStackB(Visitor* visitor = &outputVisitor);
+	void postOrderStackB(Visitor* visitor = &outputVisitor);
 
 	virtual void preVisit(VisitType vt, Visitor* visitor = &outputVisitor);
 	virtual void postVisit(Visitor* visitor = &outputVisitor, void* param = NULL);
