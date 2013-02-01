@@ -21,7 +21,9 @@
 #endif
 
 #define ENABLE_LOG4CPLUS
-#define THE_LIB_LOGGER		GET_LOGGER(_T("lib.OptionExp"))
+
+#define LIB_LOGGER_PREFIX	_T("lib.OptionExp")
+#define THE_LIB_LOGGER		GET_LOGGER(LIB_LOGGER_PREFIX)
 
 //{{AFX_INSERT_LOCATION}}
 // Microsoft Visual C++ will insert additional declarations immediately before the previous line.

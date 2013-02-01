@@ -603,6 +603,32 @@ static const DirectOptionParamList vfOpts =
 	SOT_LIST, filterOtps, ARRAY_LEN(filterOtps)
 };
 
+static bool LavcResampleFunc(OptionExp* pOptExp, OptionContext* pContext, const std::string* pVal)
+{
+	std::string val;
+	if(pContext->Get(OF, val) && val.compare("mpeg") == 0)
+	{
+		if(pContext->Get(OSRATE, val))
+		{
+			pContext->Put(LAVCRESAMPLE, val.c_str());
+			return true;
+		}
+	}
+	return false;
+}
+
+//-af volnorm,lavcresample=48000
+static const OptionParam af_opts[] = 
+{
+	{NULL,		"volnorm",		"",		NULL,		NULL,		OPTEM_NAME_ONLY,	OPTEF_SELF,			NULL},
+	{LAVCRESAMPLE,"lavcresample",NULL,	PROP_SEP,	NULL,		OPTEM_DEFAULT,		OPTEF_CONTEXT | OPTEF_HAS_FUNC | OPTEF_FUNC_ONCE,	LavcResampleFunc}
+};
+
+static const DirectOptionParamList af_opt_list = 
+{
+	SOT_LIST, af_opts, ARRAY_LEN(af_opts)
+};
+
 //static const ChoiceOptionParamList 
 static const OptionParam profile1Data[] = 
 {
@@ -615,7 +641,7 @@ static const OptionParam profile1Data[] =
 	{OF,			"-of",		NULL,		ARG_SEP,	NULL,		OPTEM_DEFAULT,		OPTEF_CONTEXT,		NULL},
 	{OF_OPTS,		NULL,		NULL,		ARG_SEP,	OPTION_SEP,	OPTEM_DEFAULT,		OPTEF_CHILDREN,		(void*)&of_opts_choices},
 
-	{AUDIO_FILTER,	"-af",		"volnorm",	ARG_SEP,	FILTER_SEP,	OPTEM_DEFAULT,		OPTEF_MUST | OPTEF_CHILDREN | OPTEF_SELF,	/*TODO*/NULL},
+	{AUDIO_FILTER,	"-af",		"volnorm",	ARG_SEP,	FILTER_SEP,	OPTEM_DEFAULT,		OPTEF_MUST | OPTEF_CHILDREN/* | OPTEF_SELF*/,	(void*)&af_opt_list},
 	{VIDEO_FILTER,	"-vf",		"harddup",	ARG_SEP,	FILTER_SEP,	OPTEM_DEFAULT,		OPTEF_MUST | OPTEF_CHILDREN/* | OPTEF_SELF*/,	(void*)&vfOpts},
 	
 	{OSRATE,		"-srate",	NULL,		ARG_SEP,	NULL,		OPTEM_DEFAULT,		OPTEF_MUST | OPTEF_CONTEXT,		NULL},

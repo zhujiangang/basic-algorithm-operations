@@ -821,6 +821,64 @@ void BinTree::postOrderStack(Visitor* visitor)
 	postVisit(visitor);
 }
 
+void BinTree::preOrderStackB(Visitor* visitor)
+{
+	preVisit(PRE_ORDER_STACK_B, visitor);
+
+	stack<BinNode*> st;
+	st.push(root);
+
+	BinNode* t = NULL;
+	/*
+	while(!st.empty())
+	{
+		t = st.top();
+		st.pop();
+
+		if(t)
+		{
+			visitor->visit(t);
+			st.push(t->rc);
+			st.push(t->lc);
+		}
+	}
+	*/
+	while(!st.empty())
+	{
+		t = st.top();
+		st.pop();
+		
+		visitor->visit(t);
+
+		if(t->rc)
+		{
+			st.push(t->rc);
+		}
+		if(t->lc)
+		{
+			st.push(t->lc);
+		}
+	}
+
+	postVisit(visitor);
+}
+
+void BinTree::inOrderStackB(Visitor* visitor)
+{
+	preVisit(IN_ORDER_STACK_B, visitor);
+	
+	//TOTO
+	
+	postVisit(visitor);
+}
+void BinTree::postOrderStackB(Visitor* visitor)
+{
+	preVisit(POST_ORDER_STACK_B, visitor);
+	
+	//TODO
+	postVisit(visitor);
+}
+
 /*
 The below 3 functions with a "B" as suffix are from:
 http://www.cnblogs.com/Jax/archive/2009/12/28/1633691.html
@@ -1467,6 +1525,14 @@ void showTree(BinTree& ptree, char type = 0)
 		ptree.inOrderStack();
 		ptree.postOrderStack();
 	}
+	//StackB
+	else if(type == 2)
+	{
+		cout<<"=====================Start ("<<count<<") Stack B========================="<<endl;
+		ptree.preOrderStackB();
+		ptree.inOrderStack();
+		ptree.postOrderStack();
+	}
 	ptree.levelOrder();	
 	cout<<"=============================End============================="<<endl;
 }
@@ -1500,7 +1566,7 @@ void testBinTree()
 	BinTree binTree(a, n);
 
 	showTree(binTree);
-	showTree(binTree, 1);
+	showTree(binTree, 2);
 
 	int pre[]   = {5, 2, 1, 3, 4, 8, 6, 7, 9, 10};
 	int in[]    = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};

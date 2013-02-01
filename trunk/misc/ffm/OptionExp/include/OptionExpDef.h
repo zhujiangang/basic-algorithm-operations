@@ -58,6 +58,7 @@
 
 #define ASPECT				"Aspect"
 #define KEYINT				"KeyInt"
+#define LAVCRESAMPLE		"LAVCResample"
 
 //PARAM Names
 #define PARAM_DEL_LIST		"param.dellist"		/* Temporary File List */
@@ -70,6 +71,8 @@
 #define PARAM_BIN_MP4CREATOR	"param.bin.mp4creator"
 #define PARAM_INPUT_FILE	"param.input.file"
 #define PARAM_OUTPUT_FOLDER	"param.output.folder"
+
+#define CXT_PARAM_RESAMPLE	"cxt.param.resample"
 
 /*
 //ALL, FATAL, ERROR, WARN, INFO, DEBUG, TRACE, OFF
