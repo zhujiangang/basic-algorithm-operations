@@ -61,6 +61,8 @@ void getMiddleNode(node* ph, node** pMid1, node** pMid2 = NULL);
 node* merge(node* p1, node* p2);
 node* mergeIter(node* p1, node* p2);
 node* mergeIter1(node* p1, node* p2);
+node* mergeIter2(node* p1, node* p2);
+node* mergeIter3(node* p1, node* p2);
 
 /************************************************************************/
 /* 5. Check if a single linked list has loop. If yes, find the loop entrance
@@ -76,6 +78,7 @@ node* qsort1(node* ph);
 node* insert_sort(node* ph);
 node* bubble_sort(node* ph);
 node* select_sort(node* ph);
+node* merge_sort(node* ph);
 
 /************************************************************************/
 /* 7. Check if two linked list overlapped. If yes, find the first overlapped node

@@ -3,6 +3,7 @@
 #include <iostream.h>
 #include <map>
 #include <utility>
+#include <queue>
 #include "LinkedList.h"
 #include "LinkedListEx.h"
 #include "MyUtil.h"
@@ -464,6 +465,130 @@ node* mergeIter1(node* p1, node* p2)
 	return head.next;
 }
 
+node* mergeIter2(node* p1, node* p2)
+{
+	node *ph, *p3;
+	if(p1->data <= p2->data)
+	{
+		ph = p1;
+		p1 = p1->next;
+	}
+	else
+	{
+		ph = p2;
+		p2 = p2->next;
+	}
+
+	p3 = ph;
+	while(p1 != NULL && p2 != NULL)
+	{
+		if(p1->data <= p2->data)
+		{
+			p3->next = p1;
+			p1 = p1->next;
+		}
+		else 
+		{
+			p3->next = p2;
+			p2 = p2->next;
+		}
+		p3 = p3->next;
+	}
+
+	if(p1 != NULL)
+	{
+		p3->next = p1;
+	}
+	if(p2 != NULL)
+	{
+		p3->next = p2;
+	}
+	return ph;
+}
+
+node* mergeIter3(node* p1, node* p2)
+{
+	node head;
+	head.next = NULL;
+
+	node *p3 = &head;
+	while(p1 != NULL && p2 != NULL)
+	{
+		if(p1->data <= p2->data)
+		{
+			p3->next = p1;
+			p1 = p1->next;
+		}
+		else
+		{
+			p3->next = p2;
+			p2 = p2->next;
+		}
+		p3 = p3->next;
+	}
+	if(p1 != NULL)
+	{
+		p3->next = p1;
+	}
+	else if(p2 != NULL)
+	{
+		p3->next = p2;
+	}
+	return head.next;
+}
+
+node* merge_sort(node* ph)
+{
+	if(ph == NULL)
+	{
+		return ph;
+	}
+
+	node *curr = ph, *next;
+
+	std::queue<node*> que;
+	que.push(curr);
+	
+	while(curr != NULL)
+	{
+		next = curr->next;
+		while(next != NULL && curr->data <= next->data)
+		{
+			curr = next;
+			next = next->next;
+		}
+
+		if(next == NULL)
+		{
+			break;
+		}
+
+		curr->next = NULL;
+		curr = next;
+		que.push(curr);
+	}
+
+	curr = NULL;
+
+	node *merged;
+	while(!que.empty())
+	{
+		curr = que.front();
+		que.pop();
+
+		if(que.empty())
+		{
+			break;
+		}
+
+		next = que.front();
+		que.pop();
+
+		merged = mergeIter3(curr, next);
+		que.push(merged);
+	}
+	return curr;
+}
 node* reverse(node* ph)
 {
 	node* prev = NULL;
@@ -1560,6 +1685,14 @@ void testLinkedList()
 	
 	assertEquals(ph, ph3);
 
+	node* ph3_1 = createList(a, n);
+	printf("[merge sort]\n");
+	printList(ph3_1);
+	ph3_1 = merge_sort(ph3_1);
+	printList(ph3_1);
+	
+	assertEquals(ph, ph3_1);
+
 	node* ph4 = createList(a, n);
 	printf("[swap adjacent]\n");
 	printList(ph4);
@@ -1571,6 +1704,14 @@ void testLinkedList()
 	printList(ph5);
 	ph5 = swapadjacent(ph5);
 	printList(ph5);
+
+	printf("[merge list]\n");
+	node* ph6 = createList(a, n);
+	printList(ph6);
+	node* ph7 = createList(data2, COUNTOF(data2));
+	printList(ph7);
+	node* pMergeHead = mergeIter1(ph6, ph7);
+	printList(pMergeHead);
 
 // 	node* result = add(p1, size(p1), p2, size(p2));
 // 	printList(result);
