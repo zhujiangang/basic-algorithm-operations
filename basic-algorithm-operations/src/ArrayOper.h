@@ -54,5 +54,17 @@ void find2miss(int a[], int n, int* x, int* y);
 */
 int lis(int a[], int n, int d[], int mem[]);
 
+void reverse(int a[], int low, int high);
+/*
+9. Rotate to right
+*/
+void rotate1(int a[], int low, int high, int distance);
+void rotate2(int a[], int low, int high, int distance);
+
+/*
+10. merge in place -- without extra space
+*/
+void merge(int a[], int l, int r, int m);
+
 void testArrayOper();
 #endif

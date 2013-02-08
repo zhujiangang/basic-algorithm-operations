@@ -1,9 +1,9 @@
 #ifndef _BAO_CONFIG_H_
 #define _BAO_CONFIG_H_
 
-#define ARRAY_OPER_TEST 0
-#define ARRAY_SORT_TEST 0
-#define BIN_TREE_TEST 1
+#define ARRAY_OPER_TEST 1
+#define ARRAY_SORT_TEST 1
+#define BIN_TREE_TEST 0
 #define BIT_OPER_TEST 0
 #define COMBINE_MATH_TEST 0
 #define FILE_OPER_TEST 0

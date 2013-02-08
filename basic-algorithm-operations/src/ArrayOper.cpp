@@ -3,6 +3,7 @@
 #include "ArrayOper.h"
 #include "config.h"
 #include "MyUtil.h"
+#include <assert.h>
 
 void printSumPairs(int a[], int n, int sum)
 {
@@ -370,6 +371,97 @@ int lis(int a[], int n, int d[], int mem[])
 	return len;
 }
 
+void reverse(int a[], int low, int high)
+{
+	int i, j;
+	for(i = low, j = high; i < j; i++, j--)
+	{
+		swap(a[i], a[j]);
+	}
+}
+
+void rotate1(int a[], int low, int high, int distance)
+{
+	int n = high - low + 1;
+	if(n <= 0)
+	{
+		return;
+	}
+
+	distance %= n;
+	if(distance < 0)
+	{
+		distance += n;
+	}
+	if(distance == 0)
+	{
+		return;
+	}
+
+	int start, moved, i, displaced;
+	for(start = low, moved = 0; moved < n; start++)
+	{
+		i = start;
+		displaced = a[start];
+
+		do 
+		{
+			//case: low = 7, high = 9, distance = 2
+			i += distance;
+			if(i > high)
+			{
+				i -= n;
+			}
+
+			//i = low + ((i - low) + distance) % n;
+			swap(displaced, a[i]);
+			moved++;
+		} while (i != start);
+	}
+}
+
+void rotate2(int a[], int low, int high, int distance)
+{
+	int n = high - low + 1;
+	if(n <= 0)
+	{
+		return;
+	}
+
+
+	distance %= n;
+	if(distance < 0)
+	{
+		distance += n;
+	}
+	if(distance == 0)
+	{
+		return;
+	}
+
+	reverse(a, low, high - distance);
+	reverse(a, high - distance + 1, high);
+	reverse(a, low, high);
+}
+
+void merge(int a[], int l, int r, int m)
+{
+	int i = l, j = m + 1, k;
+	while(i <= r && j <= r && i < j)
+	{
+		while(a[i] <= a[j] && i < j)
+		{
+			i++;
+		}
+		k = j;
+		while(a[i] > a[j] && j <= r)
+		{
+			j++;
+		}
+		rotate1(a, i, j - 1, j - k);
+		i += (j - k) + 1;
+	}
+}
 
 void testArrayOper()
 {
@@ -442,6 +534,25 @@ void testArrayOper()
 		}
 	}
 	printf("\n");
+
+	n = COUNTOF(f);
+	int distance = 3;
+	rotate1(f, 0, n - 1, distance);
+	output(f, COUNTOF(f));
+	rotate1(f, 0, n - 1, -distance);
+	output(f, COUNTOF(f));
+
+	rotate2(f, 0, n - 1, distance);
+	output(f, COUNTOF(f));
+	rotate2(f, 0, n - 1, -distance);
+	output(f, COUNTOF(f));
+
+	int aa[] = {1, 2, 3, 6, 9, 10, 4, 5, 7, 8, 11};
+	//int aa[] = {11, 10, 9, 8, 7, 6, 5, 4, 3, 5, 1};
+	//int aa[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
+	int low = 0, high = COUNTOF(aa) - 1, m = high / 2;
+	merge(aa, low, high, m);
+	output(aa, COUNTOF(aa));
 
 	printSep(__FILE__);
 #endif
