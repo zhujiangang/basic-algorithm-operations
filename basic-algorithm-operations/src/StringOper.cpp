@@ -121,6 +121,100 @@ void* gmemset(void* dst, int val, unsigned int count)
 	return ret;
 }
 
+void NextArray(const char* str, int next[])
+{
+	int len = strlen(str);
+	next[0] = -1;
+
+	int i, j;
+	for(i = 0, j = -1; i < len - 1;)
+	{
+		if(j == -1 || str[i] == str[j])
+		{
+			++i;
+			++j;
+			next[i] = j;
+		}
+		else
+		{
+			j = next[j];
+		}
+	}
+
+	for(i = 0; i < len; i++)
+	{
+		printf("%d ", next[i]);
+	}
+	printf("\n");
+}
+
+int Index_KMP(const char* tstr, const char* pstr, int off)
+{
+	int tlen = strlen(tstr);
+	int plen = strlen(pstr);
+
+	if(tlen < plen)
+	{
+		return -1;
+	}
+
+	int* next = new int[tlen];
+	NextArray(pstr, next);
+
+	int i, j;
+	for(i = off, j = 0; i < tlen && j < plen; )
+	{
+		if(j == -1 || tstr[i] == pstr[j])
+		{
+			++i;
+			++j;
+		}
+		else
+		{
+			j = next[j];
+		}
+	}
+
+	delete [] next;
+
+	if(j >= plen)
+	{
+		return i - plen;
+	}
+	else
+	{
+		return -1;
+	}
+}
+
+int index_common(const char* tstr, const char* pstr, int off)
+{
+	int tlen = strlen(tstr);
+	int plen = strlen(pstr);
+	
+	if(tlen < plen)
+	{
+		return -1;
+	}
+
+	int i, j;
+	for(i = 0; i < tlen; i++)
+	{
+		for(j = 0; j < plen; j++)
+		{
+			if(tstr[i + j] != pstr[j])
+			{
+				break;
+			}
+		}
+		if(j >= plen)
+		{
+			return i;
+		}
+	}
+	return -1;
+}
+
 void testStringOper()
 {
 #if ((STRING_OPER_TEST) == 1)
@@ -153,6 +247,16 @@ void testStringOper()
 	gmemcpy( string1 + 10, string1 + 4, 40 );
 	printf( "Result:\t\t%s\n", string1 );
 	printf( "Length:\t\t%d characters\n\n", strlen( string1 ) );
+
+	const char* p1 = "123abaabcac345";
+	const char* p2 = "abaabcac";
+
+	int index = Index_KMP(p1, p2, 0);
+	printf("kmp off: %d\n", index);
+
+	index = index_common(p1, p2, 0);
+	printf("gen off: %d\n", index);
+
 	printSep(__FILE__);
 #endif
 }
