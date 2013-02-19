@@ -139,9 +139,116 @@ void mergeSortIter(int a[], int n)
 	delete b;
 }
 
+typedef struct DataNode
+{
+	int data;
+	int index;
+	int active;
+}DataNode;
+
+static int pow2(int n)
+{
+	int x = 1;
+	while(x < n)
+	{
+		x <<= 1;
+	}
+	return x;
+}
+
+void updateTree(DataNode* pTree, int i)
+{   
+	int j;
+	if ( i % 2 == 0 )
+		pTree[(i-1)/2] = pTree[i-1];    //i偶数, 对手左结点
+	else 
+		pTree[(i-1)/2] = pTree[i+1]; //i奇数, 对手右结点
+
+	i = (i-1) / 2;                            //向上调整    
+	while ( i ) //直到 i==0
+	{                             
+		if ( i % 2 == 0) 
+			j = i-1;
+		else 
+			j = i+1;
+
+		if ( !pTree[i].active || !pTree[j].active )
+		{
+			if ( pTree[i].active )
+				pTree[(i-1)/2] = pTree[i];       //i可参选, i上
+			else  
+				pTree[(i-1)/2] = pTree[j];   //否则, j上
+		}
+		else			//两方都可参选	
+		{
+			if ( pTree[i].data < pTree[j].data ) 
+				pTree[(i-1)/2] = pTree[i];        //关键码小者上
+			else  
+				pTree[(i-1)/2] = pTree[j];
+		}
+		i = (i-1) / 2;      // i上升到双亲
+    }
+}
+
 void tournamentSort(int a[], int n)
 {
+	DataNode* pTree = NULL;
 
+	int bottomSize = pow2(n);
+	int treeSize = 2 * bottomSize - 1;
+	int loadIndex = bottomSize - 1;
+
+	pTree = new DataNode[treeSize];
+
+	//copy data to winner tree
+	int i, j = 0;
+	for(i = loadIndex; i < treeSize; i++)
+	{
+		pTree[i].index = i;
+		if(j < n)
+		{
+			pTree[i].active = 1;
+			pTree[i].data = a[j++];
+		}
+		else
+		{
+			pTree[i].active = 0;
+		}
+	}
+
+	//first pass compare, select the min
+	//i is the first element of this level
+	i = loadIndex;
+	while(i)
+	{
+		j = i;
+		//(2 * i) is the biggest index of this level
+		while(j < 2 * i)
+		{
+			if(!pTree[j + 1].active || pTree[j].data <= pTree[j+1].data)
+			{
+				pTree[(j-1)/2] = pTree[j];
+			}
+			else
+			{
+				pTree[(j-1)/2] = pTree[j+1];
+			}
+			j += 2;
+		}
+
+		//go up the upper level
+		i = (i - 1)/2;
+	}
+
+	for(i = 0; i < n - 1; i++)
+	{
+		a[i] = pTree[0].data;
+		pTree[pTree[0].index].active = 0;
+		updateTree(pTree, pTree[0].index);
+	}
+	a[n-1] = pTree[0].data;
+
+	delete [] pTree;
 }
 
 int partition(int a[], int l, int r, int pivot)
@@ -297,8 +404,12 @@ void testArraySort()
 	
 	arryCopy(datasource, 0, copya, 0, n);
 	//	output(copya, n);
+
+	int a[] = {21, 25, 49, 25, 16, 8/*, 63*/};
+	tournamentSort(a, COUNTOF(a));
+	output(a, COUNTOF(a));
 	
-	sorter sorters[] = {bubbleSort, insertSort, mergeSort, mergeSort2, mergeSortIter, quickSort, heapSort, heapSort2};
+	sorter sorters[] = {bubbleSort, insertSort, mergeSort, mergeSort2, mergeSortIter, tournamentSort, quickSort, heapSort, heapSort2};
 	
 	int ret;
 	clock_t start, finish;
