@@ -25,8 +25,10 @@ typedef struct cascade_node
 /* 0. Basic Single linked list operations                               */
 /************************************************************************/
 node* createList(int data[], int len);
+node* createCycleList(int data[], int len);
 void deleteList(node* ph);
 void printList(node* ph, int limit = -1);
+void printCycleList(node* ph);
 void showNode(node* ph);
 node* get(node* ph, int index);
 int size(node* ph);
@@ -115,6 +117,9 @@ node* add(node* ph1, int len1, node* ph2, int len2);
 /* 11. Remove the duplicated element in list                            */
 /************************************************************************/
 node* remove_duplicated(node* ph);
+
+//reorder the linked list when meet the m-th item
+void reorder(node** head, int m);
 
 void testLinkedList();
 #endif

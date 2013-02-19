@@ -43,6 +43,18 @@ node* createList(int data[], int len)
 	return head;
 }
 
+node* createCycleList(int data[], int len)
+{
+	node *head = NULL, **curr = &head;
+	for(int i = 0; i < len; i++)
+	{
+		*curr = new node(data[i]);
+		curr = &(*curr)->next;
+	}
+	*curr = head;
+	return head;
+}
+
 /*
 void deleteList(node* ph)
 {
@@ -101,6 +113,18 @@ void printList(node* ph, int limit)
 		}
 		cout<<endl;
 	}
+}
+
+void printCycleList(node* ph)
+{
+	printf("%d ", ph->data);
+	node *curr = ph->next;
+	while(curr != ph)
+	{
+		printf("%d ", curr->data);
+		curr = curr->next;
+	}
+	printf("\n");
 }
 
 int size(node* ph)
@@ -1522,6 +1546,38 @@ node* remove_duplicated(node* ph)
 	return ph;
 }
 
+void reorder(node** head, int m)
+{
+	if(m <= 1)
+	{
+		return;
+	}
+
+	node hn;
+	hn.next = NULL;
+
+	node *tail = &hn;
+	node **curr = head;
+	while( (*curr)->next != (*curr) )
+	{
+		for(int i = 1; i < m; i++)
+		{
+			curr = &(*curr)->next;
+		}
+
+		tail->next = *curr;
+		tail = tail->next;
+
+		*curr = (*curr)->next;
+	}
+
+	tail->next = *curr;
+	tail = tail->next;
+	tail->next = hn.next;
+
+	*head = hn.next;
+}
+
 class Point
 {
 public:
@@ -1568,6 +1624,7 @@ void testLinkedList()
 {
 #if ((LINKED_LIST_TEST) == 1)
 	//(0). Set up linkedlist
+	int data0[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
 	int data1[] = {9, 8, 9, 8, 9, 8, 9};
 	int data2[] = {24,38,86,97,18,84,56,86,97,24};
 
@@ -1713,6 +1770,19 @@ void testLinkedList()
 	node* pMergeHead = mergeIter1(ph6, ph7);
 	printList(pMergeHead);
 
+	printf("[reorder]\n");
+	node* ph8 = createCycleList(data0, n);
+	printCycleList(ph8);
+	reorder(&ph8, 10);
+	printCycleList(ph8);
+
+	char c = -128;
+	printf("%d\n", c);
+	printf("%d\n", sizeof(++c));
+	printf("%d\n", sizeof(++c));
+	printf("%d\n", sizeof(++c));
+	printf("%d\n", sizeof(++c));
+	printf("%d\n", c);
 // 	node* result = add(p1, size(p1), p2, size(p2));
 // 	printList(result);
 // 	deleteList(result);
