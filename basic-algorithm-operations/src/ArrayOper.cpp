@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <iostream.h>
+#include <stdlib.h>
 #include "ArrayOper.h"
 #include "config.h"
 #include "MyUtil.h"
@@ -461,6 +462,25 @@ void merge(int a[], int l, int r, int m)
 		rotate1(a, i, j - 1, j - k);
 		i += (j - k) + 1;
 	}
+}
+
+int rand_n(int n)
+{
+	srand(time(NULL));
+
+	return 1 + rand() % n;
+}
+int rand_m(int n, int m)
+{
+	//make sure n < m && n * n >= m
+	int t = ((n * n) / m) * m;
+	int x;
+	do 
+	{
+		x = n * (rand_n(n) - 1) + rand_n(n);
+	} while (x > t);
+
+	return 1 + (x % m);
 }
 
 void testArrayOper()

@@ -66,5 +66,12 @@ void rotate2(int a[], int low, int high, int distance);
 */
 void merge(int a[], int l, int r, int m);
 
+/*
+11. use rand_n to generate rand_m
+http://blog.csdn.net/hackbuteer1/article/details/7486704
+*/
+int rand_n(int n);
+int rand_m(int n, int m);
+
 void testArrayOper();
 #endif
