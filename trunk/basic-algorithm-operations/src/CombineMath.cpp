@@ -1,6 +1,7 @@
 #include <iostream.h>
 #include <stdio.h>
 #include <string.h>
+#include <vector>
 #include "MyUtil.h"
 #include "CombineMath.h"
 #include "config.h"
@@ -85,6 +86,24 @@ void combine(int in[], int len, int inBegin, int out[], int outBegin)
 	}
 }
 
+void combine(int id, int n, std::vector<int>& vec)
+{
+	if(id == n + 1)
+	{
+		for(int i = 0; i < vec.size(); i++)
+		{
+			printf("%d ", vec[i]);
+		}
+		printf("\n");
+		return;
+	}
+	vec.push_back(id);
+	combine(id + 1, n, vec);
+
+	vec.pop_back();
+	combine(id + 1, n, vec);
+}
+
 /************************************************************************/
 /* C(n, m) = C(n-1, m-1) + C(n-1, m)                                   */
 /************************************************************************/
@@ -117,6 +136,12 @@ void combine1(int in[], int n, int m, int out[], int outputLen, int depth)
 	out[depth] = in[n - 1];
 	combine1(in, n - 1, m - 1, out, outputLen, depth + 1);
 	combine1(in, n - 1, m, out, outputLen, depth);
+}
+
+
+void combineCnm(int id, int n, std::vector<int>& vec)
+{
+
 }
 
 /*************************************************************************/
@@ -179,6 +204,10 @@ void testCombineMath()
 	memset(used, 0, n * sizeof(int));
 	perm(a, n, m, b, 0, used);
 	cout<<endl;
+
+	std::vector<int> vec;
+	combine(1, 3, vec);
+
 	printSep(__FILE__);
 #endif
 }
