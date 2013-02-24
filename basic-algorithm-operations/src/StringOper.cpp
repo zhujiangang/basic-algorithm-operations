@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <vector>
 #include "StringOper.h"
 #include "MyUtil.h"
 #include "config.h"
@@ -186,6 +187,62 @@ int Index_KMP(const char* tstr, const char* pstr, int off)
 		return -1;
 	}
 }
+void MyNextArray(const char* str, int next[])
+{
+	int len = strlen(str);
+	next[0] = -1;
+
+	int i, j;
+	for(i = 0, j = -1; i < len - 1;)
+	{
+		if(j == -1 || str[i] == str[j])
+		{
+			i++;
+			j++;
+			next[i] = j;
+		}
+		else
+		{
+			j = next[j];
+		}
+	}
+	
+	for(i = 0; i < len; i++)
+	{
+		printf("%d ", next[i]);
+	}
+	printf("\n");
+}
+
+int Index(const char* tstr, const char* pstr, int off)
+{
+	int tlen = strlen(tstr);
+	int plen = strlen(pstr);
+
+	int i, j;
+	for(i = off, j = 0; i < tlen && j < plen; )
+	{
+		if(tstr[i] == pstr[j])
+		{
+			i++;
+			j++;
+		}
+		else
+		{
+			i = i - j + 1;
+			j = 0;
+		}
+	}
+
+	if(j >= plen)
+	{
+		return i - plen;
+	}
+	else
+	{
+		return -1;
+	}
+}
 
 int index_common(const char* tstr, const char* pstr, int off)
 {
@@ -256,6 +313,8 @@ void testStringOper()
 
 	index = index_common(p1, p2, 0);
 	printf("gen off: %d\n", index);
+
+	std::vector<int> vec;
 
 	printSep(__FILE__);
 #endif
