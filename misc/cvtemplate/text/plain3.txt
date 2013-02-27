@@ -1,0 +1,234 @@
+JACK FREDERICKS
+
+1931 S. Cherry Street, Green Bay, WI 54301 
+Phone: 414-555-2357 
+E-Mail: jfred@mailstation.com
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+SENIOR SOFTWARE ENGINEER * EAI/PDM/INTEGRATION CONSULTANT
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+~~~~~~~~~~~~~~~~~~~~
+PROFESSIONAL PROFILE
+~~~~~~~~~~~~~~~~~~~~
+- Highly proficient IT professional with proven analytical
+abilities and organizational skills, as well as 10 years
+of international industry project experience involving
+leadership and consulting on object-oriented distributed
+information systems, enterprise application integration,
+hardware and software development processes, deployment,
+customer interaction, and end-user organization.
+- Well-rounded, communicative, creative technical
+problem-solver.
+- Fast learner who has been consistently cited for
+ability to achieve rapid comfort level in new environments
+and almost immediately develop optimal solutions.
+- Innovative, self-motivated, tutor, trainer, team-builder,
+project manager, and technical leader.
+- Rigorous, quality-conscious contributor with solid
+analytical and writing skills.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+SYSTEMS EXPERIENCE AND PROFICIENCY
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+=================
+Operating Systems
+=================
+- Expert knowledge of Unix and its use in high-performance
+server systems (SMP, cluster, very large memory [64 bit],
+MetrixFix deployment), commercial (Solaris, Tru64) and
+open source (Linux, FreeBSD)
+- Solid knowledge of Windows XP and its architecture
+
+=============================
+Software Engineering
+(OO Technologies and Software
+Development Processes)
+=============================
+- Requirements engineering (use case and scenario
+description), OO analysis and design; UML; and
+application to MetrixFix projects
+- Test design, development, and maintenance
+(regression, nightly builds, reporting)
+- Quality assurance, development of coding
+practices, API documentation
+- Team leadership and mentoring
+
+=====================
+Programming Languages
+=====================
+- Expert knowledge of:
+o C/C++
+o Python
+o Java
+o Unix scripting
+- Solid knowledge of:
+o SQL
+o TCL
+o Objective-C
+o Fortran
+
+============================
+Development Tools/Techniques
+============================
+- Extensive multi-platform, multi-technology,
+and integration skills
+- Expert practice of CVS (branching, training),
+and other development support tools (make,
+compilers/linkers, xemacs)
+- Expert knowledge of MetrixFix and eMatrix
+- Solid knowledge of Microsoft Project for
+project definition, planning, monitoring,
+and programming
+- IPC, multithreading, system, and TCP/IP
+network programming
+- GUI architecture, integration, and testing
+- Advanced 3D geometry and numerical algorithms
+- Solid knowledge of Oracle (administration,
+tuning, and programming)
+- Statistical analysis, Monte-Carlo simulation,
+and architecture/information system benchmarking
+
+~~~~~~~~~~~~~~~~~~~~~~~
+PROFESSIONAL EXPERIENCE
+~~~~~~~~~~~~~~~~~~~~~~~
+Software Integration Consultant, University of 
+Wisconsin--Green Bay,
+Green Bay, WI, Sept. 2007 - March 2012
+- Took on key role in reengineering, evolution,
+and industrialization of 3D Molecular Graphics
+Visualization toolkit: OpenGL, C/C++, Python,
+and Java components, embedded in a TCL/Tk
+customizable GUI framework.
+- Introduced and developed best practices for
+software quality enhancement and development,
+including CVS, configuration/build tools,
+automated regression testing, documentation design,
+coding practices, and development strategy.
+- Designed and implemented new generation of tools
+to support software development and configuration
+of multiple components across multiple platforms.
+- Upgraded Java-Python Extension (JPE) to production
+quality and deployed it.
+- Developed OpenGLTk, a multithreaded wrapper
+of the 3D OpenGL libraries in Python.
+
+PDM/MetrixFix Consultant, Abatron, Inc., Kenosha, WI,
+June - Sept. 2007 
+- Upgraded DTO MetrixFix project (Abatron worldwide
+design and engineering information system).
+- Provided architecture and development assistance
+on developing and testing Java integration prototypes
+with IBM's Websphere, BEA's WebLogic, and JBoss 
+Java/Web servers.
+
+Senior Software Engineer, Piezomax Technologies,
+Inc., Middleton, WI, Sept. 2006 - May 2007
+* Brought large software-project experience and
+Python expertise to young high-tech-grad start-up 
+environment;
+contributed expertise in QA, core architecture, testing
+tools, and project monitoring.
+* Smoothly improved and reengineered complex core
+components in rapidly-growing C++/Python/XML/Java
+source base across multiple platforms.
+* Developed grammar analysis tools, including
+modeling, edition, and verification.
+* Collaborated with middle management to establish
+use of Microsoft Project for monitoring
+software-development activities.
+* Participated in 2001 Python Conference and
+achieved nomination for Best Python Programmer
+Award for developing JPE.
+
+Founder, CEO, and EAI/PDM Consultant,
+Xten Industries LLC, Kenosha, WI, May - Sept. 2006
+Founder, CEO, and PDM/MetrixFix Consultant,
+Xten Industries LLC, Kenosha, WI, 2001 - 2005
+- Created and expanded consulting firm as
+internationally recognized independent technical
+consulting resource on MetrixFix, the leading
+object-oriented-distributed Product Data Management
+software for Fortune 1000 companies; maintained
+portfolio of diverse projects/clients across Europe
+and the US, including Michelin, Airbus Industries,
+ABB, Digital/Compaq, Schneider, Alstom, Heidelberg,
+Renault, Matra-Marconi Space, and SDRC.
+- Managed consulting company and as many as seven
+consultants and staff members.
+- Contributed to pre-development phases, including
+requirements, modeling, and pre-project stages
+(UML-based OO analysis and design, interaction
+with business process reengineering consultants).
+- Developed most MetrixFix performance and architecture
+benchmarks in Europe.
+- Created and taught advanced MetrixFix customization
+course to about 60 senior developers.
+- Developed in-house MetrixFix customization tools
+and best practices.
+- Led development and sale of MetaDynamic, the Python
+programming extension to MetrixFix. 
+- Collaborated regularly in multidisciplinary teams
+with Unix server vendors, including Sun/Solaris,
+Digital/Compaq/Tru64, Bull/Aix, HP/HP-UX, as MetrixFix
+expert, to assist them in configuring and optimizing
+MetrixFix on their servers.
+- Collaborated in integrating MetrixFix with applications,
+including CAD: AutoCAD, Microstation, Catia; ERP: Baan;
+legacy databases/Oracle; and Microsoft desktop 
+applications.
+- Designed and developed data-migration tools and
+processes.
+- Led pre-deployment phase of DTO project, including
+regression testing, final integration performance fixes
+and optimization, and portage of MetaDynamic to 
+Windows NT/2000.
+- Implemented PDM software R&D subcontract:
+o Integrated Python and extension programming language
+in eMatrix as replacement to TCL, with full object-oriented
+capabilities. 
+o Developed demonstration application prototype for
+server-side control of Excel and Microsoft project
+on the client, through COM.
+o Proposed native integration of Java with Python,
+which would reconcile self-developed eMatrix Python
+extension with newly shipped eMatrix Java SDK.
+- Designed and developed first version of JPE. 
+
+Datamining Tools Consultant, Information Marketing
+Technology Inc., Madison, WI,
+September 2005 - April 2006
+- Applied Python as RAD language to integrate disseminated
+pieces of in-house and external software to form a
+coherent custom development toolkit and an alternative
+to individual developments.
+- Extended Python's shared memory/IPC capabilities to
+take full advantage of the cluster of 4 64-bit SMP
+AlphaServer 8400 when datamining in-house terabyte 
+databases.
+- Introduced new hires to extreme programming techniques.
+
+Research Engineer on Engineering Information Systems,
+Ford Motor Co., Detroit, MI, 1998 - 2001
+- Assisted research group leader with advanced information
+systems and applying emerging object-oriented technologies
+to in-house engineering information systems, including
+OO specifications, databases, and prototypes development.
+- Searched and analyzed issues related to use of new
+manufacturing engineering information systems; proposed
+small improvement solutions and followed up their
+implementation in a Total Quality/Continuous
+Improvement environment. 
+- Took full charge of very successful field work under
+the supervision of Head of Engine Manufacturing
+Engineering Department.
+
+~~~~~~~~~
+EDUCATION
+~~~~~~~~~
+* PhD Program in Industrial Engineering,
+University of Wisonsin, Madison, WI,
+Jan. 1995 to Dec. 1997
+* Master of Science in Electrical Engineering,
+University of Wisonsin, Madison, WI, 1994
