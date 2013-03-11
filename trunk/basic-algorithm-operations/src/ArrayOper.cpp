@@ -4,6 +4,7 @@
 #include "ArrayOper.h"
 #include "config.h"
 #include "MyUtil.h"
+#include <string.h>
 #include <assert.h>
 
 void printSumPairs(int a[], int n, int sum)
@@ -483,6 +484,77 @@ int rand_m(int n, int m)
 	return 1 + (x % m);
 }
 
+/*
+move all the "*" to the left side, and others to the right side,
+keep the original order
+*/
+void reorder(char* str, int n)
+{
+	/*
+	int i , j = n-1;  
+    for(i = n - 1 ; i >= 0 ; --i)  
+    {
+		// j >= i
+		//i is the index of non-"*"
+        if(str[i] != '*')  
+        {  
+			//j is the index of "*"
+            if(str[j] == '*')  
+            {  
+                str[j] = str[i];  
+                str[i] = '*';  
+            }
+            --j; 
+        }  
+    }
+	*/
+	int i, count = 0;
+	for(i = n - 1; i >= 0; i--)
+	{
+		if(str[i] == '*')
+		{
+			count++;
+		}
+		else if(count > 0)
+		{
+			str[i + count] = str[i];
+		}
+	}
+	for(i = count - 1; i >= 0; i--)
+	{
+		str[i] = '*';
+	}
+}
+
+int find_min_in_rotate(int a[], int left, int right)
+{
+	int m;
+	while(left <= right)
+	{
+		if(a[left] <= a[right])
+		{
+			return left;
+		}
+		m = (left + right) / 2;
+		if(a[left] <= a[m])
+		{
+			left = m + 1;
+		}
+		else
+		{
+			if(a[m] < a[m-1])
+			{
+				return m;
+			}
+			else
+			{
+				right = m - 1;
+			}
+		}
+	}
+	return -1;
+}
+
 void testArrayOper()
 {
 #if ((ARRAY_OPER_TEST) == 1)
@@ -539,7 +611,7 @@ void testArrayOper()
 	find2miss(e, 10, &x, &y);
 	printf("The 2 missing number: x=%d, y=%d\n", x, y);
 
-	int f[] = {2,1,5,3,6,4,8,9,7};
+	int f[] = {/*2,1,5,3,6,4,8,9,7*/1, 1, 1, 4, 5, 6, 7, 8};
 	int tmp1[20], tmp2[20];
 	n = sizeof(f)/sizeof(f[0]);
 	result = lis(f, n, tmp1, tmp2);
@@ -556,7 +628,7 @@ void testArrayOper()
 	printf("\n");
 
 	n = COUNTOF(f);
-	int distance = 3;
+	int distance = 7;
 	rotate1(f, 0, n - 1, distance);
 	output(f, COUNTOF(f));
 	rotate1(f, 0, n - 1, -distance);
@@ -564,15 +636,22 @@ void testArrayOper()
 
 	rotate2(f, 0, n - 1, distance);
 	output(f, COUNTOF(f));
-	rotate2(f, 0, n - 1, -distance);
-	output(f, COUNTOF(f));
+// 	rotate2(f, 0, n - 1, -distance);
+// 	output(f, COUNTOF(f));
+
+	int minIndex = find_min_in_rotate(f, 0, n - 1);
+	printf("min[%d]=%d\n", minIndex, f[minIndex]);
 
 	int aa[] = {1, 2, 3, 6, 9, 10, 4, 5, 7, 8, 11};
 	//int aa[] = {11, 10, 9, 8, 7, 6, 5, 4, 3, 5, 1};
 	//int aa[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
-	int low = 0, high = COUNTOF(aa) - 1, m = high / 2;
+	int low = 0, high = COUNTOF(aa) - 1, m = high / 2; 
 	merge(aa, low, high, m);
 	output(aa, COUNTOF(aa));
+
+	char str[] = "1**2**3*4";
+	reorder(str, strlen(str));
+	printf("%s\n", str);
 
 	printSep(__FILE__);
 #endif

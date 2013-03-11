@@ -272,6 +272,48 @@ int index_common(const char* tstr, const char* pstr, int off)
 	return -1;
 }
 
+void print_word(const char* start, const char* end)
+{
+	while(start < end)
+	{
+		printf("%c", *start);
+		start++;
+	}
+	printf("\n");
+}
+
+void find_words(const char* str)
+{
+	const char *p1 = str, *p2 = str;
+
+	while(true)
+	{
+		//find first non-space char
+		while(*p2 == ' ')
+		{
+			p2++;
+		}
+		//end
+		if(*p2 == '\0')
+		{
+			break;
+		}
+		p1 = p2;
+
+		//find first space char
+		while(*p2 != '\0' && *p2 != ' ')
+		{
+			p2++;
+		}
+		print_word(p1, p2);
+		//end
+		if(*p2 == '\0')
+		{
+			break;
+		}
+	}
+}
+
 void testStringOper()
 {
 #if ((STRING_OPER_TEST) == 1)
@@ -315,6 +357,8 @@ void testStringOper()
 	printf("gen off: %d\n", index);
 
 	std::vector<int> vec;
+
+	find_words("I   love   programming!    Hello,   are you fine?   ");
 
 	printSep(__FILE__);
 #endif
