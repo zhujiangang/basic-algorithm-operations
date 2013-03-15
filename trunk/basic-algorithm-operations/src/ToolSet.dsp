@@ -147,6 +147,10 @@ SOURCE=.\StackQueue.cpp
 
 SOURCE=.\StringOper.cpp
 # End Source File
+# Begin Source File
+
+SOURCE=.\TicTacToe.cpp
+# End Source File
 # End Group
 # Begin Group "Header Files"
 
@@ -218,6 +222,10 @@ SOURCE=.\StackQueue.h
 # Begin Source File
 
 SOURCE=.\StringOper.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\TicTacToe.h
 # End Source File
 # End Group
 # Begin Group "Resource Files"
