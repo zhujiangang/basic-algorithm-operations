@@ -17,6 +17,7 @@
 #include "FindClosestPoints.h"
 #include "Lcs.h"
 #include "ChipTest.h"
+#include "TicTacToe.h"
 
 int main(int argc, char* argv[])
 {
@@ -34,6 +35,7 @@ int main(int argc, char* argv[])
 	testFindClosestPoints();
 	testLCS();
 	testChipTest();
+	testTicTacToe();
 	return 0;
 }
 

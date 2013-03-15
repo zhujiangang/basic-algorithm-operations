@@ -11,7 +11,6 @@ void printSep();
 void printSep(const char* str);
 char* getFileName(const char* fullFileName);
 
-
 void swap(int& x, int& y);
 
 void genrand(int a[], int n, int limit = 0, int seed = 0);

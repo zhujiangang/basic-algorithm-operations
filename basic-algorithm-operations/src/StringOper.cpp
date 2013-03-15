@@ -149,19 +149,57 @@ void NextArray(const char* str, int next[])
 	printf("\n");
 }
 
+void MyNextArray(const char* str, int next[])
+{
+	int n = strlen(str);
+	next[0] = -1;
+
+	int i, j;
+	for(i = 0, j = -1; i < n - 1; )
+	{
+		/*
+		if(j < 0)
+		{
+			next[i + 1] = 0;
+			
+			i++;
+			j = 0;
+		}
+		else if(str[i] == str[j])
+		{
+			next[i + 1] = next[i] + 1;
+			
+			i++;
+			j++;
+		}
+		*/
+		if(j == -1 || str[i] == str[j])
+		{
+			i++;
+			j++;
+
+			next[i] = j;
+		}
+		else
+		{
+			j = next[j];
+		}
+	}
+}
+
 int Index_KMP(const char* tstr, const char* pstr, int off)
 {
 	int tlen = strlen(tstr);
 	int plen = strlen(pstr);
-
+	
 	if(tlen < plen)
 	{
 		return -1;
 	}
-
+	
 	int* next = new int[tlen];
-	NextArray(pstr, next);
-
+	MyNextArray(pstr, next);
+	
 	int i, j;
 	for(i = off, j = 0; i < tlen && j < plen; )
 	{
@@ -175,9 +213,9 @@ int Index_KMP(const char* tstr, const char* pstr, int off)
 			j = next[j];
 		}
 	}
-
+	
 	delete [] next;
-
+	
 	if(j >= plen)
 	{
 		return i - plen;
@@ -186,32 +224,6 @@ int Index_KMP(const char* tstr, const char* pstr, int off)
 	{
 		return -1;
 	}
-}
-void MyNextArray(const char* str, int next[])
-{
-	int len = strlen(str);
-	next[0] = -1;
-
-	int i, j;
-	for(i = 0, j = -1; i < len - 1;)
-	{
-		if(j == -1 || str[i] == str[j])
-		{
-			i++;
-			j++;
-			next[i] = j;
-		}
-		else
-		{
-			j = next[j];
-		}
-	}
-	
-	for(i = 0; i < len; i++)
-	{
-		printf("%d ", next[i]);
-	}
-	printf("\n");
 }
 
 int Index(const char* tstr, const char* pstr, int off)
