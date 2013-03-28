@@ -18,6 +18,7 @@
 #include "Lcs.h"
 #include "ChipTest.h"
 #include "TicTacToe.h"
+#include "EightQueen.h"
 
 int main(int argc, char* argv[])
 {
@@ -36,6 +37,7 @@ int main(int argc, char* argv[])
 	testLCS();
 	testChipTest();
 	testTicTacToe();
+	testEightQueen();
 	return 0;
 }
 
