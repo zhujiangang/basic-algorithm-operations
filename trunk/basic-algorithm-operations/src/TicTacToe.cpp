@@ -1,6 +1,7 @@
 #include "config.h"
 #include "TicTacToe.h"
 #include <stdio.h>
+#include "MyUtil.h"
 
 #define NONE 0
 #define X    1
@@ -220,6 +221,71 @@ int checkLine(int a[N][N], int startRow, int startCol, int dirRow, int dirCol)
 	return NONE;
 }
 
+int ticTacToe3(int a[N][N])
+{
+	int i, j;
+	int rowCount, colCount, diag = 0, antiDiag = 0, steps = 0;
+
+	for(i = 0; i < N; i++)
+	{
+		rowCount = 0;
+		colCount = 0;
+		
+		if(a[0][0] != NONE && a[i][i] == a[0][0])
+		{
+			diag++;
+		}
+		if(a[0][N - 1] != NONE && a[i][N - i - 1] == a[0][N - 1])
+		{
+			antiDiag++;
+		}
+
+		rowCount = colCount = 0;
+		for(j = 0; j < N; j++)
+		{
+			if(a[i][j] != NONE)
+			{
+				steps++;
+			}
+			//row
+			if(a[i][0] != NONE && a[i][j] == a[i][0])
+			{
+				rowCount++;
+			}
+
+			//col
+			if(a[0][i] != NONE && a[j][i] == a[0][i])
+			{
+				colCount++;
+			}
+		}
+
+		if(rowCount == N)
+		{
+			return a[i][0];
+		}
+		if(colCount == N)
+		{
+			return a[0][i];
+		}
+	}
+
+	if(diag == N)
+	{
+		return a[0][0];
+	}
+	if(antiDiag == N)
+	{
+		return a[0][N - 1];
+	}
+
+	if(steps == N * N)
+	{
+		return DRAW;
+	}
+	return NONE;
+}
+
 int ticTacToeOn(int a[N][N])
 {
 	int rowCount[N] = {0};
@@ -300,7 +366,7 @@ void testTicTacToe()
 {
 #if ((TIC_TAC_TOE_TEST) == 1)
 
-	PlayPtr impls[] = {ticTacToeNaive, ticTacToeDir, ticTacToeOn};
+	PlayPtr impls[] = {ticTacToeNaive, ticTacToeDir, ticTacToe3, ticTacToeOn};
 	int implCount = sizeof(impls)/sizeof(impls[0]);
 
 	int boards[][N][N] = 
@@ -327,5 +393,7 @@ void testTicTacToe()
 		}
 		printf("\n");
 	}
+
+	printSep(__FILE__);
 #endif
 }

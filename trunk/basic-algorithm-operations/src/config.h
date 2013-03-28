@@ -16,4 +16,5 @@
 #define LCS 0
 #define CHIP_TEST 0
 #define TIC_TAC_TOE_TEST 1
+#define EIGHT_QUEEN_TEST 0
 #endif

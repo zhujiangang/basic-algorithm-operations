@@ -113,6 +113,10 @@ SOURCE=.\Common.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\EightQueen.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\FileOper.cpp
 # End Source File
 # Begin Source File
@@ -186,6 +190,10 @@ SOURCE=.\Common.h
 # Begin Source File
 
 SOURCE=.\config.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\EightQueen.h
 # End Source File
 # Begin Source File
 
