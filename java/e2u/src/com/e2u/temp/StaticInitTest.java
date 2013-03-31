@@ -45,48 +45,12 @@ public class StaticInitTest
 	 */
 	public static void main(String[] args)
 	{
-		/*
-		System.out.println(StaticInitTest.list);
-		Calendar cal = Calendar.getInstance();
-		System.out.println(cal);
-		String time = null;
-		
-//		TimeZone tz = cal.getTimeZone();
-//		int offset = tz.getRawOffset();
-//		offset = offset / (1000 * 60 * 60);
-//		System.out.println(offset);
-//		Calendar tzCal = Calendar.getInstance(tz);
-//		String   time   =   tzCal.getTime().toString();
-//		System.out.println(time);//输出为GMT时间		
-		
-		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		time = formatter.format(cal.getTime());
-		System.out.println(time);
-		
-		Date date = null; 
-		
-		try
+		ClassLoader loader = StaticInitTest.class.getClassLoader();
+		while (loader != null) 
 		{
-			date = formatter.parse(time);
+			System.out.println(loader.toString());
+			loader = loader.getParent();
 		}
-		catch(Exception e)
-		{
-			e.printStackTrace();
-		}
-		System.out.println(date);
-		time = formatter.format(date);
-		System.out.println(time);
-		*/
-		/*
-		double d = 456.897456114d;
-		
-		String str = String.format("%.5f", d);
-		System.out.println(str);
-		
-		str = String.format("%.1d", d);
-		System.out.println(str);
-		*/
-		test1();
 	}
 
 }

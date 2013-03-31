@@ -7,7 +7,7 @@
 #define BIT_OPER_TEST 0
 #define COMBINE_MATH_TEST 0
 #define FILE_OPER_TEST 0
-#define LINKED_LIST_TEST 0
+#define LINKED_LIST_TEST 1
 #define LINKED_LIST_EX_TEST 0
 #define POINT24_TEST 0
 #define STACK_QUEUE_TEST 0
@@ -15,6 +15,6 @@
 #define FIND_CLOSEST_POINTS 0
 #define LCS 0
 #define CHIP_TEST 0
-#define TIC_TAC_TOE_TEST 1
+#define TIC_TAC_TOE_TEST 0
 #define EIGHT_QUEEN_TEST 0
 #endif

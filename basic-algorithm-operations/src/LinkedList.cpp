@@ -629,6 +629,132 @@ node* reverse(node* ph)
 	return prev;
 }
 
+void reverse_sub(node* ph, int n, node** pHead, node** pNext)
+{
+	node *prev = NULL, *curr = ph, *next;
+	for(int i = 0; i < n && curr != NULL; i++)
+	{
+		next = curr->next;
+		curr->next = prev;
+		prev = curr;
+		curr = next;
+	}
+
+	*pHead = prev;
+	*pNext = curr;
+}
+
+//The way I firstly wrote down
+node* reverse_n0(node* ph, int n)
+{
+	node *curr = ph, *pResult = NULL;
+	node *currHead = NULL, *currTail, *head, *next;
+	while(curr != NULL)
+	{
+		currTail = curr;	//this is not necessary
+		reverse_sub(curr, n, &head, &next);
+		if(pResult == NULL)
+		{
+			pResult = head;
+		}
+		else
+		{
+			currHead->next = head;
+		}
+		currHead = currTail;
+		curr = next;
+	}
+	return pResult;
+}
+
+//Improved version 1
+//Create a head node to remove the "result head check"
+node* reverse_n1(node* ph, int n)
+{
+	node hn;
+	hn.next = NULL;
+
+	//currHead won't be null
+	node *currHead = &hn, *head, *next, *curr = ph;
+	while(curr != NULL)
+	{
+		reverse_sub(curr, n, &head, &next);
+		currHead->next = head;
+		currHead = curr;
+		curr = next;
+	}
+	return hn.next;
+}
+
+//Improved version 2
+//Remove the sub process "reverse_sub"
+node* reverse_n2(node* ph, int n)
+{
+	node hn;
+	hn.next = NULL;
+	
+	node *currHead = &hn, *nextHead, *prev, *curr = ph, *next;
+	while(curr != NULL)
+	{
+		//save the next head node
+		nextHead = curr;
+
+		//make sure the last node's next is NULL
+		prev = NULL;
+		for(int i = 0; i < n && curr != NULL; i++)
+		{
+			next = curr->next;
+			curr->next = prev;
+			prev = curr;
+			curr = next;
+		}
+
+		//prev is the new sub list head
+		currHead->next = prev;
+
+		//update the currHead
+		currHead = nextHead;
+
+		//"curr = next;" is not necessary since "curr is already equals to next"
+	}
+
+	return hn.next;
+}
+
+//Improved version 3
+//Don't use head node, but with two star (**). Only suitable for C/C++
+node* reverse_n3(node* ph, int n)
+{
+	node **head = &ph;
+	
+	node *nextHead, *prev, *curr = ph, *next;
+	while(curr != NULL)
+	{
+		//save the next head node
+		nextHead = curr;
+		
+		//make sure the last node's next is NULL
+		prev = NULL;
+		for(int i = 0; i < n && curr != NULL; i++)
+		{
+			next = curr->next;
+			curr->next = prev;
+			prev = curr;
+			curr = next;
+		}
+		
+		//prev is the new sub list head
+		*head = prev;
+		
+		//update the currHead
+		head = &nextHead->next;
+		
+		//"curr = next;" is not necessary since "curr is already equals to next"
+	}
+	
+	return ph;
+}
+
 node* checkListLoop(node* ph)
 {
 	node* p1 = ph;
@@ -1624,9 +1750,15 @@ void testLinkedList()
 {
 #if ((LINKED_LIST_TEST) == 1)
 	//(0). Set up linkedlist
-	int data0[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+	int data0[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
 	int data1[] = {9, 8, 9, 8, 9, 8, 9};
 	int data2[] = {24,38,86,97,18,84,56,86,97,24};
+
+	node* p0 = createList(data0, COUNTOF(data0));
+	printList(p0);
+
+	p0 = reverse_n3(p0, 3);
+	printList(p0);
 
 	node* p1 = createList(data1, COUNTOF(data1));
 	printList(p1);
