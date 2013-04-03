@@ -322,6 +322,35 @@ void combine_Cnm_alpha_order2(int n, int m)
 	delete data;
 }
 
+//http://bbs.csdn.net/topics/390394527
+//http://photon.poly.edu/~hbr/boost/combinations.html
+void combine_Cnm_alpha_order3(int n, int m)
+{
+	int stack[50],top=0;
+	int curNum=1;
+	int count=0;
+	while(1)
+	{
+		stack[top++]=curNum;
+		if(top==m)
+		{
+			for(int i=0;i<m;i++)
+				printf("%d ",stack[i]);
+			printf("\n");
+			count++;
+
+			curNum=stack[--top];
+		}
+		curNum++;
+
+		//crash here, top might be -1
+		while(curNum>n)
+			curNum=stack[--top]+1;
+		if(top<0) break;
+	}
+	printf("[%d]\n",count);
+}
+
 /************************************************************************/
 /* C(n, m) = C(n-1, m-1) + C(n-1, m)                                   */
 /************************************************************************/
@@ -441,6 +470,9 @@ void testCombineMath()
 
 	printf("combine_Cnm_alpha_order2: \n");
 	combine_Cnm_alpha_order2(n, m);
+
+	printf("combine_Cnm_alpha_order3: \n");
+	combine_Cnm_alpha_order3(n, m);
 	
 	int used[n];
 	memset(used, 0, n * sizeof(int));
