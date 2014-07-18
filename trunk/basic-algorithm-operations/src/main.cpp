@@ -19,6 +19,7 @@
 #include "ChipTest.h"
 #include "TicTacToe.h"
 #include "EightQueen.h"
+#include "Heap.h"
 
 int main(int argc, char* argv[])
 {
@@ -38,6 +39,7 @@ int main(int argc, char* argv[])
 	testChipTest();
 	testTicTacToe();
 	testEightQueen();
+	testHeap();
 	return 0;
 }
 

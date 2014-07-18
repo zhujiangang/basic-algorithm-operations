@@ -6,6 +6,10 @@
 #include "MyUtil.h"
 #include <string.h>
 #include <assert.h>
+#include "Heap.h"
+#include <map>
+
+#pragma warning(disable: 4786)
 
 void printSumPairs(int a[], int n, int sum)
 {
@@ -555,6 +559,93 @@ int find_min_in_rotate(int a[], int left, int right)
 	return -1;
 }
 
+struct Entry
+{
+	int val;
+	int index;
+};
+
+int EntryCompare1(const void* arg1, const void* arg2)
+{
+	const Entry* e1 = (const Entry*)arg1;
+	const Entry* e2 = (const Entry*)arg2;
+	
+	return e1->val - e2->val;
+}
+
+static int makeIndex(int n, int i, int j)
+{
+	return j * n + i;
+}
+
+static void getIndex2(int n, int index, int& i, int& j)
+{
+	j = index / n;
+	i = index % n;
+}
+
+static Entry* makeEntry(int a[], int n, int b[], int i, int j)
+{
+	Entry* pEntry = new Entry();
+	pEntry->index = makeIndex(n, i, j);
+	pEntry->val = a[i] + b[j];
+
+	return pEntry;
+}
+
+static void insertNewEntry(std::map<int, bool>& indexMap, Heap* pHeap, int a[], int n, int b[], int i, int j)
+{
+	int index = makeIndex(n, i, j);
+
+	if(indexMap.find(index) != indexMap.end())
+	{
+		return;
+	}
+
+	Entry* pEntry = new Entry();
+	pEntry->index = index;
+	pEntry->val = a[i] + b[j];
+	
+	pHeap->insert(pEntry);
+
+	indexMap[index] = true;
+}
+
+
+//a, b两个有序数组，分别从a,b数组中取出一个数相加取和，按顺序打印出前k个这样的和
+void ksum(int a[], int n, int b[], int m, int k)
+{
+	std::map<int, bool> indexMap;
+
+	Heap* pHeap = new Heap();
+	pHeap->setCompareFunc(EntryCompare1);
+
+	int i = 0, j = 0;
+	Entry* pEntry = NULL;
+
+	insertNewEntry(indexMap, pHeap, a, n, b, i, j);
+
+	for(int count = 0; count < k && pHeap->size() > 0; count++)
+	{
+		pEntry = (Entry*)pHeap->removeTop();
+		getIndex2(n, pEntry->index, i, j);
+
+		printf("(a[%d]=%d, b[%d]=%d)=%d\n", i, a[i], j, b[j], pEntry->val);
+
+		if(i + 1 < n)
+		{
+			insertNewEntry(indexMap, pHeap, a, n, b, i + 1, j);
+		}
+
+		if(j + 1 < m)
+		{
+			insertNewEntry(indexMap, pHeap, a, n, b, i, j + 1);
+		}
+
+		delete pEntry;
+	}
+}
+
 void testArrayOper()
 {
 #if ((ARRAY_OPER_TEST) == 1)
@@ -652,6 +743,15 @@ void testArrayOper()
 	char str[] = "1**2**3*4";
 	reorder(str, strlen(str));
 	printf("%s\n", str);
+
+	
+	int arrayA[] = {1, 4, 6, 8, 10};
+	n = COUNTOF(arrayA);
+
+	int arrayB[] = {2, 3, 4, 5, 6, 7, 9, 14};
+	m = COUNTOF(arrayB);
+
+	ksum(arrayA, n, arrayB, m, n * m / 2);
 
 	printSep(__FILE__);
 #endif
